@@ -21,7 +21,7 @@ Pe telefon apar butoane pe ecran.
 ## Ce găsești în joc
 
 - **4 niveluri:** Ferma (zi), Noaptea la fermă, Pădurea de brazi (iarna), Deșertul (noapte). Ultimul se termină la restaurantul MESOPOTAMIA.
-- **Pădurea de brazi:** e iarnă, cu munți înzăpeziți în spate, brazi, zăpadă pe jos și pe blocuri și fulguire ușoară. Muzica e mai liniștită, ca niște clopoței. Lacurile sunt mari și înghețate și se poate merge pe ele, dar:
+- **Pădurea de brazi:** e un nivel de două ori mai lung, cu un lac foarte mare spre final, peste care sunt platforme sus, păzite de mobi. E iarnă, cu munți înzăpeziți în spate, brazi, zăpadă pe jos și pe blocuri și fulguire ușoară. Muzica e mai liniștită, ca niște clopoței. Lacurile sunt mari și înghețate și se poate merge pe ele, dar:
   - pe gheață aluneci puțin când te oprești sau întorci;
   - gheața e doar un strat subțire la suprafață: dacă stai ~2 secunde pe același loc, trosnește, crapă și cazi prin ea în lac; gaura îngheață la loc după câteva secunde;
   - în unele lacuri sunt copci (apă deschisă, cu margini zimțate, bucăți de gheață plutind și țăruși cu steguleț roșu pe margini) pe care trebuie să le sari;
@@ -42,7 +42,7 @@ Pe telefon apar butoane pe ecran.
   - **Fermierul cu furcă** (cămașă roșie) te urmărește și, când ajunge lângă tine, te împunge (trage întâi furca înapoi — sari peste ea). 200 de puncte.
   - În primul nivel sunt la început doar ucenici; fermierii cu furcă apar abia spre final. În nivelul 2 sunt amestecați (ucenicii n-au felinar și nu te caută).
 - **Gropi cu apă:** curcanul încă nu știe să înoate. Dacă pică în apă, pleoscăie, se scufundă și pierde o viață. Bombele căzute în apă se sting fără să explodeze, iar dacă le-ai împins tu acolo, primești 100 de puncte.
-- **Puncte de salvare** la jumătatea fiecărui nivel, cronometru și record salvat în browser.
+- **Puncte de salvare** la jumătatea fiecărui nivel (pădurea de brazi, de două ori mai lungă, are două), cronometru și record salvat în browser.
 
 ## Testare
 
