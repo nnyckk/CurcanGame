@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Curcanul în Fugă — Test</title>
+<style>
+  :root{--bg:#0d0b14;--panel:#1a1626;--line:#2e2840;--text:#e8e4f0;--muted:#9a94ad;--accent:#ffd23f;--on:#2f7a3c}
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,sans-serif;
+    display:flex;gap:16px;padding:16px}
+  main{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+  iframe{width:100%;aspect-ratio:400/224;border:2px solid var(--line);border-radius:6px;background:#000;display:block}
+  aside{width:270px;flex:none;display:flex;flex-direction:column;gap:16px}
+  h1{font-size:16px;margin:0;color:var(--accent)}
+  h2{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 6px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  button{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:6px;
+    padding:8px 10px;font:inherit;text-align:left;cursor:pointer}
+  button:hover{border-color:var(--accent)}
+  button[aria-pressed="true"]{background:var(--on);border-color:var(--on)}
+  .wide{grid-column:1/-1}
+  #status{font:12px ui-monospace,Consolas,monospace;color:var(--muted);background:var(--panel);
+    border:1px solid var(--line);border-radius:6px;padding:8px 10px}
+  .hint{color:var(--muted);font-size:12px;margin:0}
+  .legend{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12px;color:var(--muted);margin:6px 0 0}
+  .legend i{display:inline-block;width:10px;height:10px;border:2px solid;margin-right:4px;vertical-align:-1px}
+  @media (max-width:800px){body{flex-direction:column}aside{width:auto}}
+</style>
+</head>
+<body>
+<main>
+  <iframe id="frame" src="index.html?test" title="Jocul în modul de test"></iframe>
+  <p class="hint">Controale: ← → mergi, SPACE sari, X fugi / aruncă pene, P pauză, M muzică.
+    După orice buton din panou, jocul primește din nou tastatura.</p>
+</main>
+<aside>
+  <h1>Laborator de test</h1>
+
+  <section>
+    <h2>Curcanul</h2>
+    <div class="grid">
+      <button data-cmd="grain">Grăunte (mare)</button>
+      <button data-cmd="berry">Boabă roșie (foc)</button>
+      <button data-cmd="small" class="wide">Fă-l mic</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Mobi (apar în fața curcanului)</h2>
+    <div class="grid">
+      <button data-cmd="man">Fermier</button>
+      <button data-cmd="bomb">Bombă</button>
+      <button data-cmd="sitbomb" class="wide">Bombă în fund (gata de împins)</button>
+      <button data-cmd="clear" class="wide">Șterge toți mobii</button>
+    </div>
+  </section>
+
+  <section>
+    <h2>Moduri</h2>
+    <div class="grid">
+      <button data-cmd="god" data-toggle="god" aria-pressed="false">Invincibil</button>
+      <button data-cmd="slow" data-toggle="slow" aria-pressed="false">Slow motion</button>
+      <button data-cmd="hitbox" data-toggle="hitbox" aria-pressed="false" class="wide">Arată hitbox-urile</button>
+    </div>
+    <div class="legend">
+      <span><i style="border-color:#00ff66"></i>curcan</span>
+      <span><i style="border-color:#ff4040"></i>fermier</span>
+      <span><i style="border-color:#ff40ff"></i>furca</span>
+      <span><i style="border-color:#ffa000"></i>bombă</span>
+      <span><i style="border-color:#40c0ff"></i>power-up</span>
+      <span><i style="border-color:#ffc080"></i>pene</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>Nivel</h2>
+    <div class="grid">
+      <button data-cmd="reset" class="wide">Resetează arena</button>
+    </div>
+  </section>
+
+  <div id="status">Se încarcă jocul…</div>
+</aside>
+
+<script>
+'use strict';
+const frame=document.getElementById('frame'),statusEl=document.getElementById('status');
+const focusGame=()=>{try{frame.focus();frame.contentWindow.focus();}catch(e){}};
+
+// Fiecare buton trimite o comandă jocului (vezi TEST_CMDS în index.html), apoi îi dă înapoi tastatura.
+document.querySelectorAll('button[data-cmd]').forEach(b=>b.addEventListener('click',()=>{
+  frame.contentWindow.postMessage({cmd:b.dataset.cmd},'*');
+  focusGame();
+}));
+
+// Jocul trimite starea de câteva ori pe secundă: aprindem butoanele de mod și scriem un rezumat.
+addEventListener('message',e=>{
+  if(e.source!==frame.contentWindow||!e.data||!e.data.status)return;
+  const s=e.data.status;
+  document.querySelectorAll('button[data-toggle]').forEach(b=>b.setAttribute('aria-pressed',String(!!s[b.dataset.toggle])));
+  statusEl.textContent='Curcan: '+(s.big?'mare':'mic')+(s.fire?', de foc':'')+' · Mobi: '+s.enemies;
+});
+
+frame.addEventListener('load',focusGame);
+</script>
+</body>
+</html>
