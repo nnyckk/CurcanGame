@@ -8,10 +8,15 @@
   :root{--bg:#0d0b14;--panel:#1a1626;--line:#2e2840;--text:#e8e4f0;--muted:#9a94ad;--accent:#ffd23f;--on:#2f7a3c}
   *{box-sizing:border-box}
   body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,sans-serif;
-    display:flex;gap:16px;padding:16px}
-  main{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
-  iframe{width:100%;aspect-ratio:400/224;border:2px solid var(--line);border-radius:6px;background:#000;display:block}
+    display:flex;justify-content:center;align-items:flex-start;gap:16px;padding:16px}
+  main{flex:none;width:min-content;display:flex;flex-direction:column;gap:8px}
+  /* Mărimea iframe-ului o pune scriptul de jos: exact jocul mărit de un număr întreg de ori (fără margini negre). */
+  iframe{width:804px;height:452px;border:2px solid var(--line);border-radius:6px;background:#000;display:block}
   aside{width:270px;flex:none;display:flex;flex-direction:column;gap:16px}
+  /* Când nu e loc în dreapta, panoul trece sub joc, cu secțiunile una lângă alta. */
+  body.stacked{flex-direction:column;align-items:center}
+  body.stacked aside{width:100%;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));align-items:start}
+  body.stacked aside h1,body.stacked #status{grid-column:1/-1}
   h1{font-size:16px;margin:0;color:var(--accent)}
   h2{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 6px}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
@@ -25,7 +30,6 @@
   .hint{color:var(--muted);font-size:12px;margin:0}
   .legend{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12px;color:var(--muted);margin:6px 0 0}
   .legend i{display:inline-block;width:10px;height:10px;border:2px solid;margin-right:4px;vertical-align:-1px}
-  @media (max-width:800px){body{flex-direction:column}aside{width:auto}}
 </style>
 </head>
 <body>
@@ -64,6 +68,7 @@
       <button data-cmd="slow" data-toggle="slow" aria-pressed="false">Slow motion</button>
       <button data-cmd="hitbox" data-toggle="hitbox" aria-pressed="false" class="wide">Arată hitbox-urile</button>
       <button data-cmd="night" data-toggle="night" aria-pressed="false" class="wide">Noapte (felinare)</button>
+      <button data-cmd="winter" data-toggle="winter" aria-pressed="false" class="wide">Iarnă (lac înghețat)</button>
     </div>
     <div class="legend">
       <span><i style="border-color:#00ff66"></i>curcan</span>
@@ -106,6 +111,25 @@ addEventListener('message',e=>{
 });
 
 frame.addEventListener('load',focusGame);
+
+// Așezarea: panoul stă în dreapta doar dacă jocul încape acolo cel puțin la fel de mare ca atunci când panoul e
+// dedesubt; altfel (ecran îngust sau fereastră mică) panoul trece sub joc. Jocul se mărește cu un număr întreg de
+// ori (2x, 3x...), ca pixelii să rămână egali, iar iframe-ul primește exact mărimea lui.
+const aside=document.querySelector('aside'),hintEl=document.querySelector('.hint');
+function layout(){
+  const PAD=16,GAP=16,B=4;                                  // B = rama iframe-ului (2px pe fiecare parte)
+  const fit=(w,h)=>Math.min((w-B)/400,(h-B)/224);
+  document.body.classList.remove('stacked');const asideW=aside.offsetWidth;
+  document.body.classList.add('stacked');const panelH=aside.offsetHeight;
+  const hintH=hintEl.offsetHeight+8;
+  const side=fit(innerWidth-2*PAD-GAP-asideW,innerHeight-2*PAD-hintH);
+  const below=fit(innerWidth-2*PAD,innerHeight-2*PAD-hintH-GAP-panelH);
+  const stacked=side<2||Math.floor(below)>Math.floor(side);
+  document.body.classList.toggle('stacked',stacked);
+  const s=stacked?below:side,k=s>=2?Math.floor(s):Math.max(1,s);
+  frame.style.width=Math.floor(400*k)+B+'px';frame.style.height=Math.floor(224*k)+B+'px';
+}
+addEventListener('resize',layout);layout();
 </script>
 </body>
 </html>
