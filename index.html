@@ -34,7 +34,7 @@
 <script>
 'use strict';
 // ================= SETUP =================
-const GAME_VERSION='0.7';
+const GAME_VERSION='0.7.1';
 // Modul de test (index.html?test): arenă de test, comenzi din test.html. Pentru jucători nu se schimbă nimic.
 const TEST=/[?&]test\b/.test(location.search);
 const W=400,H=224,TS=16,ROWS=14,TAU=Math.PI*2;
@@ -255,6 +255,34 @@ const MAN_STAB_BODY=[
 MAN.WIND=spr(MAN_HEAD.concat(MAN_WIND_BODY,MLEG_A),MAN_PAL);
 MAN.STAB=spr(MAN_HEAD.concat(MAN_STAB_BODY,MLEG_B),MAN_PAL);
 const MAN_WIND_T=18,MAN_STAB_T=14,MAN_REACH=14;
+
+// --- Ucenicul (fermierul simplu, fără furcă) ---
+// Tânăr, fără mustață, pălărie de paie, cămașă verde cu salopetă albastră și o găleată în mâna din față.
+// Nu te urmărește și nu atacă: doar se plimbă încet. Dă jumătate din punctele fermierului cu furcă.
+const BOY_PAL={k:'#1a1020',H:'#ecd070',N:'#2e6a2a',s:'#f0b088',h:'#8a5a2a',K:'#3a1a0a',G:'#4a9a3a',P:'#3a5aa8',l:'#e4e8ee',b:'#a0aab8',B:'#6a7684'};
+const BOY_TOP=[
+".....kkkkk......",
+"....kHHHHHk.....",
+"....kNNNNNk.....",
+"..kHHHHHHHHHk...",
+"....khssssk.....",
+"....kssKsKk.....",
+"....ksssssk.....",
+"....ksssKsk.....",
+".....kssssk.....",
+".....kssk.......",
+"...kkGGGGGkk....",
+"..kGGPGGGPGGk...",
+".ksGGPGGGPGGskk.",
+".ksGGPPPPPGGs..k",
+"..kkkPPPPPkkkllk",
+"....kPPPPPk.kbbk",
+];
+const BLEG_A=["....kPPkPPk.kbBk","....kPPkPPk..kk.","....kPk.kPk.....","...kkkk.kkkk...."];
+const BLEG_B=["....kPPkPPk.kbBk","...kPPk..kPPkkk.","...kPk....kPk...","..kkkk....kkkk.."];
+const BOY={A:spr(BOY_TOP.concat(BLEG_A),BOY_PAL),B:spr(BOY_TOP.concat(BLEG_B),BOY_PAL)};
+BOY.FLIP=mkSprite(BOY_TOP.concat(BLEG_A).reverse(),BOY_PAL,false);
+const BOY_SPEED=0.4;
 // Felinarul (noaptea): conul de lumină din fața fermierului — lung de ~7 tile-uri, deschis la ±17°.
 // Te vede dacă vârful, mijlocul sau picioarele curcanului intră în con. LOST_T = cât te mai caută după ce ieși.
 const LANTERN_LEN=110,LANTERN_HALF=0.3,LOST_T=150;
@@ -858,19 +886,21 @@ function newMap(w){
 }
 const LEVELS=[
  {theme:0,tip:'GRĂUNTELE AURIU DIN BLOCURILE M TE FACE MARE!',build(){const m=newMap(210);m.g(0,209);
+  // Primul nivel e de învățat: până după punctul de salvare sunt doar ucenici (fără furcă, nu te urmăresc);
+  // fermierii cu furcă apar abia spre final, la ultimele două întâlniri.
   m.c(6,10,3);m.r(12,8,'BMBHB');m.c(13,5,3);
-  m.e('man',22);
+  m.e('boy',22);
   m.st(27,4,1);m.pit(31,33);m.c(31,6,3);m.st(34,2,-1);
   m.sp(41,3);m.c(41,8,3);
-  m.r(48,8,'======');m.c(49,7,4);m.e('man',51,7);
+  m.r(48,8,'======');m.c(49,7,4);m.e('boy',51,7);
   m.e('bomb',60);
   m.r(64,8,'BMBMB');m.c(65,4,3);
-  m.e('man',72);
+  m.e('boy',72);
   m.pit(77,80);m.c(77,9,4);
-  m.f(83,10,6,2,'D');m.e('man',86,9);
+  m.f(83,10,6,2,'D');m.e('boy',86,9);
   m.cp(93);
   m.c(96,10,5);m.r(97,8,'MHM');
-  m.e('man',102);m.e('man',108);
+  m.e('boy',102);m.e('boy',108);
   m.e('bomb',114);m.sp(118,2);
   m.st(122,4,1);m.pit(126,128);m.c(126,6,3);m.st(129,4,-1);
   m.e('man',138);m.e('bomb',143);m.r(140,8,'BBMBB');
@@ -881,22 +911,24 @@ const LEVELS=[
   return m.done();}},
  // Nivelul 2 — ferma noaptea: fermierii cu felinar te văd doar în conul de lumină din fața lor,
  // așa că traseul are locuri unde te poți strecura prin spatele lor (dâmburi, platforme deasupra ta, iazuri).
+ // Ucenicii (fără felinar, nu te caută) sunt amestecați printre ei; fermierii cu felinar păstrează locurile de strecurat.
+ // De două ori fermierul are ucenicul în spatele lui (106/112 și 174/186).
  {theme:3,song:'night',tip:'NOAPTEA, FERMIERII TE VĂD DOAR ÎN LUMINA FELINARULUI!',build(){const m=newMap(220);m.g(0,219);
   m.c(6,10,3);m.r(11,8,'BMBHB');m.c(12,5,3);
-  m.e('man',24);
+  m.e('boy',24);
   m.st(30,3,1);m.pit(33,36);m.c(33,8,4);m.st(37,3,-1);
   m.e('man',44);m.sp(50,2);
   m.f(54,10,8,2,'D');m.e('man',58,9);m.r(55,6,'BMB');
   m.pit(64,67);m.r(64,8,'====');m.c(64,7,4);
-  m.e('bomb',72);m.e('man',78);
+  m.e('bomb',72);m.e('boy',78);
   m.r(82,8,'======');m.c(83,7,4);m.e('man',85,7);
   m.cp(96);
-  m.r(100,8,'BHB');m.e('man',106);m.e('man',112);
+  m.r(100,8,'BHB');m.e('man',106);m.e('boy',112);
   m.st(117,4,1);m.pit(121,124);m.c(121,6,4);m.st(125,4,-1);
-  m.e('bomb',132);m.sp(136,2);m.e('man',142);
+  m.e('bomb',132);m.sp(136,2);m.e('boy',142);
   m.f(147,9,6,3,'D');m.e('man',150,8);
   m.pit(155,168);m.r(157,9,'===');m.r(162,7,'====');m.c(157,8,3);m.c(162,6,4);
-  m.e('man',174);m.e('bomb',180);m.e('man',186);
+  m.e('man',174);m.e('bomb',180);m.e('boy',186);
   m.c(190,10,6);
   m.goal('sign',204);
   return m.done();}},
@@ -990,8 +1022,10 @@ function spikeAhead(e,dir){
 function groundAhead(e,dir){const ax=dir>0?e.x+e.w+1:e.x-1;const c=tileAt(Math.floor(ax/TS),Math.floor((e.y+e.h+2)/TS));return (solid(c)&&c!=='^')||c==='=';}
 
 // Un mob nou care stă pe tile-ul (tx,ty) — ty e rândul în care stă, deasupra solului.
-function makeEnemy(type,tx,ty){return type==='man'
-  ?{type:'man',x:tx*TS+3,y:(ty+1)*TS-18,w:10,h:18,vx:0,vy:0,dir:-1,active:false,dead:0,deadT:0,anim:0,chasing:false,alert:0,atk:0,cd:0,onGround:false}
+// Ucenicul ('boy') e tot un fermier (type 'man', cu boy:true), ca să moară, să se scufunde și să
+// rănească la fel; diferă doar mersul (vezi updateMan), sprite-ul și punctele (vezi killMan).
+function makeEnemy(type,tx,ty){return type==='man'||type==='boy'
+  ?{type:'man',boy:type==='boy',x:tx*TS+3,y:(ty+1)*TS-18,w:10,h:18,vx:0,vy:0,dir:-1,active:false,dead:0,deadT:0,anim:0,chasing:false,alert:0,atk:0,cd:0,onGround:false}
   :{type:'bomb',x:tx*TS+2,y:(ty+1)*TS-12,w:12,h:12,vx:0,vy:0,dir:-1,active:false,lit:0,sit:false,slideDir:0,slideT:0,kickT:0,anim:0,onGround:false};}
 function newGame(){G.carryBig=false;G.carryFire=false;G.lives=3;G.score=0;G.coins=0;G.level=0;G.cp=null;G.state='intro';G.stateT=0;stopSong();}
 function startLevel(){
@@ -1136,10 +1170,11 @@ function breakBrick(tx,ty){
   grid[ty][tx]='.';sfx.brk();addScore(50);
   [[-1,-4],[1,-4],[-1,-2.5],[1,-2.5]].forEach(([vx,vy],i)=>parts.push({x:tx*TS+4+(i%2)*8,y:ty*TS+4+(i>>1)*8,vx:vx*1.3,vy,g:0.3,life:50,max:50,col:'#c98a4b',s:4,edge:'#6a3a1a'}));
 }
+// pts = punctele fermierului cu furcă (200 sărit în cap); ucenicul dă jumătate (100).
 function killMan(e,mode,pts){
   e.dead=mode;e.deadT=mode===1?30:120;
   if(mode===2){e.vy=-4.5;e.vx=(Math.random()<0.5?-1:1)*1.2;}
-  addScore(pts,e.x+5,e.y-4);
+  addScore(e.boy?pts/2:pts,e.x+5,e.y-4);
 }
 function lightBomb(e){if(e.type!=='bomb')return;if(!e.lit){e.lit=96;sfx.fuse();}}
 // Lovită (sărită în cap sau de o pană), bomba se așază în fund pe loc și se aprinde.
@@ -1281,7 +1316,12 @@ function updateMan(e){
   if(e.sink){sinkStep(e);return;}
   const dx=(player.x+player.w/2)-(e.x+5),dy=(player.y+player.h)-(e.y+e.h);
   if(e.cd>0)e.cd--;
-  if(e.atk){
+  if(e.boy){
+    // Ucenicul nu te urmărește și nu atacă: se plimbă încet înainte și înapoi și se întoarce
+    // la marginea gropilor, în fața țepilor și la pereți (hitWall, mai jos).
+    e.vx=e.dir*BOY_SPEED;
+    if(e.onGround&&(!groundAhead(e,e.dir)||spikeAhead(e,e.dir))){e.dir*=-1;e.vx=e.dir*BOY_SPEED;}
+  }else if(e.atk){
     // Atac cu furca: trage furca înapoi (avertizare), apoi împunge și face un pas în față.
     // Direcția rămâne fixă — dacă sari peste el în timpul avertizării, împunge în gol.
     e.atk++;e.vx=0;
@@ -1526,8 +1566,9 @@ function drawPlayer(cx){
 function drawEnemy(e,cx){
   const sx=Math.round(e.x-cx);if(sx<-24||sx>W+24)return;
   if(e.type==='man'){
-    if(e.dead===1){ctx.drawImage(MAN.A[e.dir>0?'r':'l'],sx-3,Math.round(e.y+e.h-8),16,8);return;}
-    if(e.dead===2){ctx.drawImage(MAN.FLIP,sx-3,Math.round(e.y-2));return;}
+    const S=e.boy?BOY:MAN;
+    if(e.dead===1){ctx.drawImage(S.A[e.dir>0?'r':'l'],sx-3,Math.round(e.y+e.h-8),16,8);return;}
+    if(e.dead===2){ctx.drawImage(S.FLIP,sx-3,Math.round(e.y-2));return;}
     if(e.atk){
       // Sprite-urile de atac sunt mai late; când privește la stânga, corpul rămâne pe loc.
       const wind=e.atk<=MAN_WIND_T,img=(wind?MAN.WIND:MAN.STAB)[e.dir>0?'r':'l'];
@@ -1536,7 +1577,7 @@ function drawEnemy(e,cx){
       return;
     }
     const f=(e.vx!==0&&(Math.floor(e.anim/7)%2))?'B':'A';
-    ctx.drawImage(MAN[f][e.dir>0?'r':'l'],sx-3,Math.round(e.y-2));
+    ctx.drawImage(S[f][e.dir>0?'r':'l'],sx-3,Math.round(e.y-2));
     if(e.alert>0)txt('!',sx+3,Math.round(e.y-12),'#ff4040',1,'l','#000');
     else if(e.puzzled>0)txt('?',sx+3,Math.round(e.y-12),'#ffd23f',1,'l','#000');
   }else{
@@ -1630,7 +1671,7 @@ function drawWorld(){
 // felinarul care pâlpâie, apoi licuricii.
 function drawNightLights(cx){
   for(const e of enemies){
-    if(e.type!=='man'||!e.active||e.dead||e.sink)continue;
+    if(e.type!=='man'||e.boy||!e.active||e.dead||e.sink)continue;  // ucenicul n-are felinar
     const l=lanternPos(e),lx=Math.round(l.x-cx),ly=Math.round(l.y);
     if(lx<-LANTERN_LEN||lx>W+LANTERN_LEN)continue;
     const col=e.chasing?'255,150,90':'255,220,130',a0=e.dir>0?0:Math.PI;
@@ -1669,11 +1710,11 @@ function drawTitle(){
   const fc=Math.floor(cam.x),off=-(fc%16);
   for(let x=off;x<W;x+=16){const tx=(fc+x)/16;
     ctx.drawImage(tiles.Gv?pickVar(tiles.Gv,tx,12):tiles.G,x,192);ctx.drawImage(tiles.Dv?pickVar(tiles.Dv,tx,13):tiles.D,x,208);}
-  // Curcanul mic (ca la începutul jocului) fuge, fermierii îl urmăresc — la mărimea din joc.
+  // Curcanul mic (ca la începutul jocului) fuge; fermierul cu furcă îl urmărește, cu ucenicul lui în spate — la mărimea din joc.
   const f=TK_RUN[Math.floor(G.t/5)%4],bob=Math.floor(G.t/5)%2?-1:0;
   ctx.drawImage(TKS[f].r,239,176+bob);
   const mf=Math.floor(G.t/6)%2?'B':'A';
-  ctx.drawImage(MAN[mf].r,175,172);ctx.drawImage(MAN[mf==='A'?'B':'A'].r,145,172);
+  ctx.drawImage(MAN[mf].r,175,172);ctx.drawImage(BOY[mf==='A'?'B':'A'].r,145,172);
   if(THEMES[0].farm)drawGroundDecor(fc,THEMES[0],()=>true);
   if((G.t>>4)%2)txt('!',180,160,'#ff4040');
   txtCute('CURCANUL',W/2,18,4,'#e8323e','#000000');
@@ -1771,7 +1812,7 @@ const TEST_LEVEL={theme:0,tip:'',build(){const m=newMap(64);m.g(0,63);
   m.r(6,8,'BHBMB');m.c(7,5,3);m.r(14,8,'H');
   m.r(22,8,'======');m.c(23,7,4);
   // Groapa cu apă e pe primul ecran, imediat după prima bombă (s-o poți împinge direct în apă).
-  m.e('bomb',17);m.pit(20,22);m.c(20,9,3);m.e('man',30);m.e('bomb',38);m.e('man',44);
+  m.e('bomb',17);m.pit(20,22);m.c(20,9,3);m.e('boy',30);m.e('bomb',38);m.e('man',44);
   m.st(50,3,1);
   m.sp(56,2);
   return m.done();}};
@@ -1789,6 +1830,7 @@ const TEST_CMDS={
   grain(){if(G.state==='play'&&!player.dead)powerUp(player.x+player.w/2,player.y);},
   berry(){if(G.state==='play'&&!player.dead)powerFire(player.x+player.w/2,player.y);},
   small(){if(G.state!=='play'||player.dead)return;player.fire=false;if(player.big){setBig(false);G.morph='size';G.growT=48;sfx.shrink();}},
+  boy(){testSpawn('boy');},
   man(){testSpawn('man');},
   bomb(){testSpawn('bomb');},
   sitbomb(){const e=testSpawn('bomb');if(e)sitBomb(e);},
@@ -1810,14 +1852,14 @@ function testStatus(){
   if(window.parent===window)return;
   window.parent.postMessage({status:{big:!!(player&&player.big),fire:!!(player&&player.fire),god:!!G.god,hitbox:!!G.showHB,slow:!!G.slow,night:!!theme.night,enemies:enemies.length}},'*');
 }
-// Contururile hitbox-urilor: verde = curcan, roșu = fermier, portocaliu = bombă, mov = furca (cât lovește),
+// Contururile hitbox-urilor: verde = curcan, roșu = fermier, alb = ucenic, portocaliu = bombă, mov = furca (cât lovește),
 // galben = zona solidă a bombei în fund (dacă e mai mare decât hitbox-ul), albastru = power-up, portocaliu deschis = pene.
 function drawHitboxes(cx){
   ctx.lineWidth=1;
   const r=(o,col)=>{ctx.strokeStyle=col;ctx.strokeRect(Math.round(o.x-cx)+0.5,Math.round(o.y)+0.5,Math.max(1,Math.round(o.w)-1),Math.max(1,Math.round(o.h)-1));};
   if(player&&!player.dead)r(player,'#00ff66');
   for(const e of enemies){if(!e.active||e.dead||e.remove)continue;
-    r(e,e.type==='man'?'#ff4040':'#ffa000');
+    r(e,e.type==='man'?(e.boy?'#ffffff':'#ff4040'):'#ffa000');
     if(e.type==='man'&&e.atk>MAN_WIND_T&&e.atk-MAN_WIND_T<=10)r(forkBox(e),'#ff40ff');
     if(e.type==='bomb'&&e.sit&&BOMB_PUSH_PAD)r({x:e.x-BOMB_PUSH_PAD,y:e.y,w:e.w+BOMB_PUSH_PAD*2,h:e.h},'#ffff40');}
   for(const it of items)r(it,'#40c0ff');

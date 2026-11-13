@@ -26,7 +26,10 @@ Pe telefon apar butoane pe ecran.
 - **Grăuntele auriu:** iese din unele blocuri M și face curcanul mare. Mare, poate sparge cărămizi, iar dacă e lovit, redevine mic.
 - **Boaba roșie strălucitoare:** iese din aceleași blocuri când curcanul e deja mare (dacă între timp te-ai făcut mic și o iei, te face direct curcan de foc). Curcanul primește un costum roșu și aruncă pene de foc (maximum 2 deodată), care zboară cam 8 tile-uri. Penele dau jos fermierii și aprind fitilul bombelor. Dacă e lovit, curcanul pierde costumul roșu, dar rămâne mare.
 - **Bombele:** se plimbă, iar când te apropii își aprind fitilul și aleargă după tine. Dacă le sari în cap, se așază în fund pe loc (fitilul mai ține ~3,3 secunde). Împinse din lateral, pornesc repede, alunecă vreo 15 tile-uri încetinind treptat până se opresc și ricoșează din pereți. Împinge-le spre fermieri și alți mobi: explozia îi ia cu ea, dar te poate răni și pe tine dacă ești aproape.
-- **Dușmani:** țepi, bombe cu fitil și fermieri care te urmăresc și, când ajung lângă tine, te împung cu furca (trag întâi furca înapoi — sari peste ea). Îi oprești sărind pe ei.
+- **Dușmani:** țepi, bombe cu fitil și două feluri de fermieri. Îi oprești sărind pe ei.
+  - **Ucenicul** (cămașă verde, cu găleată) n-are furcă: se plimbă încet înainte și înapoi, nu te urmărește și te rănește doar dacă intri în el. 100 de puncte.
+  - **Fermierul cu furcă** (cămașă roșie) te urmărește și, când ajunge lângă tine, te împunge (trage întâi furca înapoi — sari peste ea). 200 de puncte.
+  - În primul nivel sunt la început doar ucenici; fermierii cu furcă apar abia spre final. În nivelul 2 sunt amestecați (ucenicii n-au felinar și nu te caută).
 - **Gropi cu apă:** curcanul încă nu știe să înoate. Dacă pică în apă, pleoscăie, se scufundă și pierde o viață. Bombele căzute în apă se sting fără să explodeze, iar dacă le-ai împins tu acolo, primești 100 de puncte.
 - **Puncte de salvare** la jumătatea fiecărui nivel, cronometru și record salvat în browser.
 
