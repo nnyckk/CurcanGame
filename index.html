@@ -30,6 +30,7 @@
 <script>
 'use strict';
 // ================= SETUP =================
+const GAME_VERSION='0.5';
 const W=400,H=224,TS=16,ROWS=14,TAU=Math.PI*2;
 const cv=document.getElementById('game'),ctx=cv.getContext('2d');
 cv.width=W;cv.height=H;ctx.imageSmoothingEnabled=false;
@@ -139,6 +140,21 @@ const LEG_C=["..........l.l.......","..........l.l.......","..........lllll.....
 const LEG_J=[".........l....l.....","........ll...ll.....","...................."];
 const TK={A:spr(TK_TOP.concat(LEG_A),TK_PAL),B:spr(TK_TOP.concat(LEG_B),TK_PAL),C:spr(TK_TOP.concat(LEG_C),TK_PAL),J:spr(TK_TOP.concat(LEG_J),TK_PAL)};
 TK.DEAD=mkSprite(TK_TOP.concat(LEG_A).reverse(),TK_PAL,false);
+// Curcanul de FOC (după boaba roșie): tot mare, cu costum roșu închis și umbrit.
+// Lumina vine din stânga-sus: E = luciu, B = roșul de bază, D = umbră (marginea dreaptă și jos).
+const TKF_TOP=TK_TOP.slice(0,12).concat([
+"..WrWkEEEEBBBBDkR...",
+"...WknNnnnEBBBBDk...",
+"....knnNnnBWBWWDk...",
+"....kmnnNnBBBBBDk...",
+"....kNmnnnBBBBDDk...",
+".....kNnnBBBBDDk....",
+"......kDBBBDDDDk....",
+".......kkDDDDkk.....",
+]);
+const TKF_PAL=Object.assign({},TK_PAL,{B:'#a81e1e',D:'#5c0c12',E:'#cc3a2c'});
+const TKF={A:spr(TKF_TOP.concat(LEG_A),TKF_PAL),B:spr(TKF_TOP.concat(LEG_B),TKF_PAL),C:spr(TKF_TOP.concat(LEG_C),TKF_PAL),J:spr(TKF_TOP.concat(LEG_J),TKF_PAL)};
+TKF.DEAD=mkSprite(TKF_TOP.concat(LEG_A).reverse(),TKF_PAL,false);
 // Curcanul MIC (16x16) — starea de start; devine mare cu grăuntele auriu.
 const TKS_TOP=[
 "..........rr....",
@@ -188,6 +204,29 @@ const MLEG_A=["....kPPkPPk.....","....kPPkPPk.....","....kPk.kPk.....","...kkkk.
 const MLEG_B=["....kPPkPPk.....","...kPPk..kPPk...","...kPk....kPk...","..kkkk....kkkk.."];
 const MAN={A:spr(MAN_TOP.concat(MLEG_A),MAN_PAL),B:spr(MAN_TOP.concat(MLEG_B),MAN_PAL)};
 MAN.FLIP=mkSprite(MAN_TOP.concat(MLEG_A).reverse(),MAN_PAL,false);
+// Atacul cu furca: capul fără furca verticală + două poziții (trage furca înapoi, apoi împunge).
+const MAN_HEAD=MAN_TOP.slice(0,10).map(r=>r.replace(/[gf]/g,'.'));
+const MAN_WIND_BODY=[
+"...kkRRRRRkk.....",
+"..kRRRwwwRRRk.ggg",
+"ffkRRRwwwRRssfg..",
+"..kRRRwwwRRRk.ggg",
+"..kkkPPPPPkkk....",
+"....kPPPPPk......",
+];
+const MAN_STAB_BODY=[
+"...kkRRRRRkk...............",
+"..kRRRwwwRRRk...........ggg",
+"..kRRRwwwRRRssffffffffffg..",
+"..kRRRwwwRRRk...........ggg",
+"..kkkPPPPPkkk..............",
+"....kPPPPPk................",
+];
+MAN.WIND=spr(MAN_HEAD.concat(MAN_WIND_BODY,MLEG_A),MAN_PAL);
+MAN.STAB=spr(MAN_HEAD.concat(MAN_STAB_BODY,MLEG_B),MAN_PAL);
+const MAN_WIND_T=18,MAN_STAB_T=14,MAN_REACH=14;
+// Zona în care lovește furca, în fața fermierului, la înălțimea pieptului.
+function forkBox(e){return {x:e.dir>0?e.x+e.w:e.x-MAN_REACH,y:e.y+7,w:MAN_REACH,h:8};}
 
 // --- Bomb ---
 const BOMB_PAL={k:'#0b0b14',b:'#2c2c40',w:'#9a9ac8',f:'#c8a070',o:'#f08a24'};
@@ -242,6 +281,25 @@ const GRAIN=mkSprite([
 "..kooook..",
 "...kkkk...",
 ],{k:'#7a4a00',Y:'#fff2a0',W:'#ffffff',y:'#ffc61a',o:'#e08a00'},false);
+// Boaba roșie strălucitoare (power-up de foc) — iese din blocuri doar când curcanul e deja mare.
+const BERRY=mkSprite([
+".....gk...",
+"....gGGk..",
+"..kkgkkk..",
+".kRRrrrrk.",
+"kRWWRrrrrk",
+"kRWRrrrrok",
+"kRrrrrrrok",
+"krrrrrrook",
+".krrrrook.",
+"..kooook..",
+"...kkkk...",
+],{k:'#5a0a10',R:'#ff7a7a',W:'#ffffff',r:'#e8202a',o:'#a01018',G:'#5ac04a',g:'#2a7a2a'},false);
+// Pana de foc: pană maro cu flăcări care pâlpâie (2 cadre). Orientată spre dreapta.
+const FEATHER_PAL={n:'#8a4a22',m:'#b8723a',N:'#5a2c12',l:'#ecdcb8',k:'#3a1a08',o:'#ff8a1a',y:'#ffe040',r:'#e03a10'};
+const FEATHER_BODY=["..nnnnnnn.","lNNNNNNNNk","..mnnnnnn.","...mmmm..."];
+const FEATHER={A:spr(["..yo.oy...",".oroyoro.."].concat(FEATHER_BODY),FEATHER_PAL),B:spr([".y..oy.o..","..oyoroyo."].concat(FEATHER_BODY),FEATHER_PAL)};
+const FEATHER_RANGE=128,FEATHER_MAX=2;
 const HEAD=mkSprite(["...rr...","..krrk..",".kWWWWk.","kWWWWkWy","kWWWWkyo","kWWpWrr.",".kWkWkr.","..kkkkR."],TK_PAL,false);
 
 // --- Explosion frames ---
@@ -436,6 +494,11 @@ const sfx={
   fuse(){if(!AC)return;noise(AC.currentTime,0.25,0.12,sfxG,3500);},
   cp(){arp([69,74,78,81,86],0.06,0.1);},
   alert(){if(!AC)return;const t=AC.currentTime;tone('square',880,t,0.05,0.07,sfxG);tone('square',1175,t+0.06,0.09,0.07,sfxG);},
+  windup(){if(!AC)return;tone('triangle',150,AC.currentTime,0.16,0.2,sfxG,110);},
+  stab(){if(!AC)return;const t=AC.currentTime;noise(t,0.14,0.22,sfxG,2200);tone('square',240,t,0.1,0.07,sfxG,760);},
+  fireUp(){arp([67,71,74,79,74,79,83,86,83,86,91],0.04,0.1);},
+  fwip(){if(!AC)return;const t=AC.currentTime;noise(t,0.1,0.12,sfxG,3000);tone('pulse',600,t,0.08,0.07,sfxG,1500);},
+  burn(){if(!AC)return;const t=AC.currentTime;noise(t,0.25,0.25,sfxG,1400,'lowpass');tone('square',420,t,0.18,0.09,sfxG,70);},
   blip(){if(!AC)return;tone('pulse',1700,AC.currentTime,0.03,0.05,sfxG);},
   hurry(){arp([74,75,74,75,74,75],0.07,0.09);},
   pause(){arp([74,69,74],0.05,0.08);},
@@ -493,9 +556,14 @@ setInterval(sched,25);
 
 // ================= INPUT =================
 const keys={},pressed={},touch={left:0,right:0,jump:0,run:0};
+// Browserele nu pornesc sunetul până la prima apăsare. Pe ecranul de titlu, prima apăsare doar
+// pornește sunetul (și muzica de meniu), fără să înceapă jocul — altfel muzica nu s-ar auzi niciodată.
+// Întoarce true dacă apăsarea a fost „consumată” pentru deblocarea sunetului.
+function unlockAudio(){const first=!AC;initAudio();return first&&!!AC&&G.state==='title';}
 addEventListener('keydown',e=>{
   if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space'].includes(e.code))e.preventDefault();
-  if(!keys[e.code])pressed[e.code]=true;keys[e.code]=true;initAudio();
+  const used=unlockAudio();
+  if(!keys[e.code]&&!used)pressed[e.code]=true;keys[e.code]=true;
 });
 addEventListener('keyup',e=>{keys[e.code]=false;});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;for(const k in touch)touch[k]=0;});
@@ -505,16 +573,18 @@ const inRight=()=>keys.ArrowRight||touch.right;
 const inJump=()=>keys.Space||touch.jump;
 const inRun=()=>keys.KeyX||touch.run;
 const jumpPressed=()=>pressed.Space||pressed.TouchJump;
+// O apăsare scurtă pe X (sau pe FUGI) aruncă o pană de foc; ținut apăsat, X rămâne fugă.
+const firePressed=()=>pressed.KeyX||pressed.TouchRun;
 const startPressed=()=>pressed.Enter||pressed.Space||pressed.TouchJump||pressed.Tap;
 if('ontouchstart' in window||navigator.maxTouchPoints>0){document.getElementById('touch').classList.add('on');document.getElementById('pauseBtn').classList.add('on');}
 document.querySelectorAll('[data-k]').forEach(b=>{
   const k=b.dataset.k;
-  const down=e=>{e.preventDefault();initAudio();if(k==='pause'){pressed.KeyP=true;return;}touch[k]=1;if(k==='jump')pressed.TouchJump=true;};
+  const down=e=>{e.preventDefault();if(unlockAudio())return;if(k==='pause'){pressed.KeyP=true;return;}touch[k]=1;if(k==='jump')pressed.TouchJump=true;if(k==='run')pressed.TouchRun=true;};
   const up=e=>{e.preventDefault();if(k!=='pause')touch[k]=0;};
   b.addEventListener('pointerdown',down);b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('pointerleave',up);
   b.addEventListener('contextmenu',e=>e.preventDefault());
 });
-cv.addEventListener('pointerdown',()=>{initAudio();pressed.Tap=true;});
+cv.addEventListener('pointerdown',()=>{if(!unlockAudio())pressed.Tap=true;});
 
 // ================= LEVELS =================
 function newMap(w){
@@ -611,7 +681,7 @@ const G={state:'title',t:0,level:0,lives:3,score:0,coins:0,time:300,hi:0,cp:null
 try{G.hi=+localStorage.getItem('curcan_hi')||0;}catch(e){}
 function saveHi(){if(G.score>G.hi){G.hi=G.score;try{localStorage.setItem('curcan_hi',G.hi);}catch(e){}}}
 let grid=null,cols=0,theme=THEMES[0],tiles=getTiles(0),bg=getBG(0),goal=null;
-let player=null,enemies=[],coins=[],items=[],parts=[],popups=[],booms=[],bumps=[],cps=[];
+let player=null,enemies=[],coins=[],items=[],parts=[],popups=[],booms=[],bumps=[],cps=[],feathers=[];
 const cam={x:0};
 
 function solid(c){return c==='G'||c==='D'||c==='B'||c==='M'||c==='H'||c==='U'||c==='X'||c==='^';}
@@ -637,20 +707,20 @@ function onSpike(e){
 }
 function groundAhead(e,dir){const ax=dir>0?e.x+e.w+1:e.x-1;const c=tileAt(Math.floor(ax/TS),Math.floor((e.y+e.h+2)/TS));return solid(c)||c==='=';}
 
-function newGame(){G.carryBig=false;G.lives=3;G.score=0;G.coins=0;G.level=0;G.cp=null;G.state='intro';G.stateT=0;stopSong();}
+function newGame(){G.carryBig=false;G.carryFire=false;G.lives=3;G.score=0;G.coins=0;G.level=0;G.cp=null;G.state='intro';G.stateT=0;stopSong();}
 function startLevel(){
   const def=LEVELS[G.level],m=def.build();
   grid=m.grid;cols=m.w;theme=THEMES[def.theme];tiles=getTiles(def.theme);bg=getBG(def.theme);goal=m.goalDef;
   enemies=m.ents.map(d=>d.type==='man'
-    ?{type:'man',x:d.x*TS+3,y:(d.y+1)*TS-18,w:10,h:18,vx:0,vy:0,dir:-1,active:false,dead:0,deadT:0,anim:0,chasing:false,alert:0,onGround:false}
+    ?{type:'man',x:d.x*TS+3,y:(d.y+1)*TS-18,w:10,h:18,vx:0,vy:0,dir:-1,active:false,dead:0,deadT:0,anim:0,chasing:false,alert:0,atk:0,cd:0,onGround:false}
     :{type:'bomb',x:d.x*TS+2,y:(d.y+1)*TS-12,w:12,h:12,vx:0,vy:0,dir:-1,active:false,lit:0,anim:0,onGround:false});
   coins=m.coins.map(([x,y])=>({x:x*TS+8,y:y*TS+8,taken:false}));
-  items=[];parts=[];popups=[];booms=[];bumps=[];
+  items=[];parts=[];popups=[];booms=[];bumps=[];feathers=[];
   const atCp=G.cp&&G.cp.level===G.level;
   cps=m.cps.map(x=>({x:x*TS,tx:x,on:atCp&&G.cp.x===x,raise:atCp&&G.cp.x===x?1:0}));
   const sx=atCp?G.cp.x*TS+3:2*TS+3;
   const big=!!G.carryBig;
-  player={x:sx,y:12*TS-(big?20:13),w:big?12:10,h:big?20:13,big,vx:0,vy:0,face:1,onGround:false,coyote:0,jbuf:0,inv:0,anim:0,combo:0,dead:false,alpha:1};
+  player={x:sx,y:12*TS-(big?20:13),w:big?12:10,h:big?20:13,big,fire:big&&!!G.carryFire,vx:0,vy:0,face:1,onGround:false,coyote:0,jbuf:0,inv:0,anim:0,combo:0,dead:false,alpha:1};
   G.growT=0;
   G.time=300;G.frame=0;G.paused=false;G.tally=0;
   cam.x=clamp(player.x-W*0.4,0,cols*TS-W);
@@ -672,7 +742,8 @@ function hitBlock(tx,ty){
   if(c==='M'||c==='H'){
     grid[ty][tx]='U';bumps.push({tx,ty,t:0});
     if(c==='M'){parts.push({type:'coin',x:tx*TS+8,y:ty*TS-6,vx:0,vy:-5.5,g:0.35,life:26,max:26});addCoin(tx*TS+8,ty*TS);}
-    else{items.push({type:'grain',x:tx*TS+3,y:ty*TS,w:10,h:11,vx:0,vy:0,rise:11,dir:player.x<tx*TS?1:-1});sfx.sprout();}
+    // Curcan mic → grăunte auriu; curcan deja mare → boabă roșie de foc.
+    else{items.push({type:player.big?'berry':'grain',x:tx*TS+3,y:ty*TS,w:10,h:11,vx:0,vy:0,rise:11,dir:player.x<tx*TS?1:-1});sfx.sprout();}
   }else if(c==='B'){if(player.big)breakBrick(tx,ty);else{bumps.push({tx,ty,t:0});sfx.bump();}}
   else sfx.bump();
   for(const e of enemies){if(e.dead||e.remove||!e.active)continue;
@@ -700,7 +771,9 @@ function explode(e){
 function hurt(dir=0){
   if(player.inv>0||player.dead||G.state!=='play')return;
   if(!player.big){die();return;}
-  setBig(false);G.growT=48;player.inv=120;sfx.shrink();G.shake=6;
+  // Curcanul de foc pierde întâi costumul roșu (rămâne mare); abia apoi se micșorează.
+  if(player.fire){player.fire=false;G.morph='fire';}else{setBig(false);G.morph='size';}
+  G.growT=48;player.inv=120;sfx.shrink();G.shake=6;
 }
 // Schimbă mărimea curcanului păstrând picioarele pe loc.
 function setBig(b){
@@ -709,29 +782,68 @@ function setBig(b){
 }
 function powerUp(x,y){
   addScore(1000,x,y);
-  if(!player.big){setBig(true);G.growT=48;sfx.grow();}else sfx.coin();
+  if(!player.big){setBig(true);G.morph='size';G.growT=48;sfx.grow();}else sfx.coin();
+}
+function powerFire(x,y){
+  addScore(1000,x,y);
+  if(player.fire){sfx.coin();return;}
+  // Chiar dacă e mic, boaba roșie îl face direct curcan de foc (mare + costum roșu).
+  // Mic: clipește între mic și mare-roșu; deja mare: clipește între costumul normal și cel roșu.
+  const wasSmall=!player.big;
+  if(wasSmall)setBig(true);
+  player.fire=true;G.morph=wasSmall?'size':'fire';G.growT=48;sfx.fireUp();
+  popup('PENE DE FOC!',player.x+player.w/2,player.y-14,'#ff9a3a');
+}
+function throwFeather(){
+  const p=player,d=p.face;
+  // Mai rapidă decât curcanul; dacă fuge în aceeași direcție, pana primește puțin din viteza lui.
+  const sp=6+Math.max(0,p.vx*d)*0.5;
+  feathers.push({x:d>0?p.x+p.w-2:p.x-8,y:p.y+10,w:10,h:4,vx:d*sp,dir:d,dist:0,t:0});
+  sfx.fwip();
+}
+function puffFeather(f){
+  f.remove=true;
+  for(let i=0;i<6;i++)parts.push({x:f.x+5,y:f.y+2,vx:(Math.random()-0.5)*1.4,vy:-Math.random()*1.2,g:-0.01,life:16,max:16,col:i%2?'#8a8494':'#ff9a2a',s:2});
+}
+function updateFeathers(){
+  for(const f of feathers){
+    f.x+=f.vx;f.dist+=Math.abs(f.vx);f.t++;
+    // Dâră de flăcări în urma penei.
+    if(f.t%2===0)parts.push({x:f.x+(f.dir>0?0:9),y:f.y-2+Math.random()*3,vx:-f.dir*0.4,vy:-0.4-Math.random()*0.5,g:-0.01,life:10,max:10,col:Math.random()<0.5?'#ffb02a':'#ffe040',s:2});
+    // Zboară doar o anumită distanță; se stinge și dacă lovește un perete.
+    const tx=Math.floor((f.dir>0?f.x+f.w:f.x)/TS),ty=Math.floor((f.y+f.h/2)/TS);
+    if(solid(tileAt(tx,ty))||f.dist>=FEATHER_RANGE){puffFeather(f);continue;}
+    for(const e of enemies){
+      if(!e.active||e.dead||e.remove||!overlap(f,e))continue;
+      if(e.type==='man'){killMan(e,2,200);sfx.burn();}
+      else if(!e.lit){lightBomb(e);addScore(100,e.x+6,e.y-4);}
+      puffFeather(f);break;
+    }
+  }
+  feathers=feathers.filter(f=>!f.remove);
 }
 function die(){
-  if(player.dead)return;player.dead=true;G.carryBig=false;G.state='dying';G.stateT=0;
+  if(player.dead)return;player.dead=true;G.carryBig=false;G.carryFire=false;feathers=[];G.state='dying';G.stateT=0;
   stopSong();playSong('death');player.vx=0;player.vy=0;
 }
-function levelClear(final){G.carryBig=player.big;G.state='clear';G.final=final;G.stateT=0;G.tally=0;stopSong();playSong('clear');player.vx=0;}
+function levelClear(final){G.carryBig=player.big;G.carryFire=player.fire;feathers=[];G.state='clear';G.final=final;G.stateT=0;G.tally=0;stopSong();playSong('clear');player.vx=0;}
 
 // ================= UPDATE =================
 function updatePlayer(){
   const p=player,L=inLeft(),R=inRight(),run=inRun(),jh=inJump();
   // Mers cu viteză constantă; accelerează la fugă doar cât timp e ținut X.
-  // Pe sol: viteză CONSTANTĂ — doar săgeți = mers (1.45); săgeți + X = rapid (2.45).
+  // Pe sol: viteză CONSTANTĂ — doar săgeți = mers (2); săgeți + X = rapid (3.4).
   // Ajunge la viteza țintă în 2-3 cadre, fără accelerare lentă.
   // În aer: păstrează viteza din momentul săriturii.
-  const WALK=1.45,RUN=2.45;
+  const WALK=2,RUN=3.4;
   if(p.inv>0)p.inv--;
   const dir=(R&&!L)?1:(L&&!R)?-1:0;
   if(dir)p.face=dir;
+  if(p.fire&&firePressed()&&feathers.length<FEATHER_MAX)throwFeather();
   if(p.onGround){
     const target=dir*(run?RUN:WALK);
     if(dir&&p.vx*dir<0&&G.t%4===0)dust(p.x+p.w/2,p.y+p.h,1);
-    if(p.vx<target)p.vx=Math.min(target,p.vx+0.45);else if(p.vx>target)p.vx=Math.max(target,p.vx-0.45);
+    if(p.vx<target)p.vx=Math.min(target,p.vx+0.6);else if(p.vx>target)p.vx=Math.max(target,p.vx-0.6);
     p.airMax=Math.max(WALK,Math.abs(p.vx));
   }else{
     const max=p.airMax||WALK;
@@ -754,18 +866,33 @@ function updatePlayer(){
 function updateMan(e){
   if(e.dead){e.deadT--;if(e.dead===2){e.vy+=0.35;e.y+=e.vy;e.x+=e.vx;}if(e.deadT<=0)e.remove=true;return;}
   const dx=(player.x+player.w/2)-(e.x+5),dy=(player.y+player.h)-(e.y+e.h);
-  const see=!player.dead&&Math.abs(dx)<140&&Math.abs(dy)<56;
-  if(see&&!e.chasing){e.alert=28;if(G.t-G.lastAlert>30){sfx.alert();G.lastAlert=G.t;}}
-  e.chasing=see;
-  if(e.alert>0){e.alert--;e.vx=0;if(Math.abs(dx)>2)e.dir=Math.sign(dx);}
-  else{
-    if(e.chasing&&Math.abs(dx)>6)e.dir=Math.sign(dx);
-    const sp=e.chasing?0.8:0.35;e.vx=e.dir*sp;
-    if(e.onGround&&!groundAhead(e,e.dir)){if(e.chasing)e.vx=0;else{e.dir*=-1;e.vx=e.dir*sp;}}
+  if(e.cd>0)e.cd--;
+  if(e.atk){
+    // Atac cu furca: trage furca înapoi (avertizare), apoi împunge și face un pas în față.
+    // Direcția rămâne fixă — dacă sari peste el în timpul avertizării, împunge în gol.
+    e.atk++;e.vx=0;
+    const st=e.atk-MAN_WIND_T;
+    if(st===1)sfx.stab();
+    if(st>0&&st<=6&&e.onGround&&groundAhead(e,e.dir))e.vx=e.dir*1.4;
+    if(st>0&&st<=10&&!player.dead&&overlap(player,forkBox(e)))hurt(e.dir);
+    if(st>=MAN_STAB_T){e.atk=0;e.cd=50;}
+  }else{
+    const see=!player.dead&&Math.abs(dx)<140&&Math.abs(dy)<56;
+    if(see&&!e.chasing){e.alert=28;if(G.t-G.lastAlert>30){sfx.alert();G.lastAlert=G.t;}}
+    e.chasing=see;
+    if(e.alert>0){e.alert--;e.vx=0;if(Math.abs(dx)>2)e.dir=Math.sign(dx);}
+    else if(e.chasing&&!e.cd&&e.onGround&&Math.abs(dx)<30&&Math.abs(dy)<12){
+      // Curcanul e foarte aproape și la aceeași înălțime: începe atacul.
+      e.atk=1;e.vx=0;e.dir=Math.sign(dx)||e.dir;sfx.windup();
+    }else{
+      if(e.chasing&&Math.abs(dx)>6)e.dir=Math.sign(dx);
+      const sp=e.chasing?0.8:0.35;e.vx=e.dir*sp;
+      if(e.onGround&&!groundAhead(e,e.dir)){if(e.chasing)e.vx=0;else{e.dir*=-1;e.vx=e.dir*sp;}}
+    }
   }
   e.vy=Math.min(e.vy+0.4,7);
   const moving=e.vx!==0;
-  moveX(e);if(e.hitWall){if(e.chasing&&e.onGround)e.vy=-5.6;else if(!e.chasing)e.dir*=-1;}
+  moveX(e);if(e.hitWall&&!e.atk){if(e.chasing&&e.onGround)e.vy=-5.6;else if(!e.chasing)e.dir*=-1;}
   moveY(e);
   if(moving)e.anim+=e.chasing?1.6:1;
   if(e.y>H+20)e.remove=true;
@@ -824,9 +951,12 @@ function updatePlay(){
     }else if(e.type==='man')hurt(Math.sign(player.x-e.x)||1);
   }
   enemies=enemies.filter(e=>!e.remove);
+  updateFeathers();
   for(const c of coins){if(c.taken)continue;if(overlap(player,{x:c.x-5,y:c.y-6,w:10,h:12})){c.taken=true;addCoin(c.x,c.y);sparkle(c.x,c.y);}}
   for(const it of items){
     if(it.rise>0){it.y-=1;it.rise--;continue;}
+    // Boaba roșie stă pe loc deasupra blocului; grăuntele auriu se plimbă.
+    if(it.type==='berry'){if(overlap(player,it)){it.remove=true;powerFire(it.x+5,it.y);}continue;}
     it.vx=it.dir*0.8;it.vy=Math.min(it.vy+0.35,6);moveX(it);if(it.hitWall)it.dir*=-1;moveY(it);
     if(it.y>H)it.remove=true;
     if(overlap(player,it)){it.remove=true;powerUp(it.x+5,it.y);}
@@ -926,8 +1056,9 @@ function drawCP(cp,cx){
 function drawPlayer(cx){
   const p=player;
   // În timpul transformării alternează între mic și mare.
-  let showBig=p.big;if(G.growT>0&&(G.growT>>2)%2)showBig=!showBig;
-  const S=showBig?TK:TKS,sw=showBig?20:16,sh=showBig?23:16;
+  let showBig=p.big,showFire=p.fire;
+  if(G.growT>0&&(G.growT>>2)%2){if(G.morph==='fire')showFire=!showFire;else showBig=!showBig;}
+  const S=showBig?(showFire?TKF:TK):TKS,sw=showBig?20:16,sh=showBig?23:16;
   const dx=Math.round(p.x+p.w/2-sw/2-cx),dy=Math.round(p.y+p.h-sh);
   if(p.dead){ctx.drawImage(S.DEAD,dx,dy);return;}
   if(p.inv>0&&G.growT<=0&&(p.inv>>2)%2)return;
@@ -942,6 +1073,13 @@ function drawEnemy(e,cx){
   if(e.type==='man'){
     if(e.dead===1){ctx.drawImage(MAN.A[e.dir>0?'r':'l'],sx-3,Math.round(e.y+e.h-8),16,8);return;}
     if(e.dead===2){ctx.drawImage(MAN.FLIP,sx-3,Math.round(e.y-2));return;}
+    if(e.atk){
+      // Sprite-urile de atac sunt mai late; când privește la stânga, corpul rămâne pe loc.
+      const wind=e.atk<=MAN_WIND_T,img=(wind?MAN.WIND:MAN.STAB)[e.dir>0?'r':'l'];
+      const shake=wind&&e.atk>6?((e.atk>>1)%2?1:-1):0;
+      ctx.drawImage(img,sx-3-(e.dir>0?0:img.width-16)+shake,Math.round(e.y-2));
+      return;
+    }
     const f=(e.vx!==0&&(Math.floor(e.anim/7)%2))?'B':'A';
     ctx.drawImage(MAN[f][e.dir>0?'r':'l'],sx-3,Math.round(e.y-2));
     if(e.alert>0)txt('!',sx+3,Math.round(e.y-12),'#ff4040',1,'l','#000');
@@ -971,16 +1109,24 @@ function drawWorld(){
   const cx=Math.round(cam.x)+sh;
   if(goal){if(goal.type==='sign')drawSign(cx);else drawRestaurant(cx);}
   for(const cp of cps)drawCP(cp,cx);
-  for(const it of items){if(it.type!=='grain')continue;
-    const gx=Math.round(it.x-cx),gy=Math.round(it.y);
-    ctx.globalAlpha=0.28+0.12*Math.sin(G.t*0.2);pcirc(ctx,gx+5,gy+5,9+Math.round(Math.sin(G.t*0.15)),'#ffe060');ctx.globalAlpha=1;
-    ctx.drawImage(GRAIN,gx,gy);
-    const a=G.t*0.12;ctx.fillStyle='#fff';
-    for(let k=0;k<3;k++){const ang=a+k*TAU/3;ctx.fillRect(Math.round(gx+5+Math.cos(ang)*10),Math.round(gy+5+Math.sin(ang)*10),1,1);}}
+  for(const it of items){
+    const gx=Math.round(it.x-cx),gy=Math.round(it.y),berry=it.type==='berry';
+    // Aură care pulsează: aurie pentru grăunte, roșie (și mai puternică) pentru boaba de foc.
+    ctx.globalAlpha=(berry?0.34:0.28)+0.12*Math.sin(G.t*(berry?0.3:0.2));pcirc(ctx,gx+5,gy+5,9+Math.round(Math.sin(G.t*0.15)),berry?'#ff4a3a':'#ffe060');ctx.globalAlpha=1;
+    ctx.drawImage(berry?BERRY:GRAIN,gx,gy);
+    const a=G.t*(berry?-0.16:0.12);
+    for(let k=0;k<3;k++){const ang=a+k*TAU/3;ctx.fillStyle=berry&&k%2?'#ffd040':'#fff';ctx.fillRect(Math.round(gx+5+Math.cos(ang)*10),Math.round(gy+5+Math.sin(ang)*10),1,1);}}
   drawTiles(cx);
   coins.forEach((c,i)=>{if(!c.taken&&c.x-cx>-10&&c.x-cx<W+10)drawCoin(c.x-cx,c.y+Math.round(Math.sin(G.t*0.08+i)*1),i*0.5);});
   for(const e of enemies)if(e.active||(e.x-cx<W+24))drawEnemy(e,cx);
   drawPlayer(cx);
+  for(const f of feathers){
+    // Ușoară fluturare în zbor; spre capătul distanței pana se estompează.
+    const img=FEATHER[(f.t>>2)%2?'B':'A'][f.dir>0?'r':'l'];
+    ctx.globalAlpha=clamp((FEATHER_RANGE-f.dist)/28,0.35,1);
+    ctx.drawImage(img,Math.round(f.x-cx),Math.round(f.y-2+Math.sin(f.t*0.6)));
+    ctx.globalAlpha=1;
+  }
   for(const b of booms)ctx.drawImage(BOOM[Math.min(5,b.t>>2)],Math.round(b.x-cx-42),Math.round(b.y-42));
   for(const p of parts){
     if(p.type==='coin'){drawCoin(p.x-cx,p.y,G.t*0.3);continue;}
@@ -1003,12 +1149,14 @@ function drawTitle(){
   txtCute('CURCANUL',W/2,18,4,'#e8323e','#000000');
   txtCute('ÎN FUGĂ',W/2,59,3,'#e8323e','#000000');
   txt('DRUMUL SPRE MESOPOTAMIA',W/2,88,'#ffffff',1,'c','#2a6aa0');
-  if((G.t>>5)%2===0)txt('APASĂ ENTER SAU SPACE',W/2,134,'#ffffff',1,'c','#000');
+  if((G.t>>5)%2===0)txt(AC?'APASĂ ENTER SAU SPACE':'APASĂ ORICE TASTĂ PENTRU SUNET',W/2,134,'#ffffff',1,'c','#000');
   // Controale: casetă mică în dreapta
   ctx.fillStyle='rgba(0,0,0,0.25)';ctx.fillRect(330,100,66,72);
-  [['← → MERGI','#e8f4ff'],['SPACE SARI','#e8f4ff'],['X FUGI','#e8f4ff'],['M MUZICĂ','#c8d8e8'],['P PAUZĂ','#c8d8e8']]
+  [['← → MERGI','#e8f4ff'],['SPACE SARI','#e8f4ff'],['X FUGI/FOC','#e8f4ff'],['M MUZICĂ','#c8d8e8'],['P PAUZĂ','#c8d8e8']]
     .forEach(([s,c],i)=>txt(s,334,104+i*10,c,1,'l',null));
   txt('RECORD',334,153,'#ffd23f',1,'l',null);txt(pad(G.hi,6),334,162,'#ffd23f',1,'l',null);
+  // Versiunea jocului, în colțul din dreapta jos (urcă puțin când apare „MUZICĂ OFF”).
+  txt('V'+GAME_VERSION,W-4,G.muted?H-26:H-10,'#f0e0c8',1,'r','#000');
 }
 function drawIntro(){
   ctx.fillStyle='#0d0b14';ctx.fillRect(0,0,W,H);
