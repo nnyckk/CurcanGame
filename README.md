@@ -20,7 +20,8 @@ Pe telefon apar butoane pe ecran.
 
 ## Ce găsești în joc
 
-- **3 niveluri:** Ferma (zi), Orașul (apus), Deșertul (noapte). Ultimul se termină la restaurantul MESOPOTAMIA.
+- **4 niveluri:** Ferma (zi), Noaptea la fermă, Orașul (apus), Deșertul (noapte). Ultimul se termină la restaurantul MESOPOTAMIA.
+- **Noaptea la fermă:** ferestrele caselor sunt luminate, prin iarbă zboară licurici, pe cer sunt lună și stele, iar muzica e mai lentă și mai joasă. Fermierii au felinar și te văd doar dacă intri în lumina din fața lor; te poți strecura prin spatele lor. Dacă scapi din lumină, te mai caută puțin, apoi rămân nedumeriți („?”).
 - **Bănuți cu M:** la 50 de bănuți primești o viață în plus.
 - **Grăuntele auriu:** iese din unele blocuri M și face curcanul mare. Mare, poate sparge cărămizi, iar dacă e lovit, redevine mic.
 - **Boaba roșie strălucitoare:** iese din aceleași blocuri când curcanul e deja mare (dacă între timp te-ai făcut mic și o iei, te face direct curcan de foc). Curcanul primește un costum roșu și aruncă pene de foc (maximum 2 deodată), care zboară cam 8 tile-uri. Penele dau jos fermierii și aprind fitilul bombelor. Dacă e lovit, curcanul pierde costumul roșu, dar rămâne mare.

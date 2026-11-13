@@ -18,10 +18,14 @@
   #pauseBtn{position:fixed;top:10px;right:10px;width:40px;height:40px;border-radius:8px;border:2px solid rgba(255,255,255,.5);
     background:rgba(0,0,0,.35);color:#fff;font:bold 14px monospace;display:none}
   #pauseBtn.on{display:block}
+  .info{position:fixed;display:none;image-rendering:pixelated;image-rendering:crisp-edges}
 </style>
 </head>
 <body>
 <div id="wrap"><canvas id="game"></canvas></div>
+<canvas id="infoL" class="info"></canvas>
+<canvas id="infoR" class="info"></canvas>
+<canvas id="infoV" class="info"></canvas>
 <div id="touch">
   <div class="pad"><button data-k="left">◀</button><button data-k="right">▶</button></div>
   <div class="pad"><button data-k="run">FUGI</button><button data-k="jump">SARI</button></div>
@@ -30,13 +34,37 @@
 <script>
 'use strict';
 // ================= SETUP =================
-const GAME_VERSION='0.6';
+const GAME_VERSION='0.7';
 // Modul de test (index.html?test): arenă de test, comenzi din test.html. Pentru jucători nu se schimbă nimic.
 const TEST=/[?&]test\b/.test(location.search);
 const W=400,H=224,TS=16,ROWS=14,TAU=Math.PI*2;
-const cv=document.getElementById('game'),ctx=cv.getContext('2d');
+const cv=document.getElementById('game');
+// „let”: noaptea, lumea de joc se desenează întâi pe un canvas separat (shade), primește umbra albastră,
+// apoi se pune peste fundal — vezi drawWorld.
+let ctx=cv.getContext('2d');
+const [shadeCv,shadeCtx]=mkCanvas(W,H);
 cv.width=W;cv.height=H;ctx.imageSmoothingEnabled=false;
-function resize(){const s=Math.min(innerWidth/W,innerHeight/H);const k=s>=2?Math.floor(s):s;cv.style.width=Math.floor(W*k)+'px';cv.style.height=Math.floor(H*k)+'px';}
+// Casetele din meniu (controale, apoi record + opțiuni) stau una sub alta în spațiul negru din dreapta
+// jocului, când e loc; versiunea stă singură, jos în colțul din dreapta. Sunt canvas-uri mici, desenate
+// cu același font pixel și mărite cu un factor întreg. Dacă nu încap la cel puțin 2x (să se poată citi),
+// se desenează în joc, ca înainte.
+const INFO_W=72,INFO_LH=100,INFO_RH=36,INFO_GAP=8,INFO_VW=[...('V'+GAME_VERSION)].length*6,INFO_VH=8;
+const INFO={L:document.getElementById('infoL'),R:document.getElementById('infoR'),V:document.getElementById('infoV'),out:false,shown:false};
+INFO.L.width=INFO.R.width=INFO_W;INFO.L.height=INFO_LH;INFO.R.height=INFO_RH;INFO.V.width=INFO_VW;INFO.V.height=INFO_VH;
+function resize(){
+  const s=Math.min(innerWidth/W,innerHeight/H);const k=s>=2?Math.floor(s):s;
+  const cw=Math.floor(W*k);cv.style.width=cw+'px';cv.style.height=Math.floor(H*k)+'px';
+  const side=(innerWidth-cw)/2,stackH=INFO_LH+INFO_GAP+INFO_RH;
+  // Pe înălțime rămâne loc și pentru versiunea din colț (câte 12 px-info sus și jos), ca să nu se suprapună.
+  const sc=Math.min(Math.floor(k),Math.floor((side-16)/INFO_W),Math.floor((innerHeight-16)/(stackH+24)));
+  INFO.out=sc>=2;
+  if(!INFO.out)return;
+  const place=(c,l,t,w,h)=>{c.style.left=Math.round(l)+'px';c.style.top=Math.round(t)+'px';c.style.width=w+'px';c.style.height=h+'px';};
+  const x=innerWidth-side+(side-INFO_W*sc)/2,top=(innerHeight-stackH*sc)/2;
+  place(INFO.L,x,top,INFO_W*sc,INFO_LH*sc);
+  place(INFO.R,x,top+(INFO_LH+INFO_GAP)*sc,INFO_W*sc,INFO_RH*sc);
+  place(INFO.V,innerWidth-(INFO_VW+4)*sc,innerHeight-(INFO_VH+4)*sc,INFO_VW*sc,INFO_VH*sc);
+}
 addEventListener('resize',resize);resize();
 
 function mkCanvas(w,h){const c=document.createElement('canvas');c.width=w;c.height=h;const g=c.getContext('2d');g.imageSmoothingEnabled=false;return [c,g];}
@@ -227,6 +255,19 @@ const MAN_STAB_BODY=[
 MAN.WIND=spr(MAN_HEAD.concat(MAN_WIND_BODY,MLEG_A),MAN_PAL);
 MAN.STAB=spr(MAN_HEAD.concat(MAN_STAB_BODY,MLEG_B),MAN_PAL);
 const MAN_WIND_T=18,MAN_STAB_T=14,MAN_REACH=14;
+// Felinarul (noaptea): conul de lumină din fața fermierului — lung de ~7 tile-uri, deschis la ±17°.
+// Te vede dacă vârful, mijlocul sau picioarele curcanului intră în con. LOST_T = cât te mai caută după ce ieși.
+const LANTERN_LEN=110,LANTERN_HALF=0.3,LOST_T=150;
+function lanternPos(e){return {x:e.x+5+e.dir*6,y:e.y+11};}
+function lanternSees(e){
+  const l=lanternPos(e),px=player.x+player.w/2;
+  for(const py of [player.y+3,player.y+player.h/2,player.y+player.h-2]){
+    const ddx=px-l.x,ddy=py-l.y;
+    if(ddx*e.dir<=0||ddx*ddx+ddy*ddy>LANTERN_LEN*LANTERN_LEN)continue;
+    if(Math.atan2(Math.abs(ddy),Math.abs(ddx))<=LANTERN_HALF)return true;
+  }
+  return false;
+}
 // Zona în care lovește furca, în fața fermierului, la înălțimea pieptului.
 function forkBox(e){return {x:e.dir>0?e.x+e.w:e.x-MAN_REACH,y:e.y+7,w:MAN_REACH,h:8};}
 
@@ -369,7 +410,7 @@ const PALM=(()=>{const [c,g]=mkCanvas(36,50);
 
 // ================= THEMES / TILES / BACKGROUNDS =================
 const THEMES=[
- {name:'FERMA',sky:['#4fb4f0','#6cc6f6','#8ed6fa','#b4e6fc'],sun:{x:330,y:42,r:14,c:'#fff6b0',c2:'#ffe070'},far:'#9ac4dc',farL:'#b4d6e8',
+ {name:'FERMA',farm:true,sky:['#4fb4f0','#6cc6f6','#8ed6fa','#b4e6fc'],sun:{x:330,y:42,r:14,c:'#fff6b0',c2:'#ffe070'},far:'#9ac4dc',farL:'#b4d6e8',
   mid:'hills',midC:'#5cae48',midL:'#7ccc5c',midD:'#3e8a36',clouds:true,cloudC:'#ffffff',cloudS:'#cfe8f4',
   grass:'#5cc23a',grassL:'#8ae060',grassD:'#3a8a28',dirt:'#9a5a2a',dirtD:'#6e3c18',dirtL:'#b87440',
   water:{body:'#3a8ee8',deep:'#2662b8',top:'#a8e0ff',foam:'#ffffff',glint:'#ffffff'}},
@@ -381,6 +422,13 @@ const THEMES=[
   mid:'dunes',midC:'#2c2848',midL:'#3c3660',midD:'#1c1830',clouds:false,stars:true,
   grass:'#e8c47a',grassL:'#f8dc98',grassD:'#c8a058',dirt:'#b8864a',dirtD:'#8a5e30',dirtL:'#d0a060',
   water:{body:'#1c2c64',deep:'#0e1640',top:'#6a8ad0',foam:'#c8d8ff',glint:'#f0f4ff'}},
+ // Ferma noaptea (nivelul 2). Fundalul are culori de noapte; solul, apa și personajele folosesc culorile de zi,
+ // iar umbra albastră de noapte se pune peste ele la desenare (night:true), ca toată lumea să arate la fel.
+ {name:'NOAPTEA LA FERMĂ',farm:true,night:true,sky:['#070a1c','#0c1230','#141c44','#1e2a58'],moon:{x:300,y:38,r:10},stars:true,
+  far:'#1c2448',farL:'#2c3864',mid:'hills',midC:'#1c3a30',midL:'#2a5444',midD:'#12281f',
+  clouds:true,cloudN:3,cloudC:'#2e3862',cloudS:'#1e2648',
+  grass:'#5cc23a',grassL:'#8ae060',grassD:'#3a8a28',dirt:'#9a5a2a',dirtD:'#6e3c18',dirtL:'#b87440',
+  water:{body:'#3a8ee8',deep:'#2662b8',top:'#a8e0ff',foam:'#ffffff',glint:'#ffffff'}},
 ];
 const tileCache={},bgCache={};
 function getTiles(ti){
@@ -392,6 +440,19 @@ function getTiles(ti){
   [c,g]=mkCanvas(16,16);dirt(g,6);g.fillStyle=th.grass;g.fillRect(0,0,16,4);
   for(let x=0;x<16;x++){if((x*5+3)%4<2)g.fillRect(x,4,1,1);if((x*7)%5===0)g.fillRect(x,5,1,1);}
   g.fillStyle=th.grassL;g.fillRect(0,0,16,1);g.fillStyle=th.grassD;[2,6,9,13].forEach(x=>g.fillRect(x,2,1,1));T.G=c;
+  if(th.farm){
+    // Variante de iarbă și pământ (alese după poziție în drawTiles), ca solul să nu arate repetitiv.
+    const stone=(g,x,y,small)=>{const w=small?2:3;g.fillStyle='#7a6a5a';g.fillRect(x,y,w,2);g.fillStyle='#a8988a';g.fillRect(x,y,w-1,1);g.fillStyle='#4a3a2a';g.fillRect(x,y+2,w,1);};
+    const from=base=>{const [c,g]=mkCanvas(16,16);g.drawImage(base,0,0);return [c,g];};
+    T.Gv=[T.G];T.Dv=[T.D];
+    [c,g]=from(T.G);[[3,1,'#ffffff'],[11,2,'#ffe14a'],[7,0,'#ff8ac0']].forEach(([x,y,col])=>{g.fillStyle=col;g.fillRect(x,y,1,1);});T.Gv.push(c);   // flori mici
+    [c,g]=from(T.G);g.fillStyle=th.grassD;[[1,1],[4,2],[5,1],[10,1],[14,2]].forEach(([x,y])=>g.fillRect(x,y,1,2));
+    g.fillStyle=th.grassL;g.fillRect(4,0,3,1);g.fillRect(12,0,2,1);T.Gv.push(c);                                                                      // smocuri
+    [c,g]=from(T.G);stone(g,10,10);T.Gv.push(c);                                                                                                        // pietricică
+    [c,g]=from(T.D);stone(g,4,5);T.Dv.push(c);                                                                                                          // piatră
+    [c,g]=from(T.D);g.fillStyle=th.dirtD;[[2,3],[3,4],[4,4],[5,5],[6,5],[7,6],[6,7],[8,6],[9,7]].forEach(([x,y])=>g.fillRect(x,y,1,1));T.Dv.push(c); // rădăcină
+    [c,g]=from(T.D);stone(g,11,3,true);stone(g,3,11,true);T.Dv.push(c);                                                                                // pietricele
+  }
   // mud brick
   [c,g]=mkCanvas(16,16);g.fillStyle='#c98a4b';g.fillRect(0,0,16,16);g.fillStyle='#6a3a1a';
   g.fillRect(0,7,16,1);g.fillRect(0,15,16,1);g.fillRect(7,0,1,7);g.fillRect(15,0,1,7);g.fillRect(3,8,1,7);g.fillRect(11,8,1,7);
@@ -418,6 +479,10 @@ function getTiles(ti){
   g.fillStyle='#4a4a5a';g.fillRect(0,15,16,1);T['^']=c;
   return tileCache[ti]=T;
 }
+// Număr pseudo-aleator stabil pentru un tile (același de fiecare dată), folosit la variante și decor.
+function vhash(x,y){let h=(x*374761393+y*668265263)|0;h=Math.imul(h^(h>>>13),1274126177);return (h^(h>>>16))>>>0;}
+// Jumătate din tile-uri sunt cele de bază, restul variante.
+function pickVar(arr,tx,ty){const h=vhash(tx,ty);return h%10<5?arr[0]:arr[1+((h>>>4)%(arr.length-1))];}
 function getBG(ti){
   if(bgCache[ti])return bgCache[ti];
   const th=THEMES[ti],R=rng(ti*977+13);
@@ -434,6 +499,10 @@ function getBG(ti){
   fg.fillStyle=th.far;
   const hill=x=>(148+Math.sin(x*TAU*2/FW)*9+Math.sin(x*TAU*5/FW)*4)|0;
   for(let x=0;x<FW;x++)fg.fillRect(x,hill(x),1,H);
+  // Ferma (nivelul 1): siluete de fermă în loc de ziguraturi și palmieri. Celelalte niveluri rămân cum erau.
+  let dyn=null;
+  if(th.farm)dyn=farmFar(fg,th,R,hill,FW);
+  else{
   [[170,150],[560,148]].forEach(([zx,base])=>wrap(o=>{const x0=zx+o,sh=11;
     // fundație până jos, ca zigguratul să stea pe deal (nu să plutească)
     fg.fillStyle=th.far;fg.fillRect(x0-59,base,118,H-base);
@@ -443,10 +512,12 @@ function getBG(ti){
   const palm=(px,b0)=>wrap(o=>{const x0=px+o,base=Math.max(b0,hill(((px%FW)+FW)%FW)+2);fg.fillStyle=th.far;fg.fillRect(x0,base,2,H-base);for(let i=0;i<30;i++)fg.fillRect(x0+Math.round(Math.sin(i/30*1.3)*4),base-i,2,1);
     const tx=x0+4,ty=base-30;[0.2,-0.4,-1.1,-2.0,-2.7,-3.3].forEach(a=>{for(let j=0;j<12;j++)fg.fillRect(Math.round(tx+Math.cos(a)*j),Math.round(ty+Math.sin(a)*j+j*j*0.06),2,2);});});
   [60,90,300,330,420,700,740].forEach((px,i)=>palm(px,150+(i%2)*3));
+  }
   // mid layer
   const [mid,mg]=mkCanvas(FW,H);
   if(th.mid==='hills'){for(let x=0;x<FW;x++){const h=(170+Math.sin(x*TAU*3/FW)*12+Math.sin(x*TAU*7/FW+1)*6)|0;mg.fillStyle=th.midC;mg.fillRect(x,h,1,H);mg.fillStyle=th.midL;mg.fillRect(x,h,1,2);}
-    mg.fillStyle=th.midD;for(let i=0;i<60;i++){const x=R()*FW|0;const h=(170+Math.sin(x*TAU*3/FW)*12+Math.sin(x*TAU*7/FW+1)*6)|0;mg.fillRect(x,h+6+(R()*14|0),2,2);}}
+    mg.fillStyle=th.midD;for(let i=0;i<60;i++){const x=R()*FW|0;const h=(170+Math.sin(x*TAU*3/FW)*12+Math.sin(x*TAU*7/FW+1)*6)|0;mg.fillRect(x,h+6+(R()*14|0),2,2);}
+    if(th.farm)farmTrees(mg,th,R,FW);}
   else if(th.mid==='houses'){let x=4;while(x<FW-30){const w=24+(R()*36|0),h=26+(R()*48|0),y=196-h;
     mg.fillStyle=th.midC;mg.fillRect(x,y,w,H);mg.fillStyle=th.midL;mg.fillRect(x,y,w,2);mg.fillRect(x,y-2,3,2);mg.fillRect(x+w-3,y-2,3,2);
     if(R()<0.3){pcirc(mg,x+w/2,y,Math.min(10,w/3|0),th.midC);mg.fillStyle=th.midL;mg.fillRect(x+w/2-1,y-Math.min(10,w/3|0)-4,2,4);}
@@ -456,11 +527,131 @@ function getBG(ti){
     const h2=x=>(186+Math.sin(x*TAU*3/FW+1)*6)|0;for(let x=0;x<FW;x++){mg.fillStyle=th.midD;mg.fillRect(x,h2(x),1,H);}}
   // clouds
   let clouds=null;
-  if(th.clouds){const [cl,cg]=mkCanvas(FW,110);for(let i=0;i<7;i++){const cx=40+i*110+(R()*40|0),cy=20+(R()*60|0),k=3+(R()*3|0);
+  if(th.clouds){const [cl,cg]=mkCanvas(FW,110),cn=th.cloudN||7;for(let i=0;i<cn;i++){const cx=40+i*Math.floor(770/cn)+(R()*40|0),cy=20+(R()*60|0),k=3+(R()*3|0);
     const blobs=[];for(let j=0;j<k;j++)blobs.push([cx+j*10-k*5,cy-(j%2?4:0)-(R()*4|0),7+(R()*5|0)]);
     blobs.forEach(([x,y,r])=>pcirc(cg,x,y+3,r,th.cloudS));blobs.forEach(([x,y,r])=>pcirc(cg,x,y,r,th.cloudC));cg.clearRect(0,cy+8,FW,0);}
     clouds=cl;}
-  return bgCache[ti]={sky,far,mid,clouds};
+  return bgCache[ti]={sky,far,mid,clouds,dyn,night:!!th.night};
+}
+
+// ================= FERMA DIN FUNDAL (nivelul 1) =================
+// Siluete de fermă în depărtare (culoarea „far” a temei, cu muchii mai deschise), așezate la întâmplare
+// pe dealuri: hambar cu siloz, moară de vânt, casă cu horn, căpițe, coteț cu găini, vaci după gard, oi.
+// Ce se mișcă (palele morii, fumul, animalele) se desenează în fiecare cadru, în drawFarmLife.
+function farmFar(g,th,R,hill,FW){
+  const F=th.far,L=th.farL,night=!!th.night,dyn={F,L,smokeC:night?'#5a6488':'#eef6fa',mills:[],smoke:[],cows:[],sheep:[],hens:[]};
+  const hy=x=>hill(((x%FW)+FW)%FW);
+  const px=(x,y,w=1,h=1,c=F)=>{g.fillStyle=c;g.fillRect(x,y,w,h);};
+  // Ferestrele: ziua doar o muchie deschisă; noaptea luminează galben, cu o aură caldă în jur.
+  const win=(x,y,w,h)=>{if(night){g.fillStyle='rgba(255,200,90,0.22)';g.fillRect(x-2,y-2,w+4,h+4);px(x,y,w,h,'#ffd56a');}else px(x,y,w,h,L);};
+  // Baza = cel mai înalt punct al dealului sub obiect; dedesubt umplem până la deal, ca să nu plutească.
+  const base=(x0,w)=>{let b=H;for(let x=x0;x<x0+w;x++)b=Math.min(b,hy(x));
+    for(let x=x0;x<x0+w;x++)px(x,b,1,hy(x)-b+1);return b+1;};
+  const barn=x0=>{const b=base(x0,53);
+    // acoperiș „frânt” (gambrel), ca la hambarele din desene animate
+    for(let i=0;i<40;i++){const d=Math.min(i,39-i),rh=d<8?16+Math.round(d*1.25):26+Math.round((d-8)*0.42);px(x0+i,b-rh,1,rh);px(x0+i,b-rh,1,1,L);}
+    px(x0+13,b-12,14,1,L);px(x0+13,b-12,1,12,L);px(x0+26,b-12,1,12,L);
+    for(let k=0;k<11;k++){px(x0+14+k,b-11+k,1,1,L);px(x0+25-k,b-11+k,1,1,L);}   // ușa cu X
+    px(x0+17,b-23,6,5,L);if(night)win(x0+18,b-22,4,3);else px(x0+18,b-22,4,3);   // fereastra de fân
+    const sx=x0+42;px(sx,b-30,11,30);pcirc(g,sx+5,b-30,5,F);                      // silozul de lângă
+    for(let y=b-26;y<b;y+=6)px(sx,y,11,1,L);px(sx+3,b-34,2,1,L);
+  };
+  const mill=x0=>{const c=x0+17,b=base(c-7,14);
+    for(let y=0;y<38;y++){const hw=Math.round(7-y*3/38);px(c-hw,b-1-y,hw*2,1);}
+    px(c-2,b-10,4,10,L);px(c-1,b-9,2,9);
+    px(c-4,b-43,8,5);px(c-4,b-43,8,1,L);
+    dyn.mills.push({x:c,y:b-41});
+  };
+  const house=x0=>{const b=base(x0,30);
+    px(x0+2,b-14,26,14);
+    for(let r=0;r<=10;r++){const s=Math.round(r*1.5);px(x0+s,b-14-r,30-2*s,1);px(x0+s,b-14-r,1,1,L);px(x0+29-s,b-14-r,1,1,L);}
+    px(x0+21,b-27,4,9);px(x0+21,b-27,4,1,L);                                      // hornul
+    win(x0+6,b-10,4,4);win(x0+20,b-10,4,4);px(x0+13,b-8,4,8,L);px(x0+14,b-7,2,7);
+    dyn.smoke.push({x:x0+23,y:b-28});
+  };
+  const hay=x0=>{const n=2+(R()<0.5?1:0);
+    for(let k=0;k<n;k++){const x=x0+k*13,b=base(x,10);
+      for(let i=0;i<10;i++){const hh=Math.max(1,Math.round(Math.sqrt(1-((i-4.5)/5)**2)*9));px(x+i,b-hh,1,hh);px(x+i,b-hh,1,1,L);}
+      px(x+4,b-11,1,3,L);}
+  };
+  const coop=x0=>{const b=base(x0,20);
+    px(x0,b-12,14,8);for(let r=0;r<4;r++)px(x0-1+r,b-13-r,16-2*r,1);px(x0-1,b-13,16,1,L);
+    px(x0+1,b-4,1,4);px(x0+12,b-4,1,4);px(x0+5,b-10,3,3,L);
+    for(let k=0;k<6;k++)px(x0+14+k,b-5+Math.round(k*4/5),1,1);                  // rampa
+    for(let i=0;i<4;i++){const hx=x0+22+i*4+(R()*2|0);dyn.hens.push({x:hx,y:hy(hx)+1,dir:R()<0.5?-1:1,ph:R()*100|0});}
+  };
+  const cows=x0=>{const b=base(x0,34);
+    for(let x=x0;x<x0+34;x+=6)px(x,b-5,1,5);px(x0,b-4,34,1);px(x0,b-2,34,1);      // gardul pășunii (la scara vacilor)
+    const n=2+(R()<0.5?1:0);
+    for(let i=0;i<n;i++)dyn.cows.push({x:x0+6+i*11+(R()*3|0),y:b,dir:R()<0.5?-1:1,ph:R()*TAU});
+  };
+  const sheep=x0=>{for(let i=0;i<3;i++){const sx=x0+4+i*9+(R()*3|0);dyn.sheep.push({x:sx,y:hy(sx)+1,dir:R()<0.5?-1:1,ph:R()*TAU});}};
+  // Ordinea e amestecată la întâmplare (dar la fel de fiecare dată), cu spații diferite între elemente.
+  const kinds={barn:[barn,53],mill:[mill,34],house:[house,30],hay:[hay,36],coop:[coop,40],cows:[cows,34],sheep:[sheep,30]};
+  const bag=['barn','mill','house','hay','hay','coop','cows','cows','sheep'];
+  for(let i=bag.length-1;i>0;i--){const j=R()*(i+1)|0;[bag[i],bag[j]]=[bag[j],bag[i]];}
+  let x=20+(R()*30|0);
+  for(const k of bag){const [fn,w]=kinds[k];if(x+w>FW-40)break;fn(x);x+=w+16+(R()*36|0);}
+  return dyn;
+}
+// Copaci diferiți pe dealurile din planul mijlociu: rotunzi (coroană din mai multe bucăți), plopi înalți,
+// brazi în trepte, copaci lați și pomi cu fructe — cu mărimi și nuanțe de verde diferite, trunchi maro.
+function farmTrees(g,th,R,FW){
+  const mh=x=>(170+Math.sin(x*TAU*3/FW)*12+Math.sin(x*TAU*7/FW+1)*6)|0;
+  // Nuanțele de verde (și trunchiul, fructele) sunt mai închise noaptea, ca să se potrivească cu dealurile.
+  const night=!!th.night,greens=night?[th.midD,'#0e2219','#1a3428']:[th.midD,'#347a2e','#4c9a40'],pick=()=>greens[R()*greens.length|0];
+  const fruitC=night?['#8a3a2a','#9a7030']:['#e84a3a','#ffb030'];
+  const px=(x,y,w,h,c)=>{g.fillStyle=c;g.fillRect(x,y,w,h);};
+  const trunk=(x,b,h)=>px(x,b-h,2,h,night?'#2a2016':'#5a4426');
+  const shine=(cx,cy,r)=>{px(cx-r+2,cy-r+2,2,1,th.midL);px(cx-r+1,cy-r+3,1,1,th.midL);};  // luciu sus-stânga
+  const round=(x,b)=>{const r=5+(R()*3|0),t=4+(R()*5|0),c=pick(),cy=b-t-r,side=R()<0.5?-1:1;
+    trunk(x,b,t+r);pcirc(g,x+1,cy,r,c);pcirc(g,x+1+side*(r-2),cy+2,r-2,c);shine(x+1,cy,r);};
+  const poplar=(x,b)=>{const hgt=18+(R()*9|0),c=pick();trunk(x,b,5);
+    for(let i=0;i<hgt;i++){const hw=Math.round(3.5*Math.sin(Math.PI*(i+0.5)/hgt));px(x+1-hw,b-4-i,hw*2+1,1,c);}
+    px(x,b-hgt+2,1,3,th.midL);};
+  const pine=(x,b)=>{const c=pick(),s=R()<0.5?1:1.3;trunk(x,b,4);
+    [6,4.5,3].forEach((w,k)=>{const yb=b-4-k*4;for(let r=0;r<6;r++){const hw=Math.round(w*s*(r+1)/6);px(x+1-hw,yb-6+r+1,hw*2+1,1,c);}});};
+  const wide=(x,b)=>{const c=pick(),t=3+(R()*2|0);trunk(x,b,t+3);
+    pcirc(g,x-4,b-t-4,4,c);pcirc(g,x+6,b-t-4,4,c);pcirc(g,x+1,b-t-6,5,c);shine(x+1,b-t-6,5);};
+  const fruit=(x,b)=>{const r=6,t=5,c=pick(),cy=b-t-r;trunk(x,b,t+r);pcirc(g,x+1,cy,r,c);shine(x+1,cy,r);
+    for(let i=0;i<5;i++)px(x+1+Math.round(Math.cos(i*1.9)*(r-2)),cy+Math.round(Math.sin(i*1.9)*(r-2)),1,1,fruitC[i%2]);};
+  const bag=[round,round,round,poplar,poplar,pine,pine,wide,wide,fruit,fruit];
+  for(let i=bag.length-1;i>0;i--){const j=R()*(i+1)|0;[bag[i],bag[j]]=[bag[j],bag[i]];}
+  bag.forEach((fn,i)=>{const x=20+Math.round((i+R()*0.8)*(FW-40)/bag.length);fn(x,mh(x)+3);});
+}
+// Viața fermei din fundal, desenată în fiecare cadru la paralaxa stratului „far”:
+// palele morii se rotesc, iese fum din horn, vacile și oile pasc, găinile ciugulesc.
+function drawFarmLife(){
+  const d=bg.dyn,FWc=bg.far.width;
+  let ox=-((cam.x*0.2)%FWc);if(ox>0)ox-=FWc;ox=Math.floor(ox);
+  const each=(fx,fn)=>{for(const o of [ox,ox+FWc]){const sx=fx+o;if(sx>-30&&sx<W+30)fn(sx);}};
+  const p=(x,y,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(x,y,w,h);};
+  for(const m of d.mills)each(m.x,sx=>{const a=G.t*0.025;
+    for(let k=0;k<4;k++){const ang=a+k*TAU/4,c=Math.cos(ang),s=Math.sin(ang);
+      for(let j=2;j<=17;j++){p(Math.round(sx+c*j),Math.round(m.y+s*j),1,1,d.F);
+        if(j>6)for(let q=1;q<=3;q++)p(Math.round(sx+c*j-s*q),Math.round(m.y+s*j+c*q),1,1,d.F);}}  // pânza palei
+    p(sx-1,m.y-1,2,2,d.L);});
+  for(const c of d.smoke)each(c.x,sx=>{for(let k=0;k<4;k++){const t=((G.t*0.4+k*25)%100)/100;
+      ctx.globalAlpha=0.6*(1-t);pcirc(ctx,sx+Math.round(t*10+Math.sin(t*6+k)*1.5),Math.round(c.y-t*26),1+Math.round(t*3),d.smokeC);}
+    ctx.globalAlpha=1;});
+  // Animalele sunt mici (vaca ~9×6 px, oaia ~6×6), clar mai mici decât căpițele (10×9) — sunt departe.
+  for(const c of d.cows)each(c.x,x=>{const y=c.y,dr=c.dir,graze=Math.sin(G.t*0.015+c.ph)>-0.2;
+    p(x-3,y-5,6,3,d.F);p(x-3,y-2,1,2,d.F);p(x+2,y-2,1,2,d.F);
+    p(dr>0?x+3:x-5,graze?y-3:y-6,2,2,d.F);                                        // capul: jos când paște
+    p(dr>0?x-4:x+3,y-5+(Math.sin(G.t*0.08+c.ph*3)>0.85?-1:0),1,2,d.F);            // coada mai dă din când în când
+    p(x-2,y-5,2,1,d.L);p(x+1,y-4,1,1,d.L);});                                     // petele
+  for(const s of d.sheep)each(s.x,x=>{const y=s.y,dr=s.dir,graze=Math.sin(G.t*0.017+s.ph)>-0.3;
+    pcirc(ctx,x,y-4,2,d.L);p(x-1,y-1,1,1,d.F);p(x+1,y-1,1,1,d.F);
+    p(dr>0?x+2:x-3,graze?y-3:y-5,2,2,d.F);});
+  for(const h of d.hens)each(h.x,x=>{const y=h.y,dr=h.dir,peck=((G.t+h.ph)%50)<10;
+    p(x-1,y-3,3,2,d.F);p(x-1,y-1,1,1,d.F);p(x+1,y-1,1,1,d.F);
+    p(dr>0?x+2:x-2,peck?y-1:y-4,1,1,d.F);p(dr>0?x-2:x+2,y-4,1,1,d.F);});
+}
+// Câteva păsări departe pe cer (nu depind de cameră), cu aripile bătând.
+function drawBirds(){
+  ctx.fillStyle='#4a6a8a';
+  for(let i=0;i<3;i++){const x=Math.round(((G.t*(0.3+i*0.07)+i*160)%(W+60))-30),y=Math.round(28+i*13+Math.sin(G.t*0.02+i)*4),up=((G.t>>3)+i)%2;
+    ctx.fillRect(x-1,y,3,1);ctx.fillRect(x-3,y+(up?-1:1),2,1);ctx.fillRect(x+2,y+(up?-1:1),2,1);}
 }
 
 // ================= RESTAURANT =================
@@ -576,6 +767,17 @@ const SONGS={
             D5 - Eb5 - F#5 - Eb5 D5 C5 - D5 - Bb4 - A4 -
             G4 A4 Bb4 A4 G4 F#4 Eb4 F#4 D4 - - - . . . .`),
     bass:bassBars([[38],[39,38],[38],[43,38]])},
+  // Noaptea la fermă: aceeași gamă, dar o octavă mai jos, mai lent, cu un sunet moale (triunghi) și tobe rare.
+  night:{bpm:92,loop:true,leadType:'triangle',leadVol:0.17,drums:'k.......h...h...',
+    lead:P(`D4 - - - A3 - - - Bb3 - A3 - G3 - - -
+            F#3 - - - G3 - A3 - Bb3 - - - A3 - - -
+            D4 - - - Eb4 - D4 - C4 - Bb3 - A3 - - -
+            G3 - A3 - Bb3 - A3 - G3 - F#3 - D3 - - -
+            A3 - - - D4 - - - Eb4 - D4 - C4 - - -
+            Bb3 - C4 - D4 - - - A3 - - - . . . .
+            G3 - - - Bb3 - A3 - G3 - F#3 - Eb3 - - -
+            D3 - - - - - - - . . . . . . . .`),
+    bass:bassBars([[38],[43,38],[39],[36,38],[38],[43],[39,36],[38,45]])},
   clear:{bpm:190,loop:false,drums:'k...k...k.......',lead:P('D5 F#5 A5 D6 - - A5 D6 - - - - - - - -'),bass:P('D3 - - - - - A2 D3 - - - - - - - -')},
   death:{bpm:170,loop:false,drums:'',lead:P('A4 Bb4 A4 G4 F#4 Eb4 D4 - - - - - . . . .'),bass:P('D3 - - - - - D2 - - - - - . . . .')},
   gameover:{bpm:120,loop:false,drums:'',lead:P('D5 - - A4 - - F#4 - - Eb4 - - D4 - - - - - - - . . . .'),bass:P('D3 - - - - - - - - Eb2 - - D2 - - - - - - - . . . .')},
@@ -593,7 +795,7 @@ function sched(){
     const s=seq.song,sd=60/s.bpm/4,i=seq.step;
     if(!s.loop&&i>=s.lead.length){seq.song=null;if(s.next)playSong(s.next);break;}
     const li=i%s.lead.length,L=s.lead[li];
-    if(L>0){let n=1;while(n<16&&s.lead[(li+n)%s.lead.length]===0&&(s.loop||li+n<s.lead.length))n++;tone('pulse',mtof(L),seq.next,sd*n*0.95,0.1,musicG);}
+    if(L>0){let n=1;while(n<16&&s.lead[(li+n)%s.lead.length]===0&&(s.loop||li+n<s.lead.length))n++;tone(s.leadType||'pulse',mtof(L),seq.next,sd*n*0.95,s.leadVol||0.1,musicG);}
     if(s.bass&&s.bass.length){const bi=i%s.bass.length,B=s.bass[bi];if(B>0){let n=1;while(n<16&&s.bass[(bi+n)%s.bass.length]===0)n++;tone('triangle',mtof(B),seq.next,sd*n*0.9,0.3,musicG);}}
     if(s.drums){const d=s.drums[i%s.drums.length];
       if(d==='k')tone('sine',160,seq.next,0.12,0.5,musicG,40);
@@ -677,6 +879,27 @@ const LEVELS=[
   m.c(182,10,6);
   m.goal('sign',196);
   return m.done();}},
+ // Nivelul 2 — ferma noaptea: fermierii cu felinar te văd doar în conul de lumină din fața lor,
+ // așa că traseul are locuri unde te poți strecura prin spatele lor (dâmburi, platforme deasupra ta, iazuri).
+ {theme:3,song:'night',tip:'NOAPTEA, FERMIERII TE VĂD DOAR ÎN LUMINA FELINARULUI!',build(){const m=newMap(220);m.g(0,219);
+  m.c(6,10,3);m.r(11,8,'BMBHB');m.c(12,5,3);
+  m.e('man',24);
+  m.st(30,3,1);m.pit(33,36);m.c(33,8,4);m.st(37,3,-1);
+  m.e('man',44);m.sp(50,2);
+  m.f(54,10,8,2,'D');m.e('man',58,9);m.r(55,6,'BMB');
+  m.pit(64,67);m.r(64,8,'====');m.c(64,7,4);
+  m.e('bomb',72);m.e('man',78);
+  m.r(82,8,'======');m.c(83,7,4);m.e('man',85,7);
+  m.cp(96);
+  m.r(100,8,'BHB');m.e('man',106);m.e('man',112);
+  m.st(117,4,1);m.pit(121,124);m.c(121,6,4);m.st(125,4,-1);
+  m.e('bomb',132);m.sp(136,2);m.e('man',142);
+  m.f(147,9,6,3,'D');m.e('man',150,8);
+  m.pit(155,168);m.r(157,9,'===');m.r(162,7,'====');m.c(157,8,3);m.c(162,6,4);
+  m.e('man',174);m.e('bomb',180);m.e('man',186);
+  m.c(190,10,6);
+  m.goal('sign',204);
+  return m.done();}},
  {theme:1,tip:'FEREȘTE-TE DE BOMBE! FUG DUPĂ TINE!',build(){const m=newMap(230);m.g(0,229);
   m.c(6,10,4);m.r(12,8,'BBMBB');m.r(14,4,'H');
   m.e('bomb',20);m.e('man',26);
@@ -751,11 +974,7 @@ function moveY(e){
     for(let tx=l;tx<=r;tx++)if(solid(tileAt(tx,ty))){if(!hit||Math.abs(tx*TS+8-mc)<Math.abs(hit[0]*TS+8-mc))hit=[tx,ty];}
     if(hit){e.y=(ty+1)*TS;e.vy=0;e.headHit=hit;}}
 }
-function onSpike(e){
-  const l=Math.floor((e.x-1)/TS),r=Math.floor((e.x+e.w)/TS),t=Math.floor(e.y/TS),b=Math.floor((e.y+e.h+1)/TS);
-  for(let ty=t;ty<=b;ty++)for(let tx=l;tx<=r;tx++)if(tileAt(tx,ty)==='^')return true;return false;
-}
-// Stă cu picioarele pe un tile cu țepi (atingerea din lateral nu contează).
+// Stă cu picioarele pe un tile cu țepi (atingerea din lateral nu contează) — și pentru curcan, și pentru mobi.
 function standsOnSpikes(e){
   const ty=Math.floor((e.y+e.h+1)/TS);
   for(let tx=Math.floor(e.x/TS);tx<=Math.floor((e.x+e.w-1)/TS);tx++)if(tileAt(tx,ty)==='^')return true;
@@ -789,7 +1008,7 @@ function startLevel(){
   G.growT=0;
   G.time=300;G.frame=0;G.paused=false;G.tally=0;
   cam.x=clamp(player.x-W*0.4,0,cols*TS-W);
-  G.state='play';playSong('main');
+  G.state='play';playSong(def.song||'main');
   if(musicG)musicG.gain.value=0.32;
 }
 
@@ -854,7 +1073,46 @@ function drawWater(cx){
     ctx.fillStyle=w.glint;
     for(let wx=Math.ceil(tx*TS/12)*12;wx<(end+1)*TS-1;wx+=12){const k=wx/12;
       if((((G.t>>3)+k*5)%7)<2)ctx.fillRect(wx-cx,WATER_Y+3+(k%3)*4,2,1);}
+    // La fermă, gropile sunt iazuri: stuf pe margini și nuferi (după marginile reale ale gropii, nu ale ecranului).
+    if(theme.farm){let s=tx;while(s>0&&grid[12][s-1]==='.')s--;let e2=end;while(e2<cols-1&&grid[12][e2+1]==='.')e2++;drawPond(cx,s,e2);}
     tx=end;
+  }
+}
+// Iazul fermei: nuferi care se leagănă pe valuri (unii cu floare roz) și stuf pe ambele margini, legănat de vânt.
+function drawPond(cx,s,e){
+  const L=s*TS,R=(e+1)*TS;
+  for(let wx=L+10;wx<R-12;wx+=19){const h=vhash(wx,7);if(h%3===0)continue;
+    const x=wx+(h>>>4)%6-cx,top=WATER_Y+Math.round(Math.sin(wx*0.3+G.t*0.07)*1.2);
+    ctx.fillStyle='#2f7a2a';ctx.fillRect(x,top,7,2);ctx.fillRect(x+1,top-1,5,1);
+    ctx.fillStyle='#5aa83a';ctx.fillRect(x+1,top-1,3,1);
+    ctx.fillStyle=theme.water.body;ctx.fillRect(x+3,top,1,1);                    // crestătura frunzei
+    if(h%5===1){ctx.fillStyle='#ff9ac0';ctx.fillRect(x+4,top-2,2,2);ctx.fillStyle='#ffffff';ctx.fillRect(x+4,top-2,1,1);}
+  }
+  for(const [ex,dir] of [[L,1],[R,-1]]){
+    for(let i=0;i<4;i++){const x=ex+dir*(2+i*2)-cx-(dir<0?1:0),hgt=10+((i*7)%5)*2,sway=Math.round(Math.sin(G.t*0.03+i+ex)*1);
+      ctx.fillStyle=i%2?'#3a8a2a':'#2a6a22';
+      ctx.fillRect(x,WATER_Y-hgt/2,1,hgt/2+4);ctx.fillRect(x+sway,WATER_Y-hgt,1,hgt/2);
+      if(i%2===0){ctx.fillStyle='#7a4a20';ctx.fillRect(x+sway,WATER_Y-hgt-1,2,4);}  // spicul de papură
+    }
+  }
+}
+// Decor discret pe sol, în fața jocului: smocuri de iarbă, flori și câte o tufă mică (cam o treime din tile-uri).
+// ok(tx) spune pe ce coloane se poate pune (în joc: doar pe sol, nu lângă gropi).
+function drawGroundDecor(cx,th,ok){
+  const x0=Math.floor(cx/TS)-1,x1=Math.floor((cx+W)/TS)+1,y=192;
+  for(let tx=x0;tx<=x1;tx++){
+    if(!ok(tx))continue;
+    const h=vhash(tx,99),k=h%16,bx=tx*TS-cx+((h>>>5)%10)+2;
+    if(k<3){                                                                       // smoc de iarbă
+      ctx.fillStyle=th.grassD;ctx.fillRect(bx,y-3,1,3);ctx.fillRect(bx+2,y-4,1,4);ctx.fillRect(bx+4,y-2,1,2);
+      ctx.fillStyle=th.grassL;ctx.fillRect(bx+1,y-2,1,2);ctx.fillRect(bx+3,y-3,1,3);
+    }else if(k<5){                                                                 // floare
+      ctx.fillStyle=th.grassD;ctx.fillRect(bx+1,y-4,1,4);ctx.fillRect(bx,y-2,1,1);
+      ctx.fillStyle=['#ffffff','#ffe14a','#ff8ac0','#ff5a5a'][(h>>>9)%4];ctx.fillRect(bx,y-6,3,1);ctx.fillRect(bx+1,y-7,1,3);
+      ctx.fillStyle='#ffd23f';ctx.fillRect(bx+1,y-6,1,1);
+    }else if(k===5){                                                               // tufă mică
+      pcirc(ctx,bx+4,y-1,4,th.grassD);pcirc(ctx,bx+4,y-2,3,th.grass);ctx.fillStyle=th.grassL;ctx.fillRect(bx+2,y-4,2,1);
+    }
   }
 }
 function sparkle(x,y){for(let i=0;i<6;i++){const a=i/6*TAU;parts.push({x,y,vx:Math.cos(a)*1.4,vy:Math.sin(a)*1.4,g:0,life:16,max:16,col:i%2?'#fff':'#ffd23f',s:2});}}
@@ -1009,7 +1267,8 @@ function updatePlayer(){
   if(p.headHit)hitBlock(p.headHit[0],p.headHit[1]);
   if(p.onGround&&wasAir&&vyB>3)dust(p.x+p.w/2,p.y+p.h,4);
   if(p.onGround&&Math.abs(p.vx)>0.1)p.anim+=Math.abs(p.vx)*0.22;
-  if(onSpike(p))hurt(-p.face);
+  // Țepii rănesc doar când calci pe ei de sus; dacă doar mergi în ei din lateral, te opresc ca un perete.
+  if(p.onGround&&standsOnSpikes(p))hurt(-p.face);
   if(p.y+p.h>WATER_Y&&overPit(p))drown();
   else if(p.y>H+8)die();
 }
@@ -1032,15 +1291,23 @@ function updateMan(e){
     if(st>0&&st<=10&&!player.dead&&overlap(player,forkBox(e)))hurt(e.dir);
     if(st>=MAN_STAB_T){e.atk=0;e.cd=50;}
   }else{
-    const see=!player.dead&&Math.abs(dx)<140&&Math.abs(dy)<56;
-    if(see&&!e.chasing){e.alert=28;if(G.t-G.lastAlert>30){sfx.alert();G.lastAlert=G.t;}}
+    // Ziua te vede de departe. Noaptea doar în conul de lumină al felinarului (din fața lui); dacă ieși din lumină,
+    // mai aleargă puțin spre locul unde te-a văzut ultima dată, apoi se oprește nedumerit („?”) și se uită în jur.
+    let see,tdx=dx;
+    if(theme.night){
+      if(!player.dead&&lanternSees(e)){see=true;e.lastX=player.x+player.w/2;e.lost=0;}
+      else if(e.chasing){e.lost=(e.lost||0)+1;tdx=e.lastX-(e.x+5);see=e.lost<LOST_T&&Math.abs(tdx)>6;if(!see)e.puzzled=70;}
+      else see=false;
+    }else see=!player.dead&&Math.abs(dx)<140&&Math.abs(dy)<56;
+    if(see&&!e.chasing){e.alert=28;e.puzzled=0;if(G.t-G.lastAlert>30){sfx.alert();G.lastAlert=G.t;}}
     e.chasing=see;
-    if(e.alert>0){e.alert--;e.vx=0;if(Math.abs(dx)>2)e.dir=Math.sign(dx);}
-    else if(e.chasing&&!e.cd&&e.onGround&&Math.abs(dx)<30&&Math.abs(dy)<12){
+    if(e.puzzled>0){e.puzzled--;e.vx=0;if(e.puzzled===35)e.dir*=-1;}
+    else if(e.alert>0){e.alert--;e.vx=0;if(Math.abs(dx)>2)e.dir=Math.sign(dx);}
+    else if(e.chasing&&!(e.lost>0)&&!e.cd&&e.onGround&&Math.abs(dx)<30&&Math.abs(dy)<12){
       // Curcanul e foarte aproape și la aceeași înălțime: începe atacul.
       e.atk=1;e.vx=0;e.dir=Math.sign(dx)||e.dir;sfx.windup();
     }else{
-      if(e.chasing&&Math.abs(dx)>6)e.dir=Math.sign(dx);
+      if(e.chasing&&Math.abs(tdx)>6)e.dir=Math.sign(tdx);
       const sp=e.chasing?0.8:0.35;e.vx=e.dir*sp;
       // La marginea unei gropi sau în fața țepilor: când te urmărește se oprește (nu sare), altfel se întoarce.
       if(e.onGround&&(!groundAhead(e,e.dir)||spikeAhead(e,e.dir))){if(e.chasing)e.vx=0;else{e.dir*=-1;e.vx=e.dir*sp;}}
@@ -1204,13 +1471,16 @@ function update(){
 
 // ================= RENDER =================
 function par(img,f,y=0,extra=0){const w=img.width;let ox=-((cam.x*f+extra)%w);if(ox>0)ox-=w;ox=Math.floor(ox);ctx.drawImage(img,ox,y);ctx.drawImage(img,ox+w,y);}
-function drawBG(){ctx.drawImage(bg.sky,0,0);if(bg.clouds)par(bg.clouds,0.1,0,G.t*0.08);par(bg.far,0.2);par(bg.mid,0.45);}
+function drawBG(){ctx.drawImage(bg.sky,0,0);if(bg.clouds)par(bg.clouds,0.1,0,G.t*0.08);
+  if(bg.dyn&&!bg.night)drawBirds();par(bg.far,0.2);if(bg.dyn)drawFarmLife();par(bg.mid,0.45);}
 const BUMPY=[2,4,5,5,4,3,2,1];
 function drawTiles(cx){
   const x0=Math.max(0,Math.floor(cx/TS)),x1=Math.min(cols-1,Math.floor((cx+W)/TS));
   const mf=tiles.M[[0,1,2,1][(G.t>>3)%4]];
   for(let ty=0;ty<ROWS;ty++){const row=grid[ty];for(let tx=x0;tx<=x1;tx++){const c=row[tx];if(c==='.')continue;
-    const img=(c==='M'||c==='H')?mf:tiles[c];if(!img)continue;let oy=0;for(const b of bumps)if(b.tx===tx&&b.ty===ty)oy=-BUMPY[b.t];
+    let img=(c==='M'||c==='H')?mf:tiles[c];
+    if(c==='G'&&tiles.Gv)img=pickVar(tiles.Gv,tx,ty);else if(c==='D'&&tiles.Dv)img=pickVar(tiles.Dv,tx,ty);
+    if(!img)continue;let oy=0;for(const b of bumps)if(b.tx===tx&&b.ty===ty)oy=-BUMPY[b.t];
     ctx.drawImage(img,tx*TS-cx,ty*TS+oy);}}
 }
 function drawCoin(x,y,phase){const w=Math.max(2,Math.round(12*Math.abs(Math.cos(G.t*0.07+phase))));ctx.drawImage(COIN,Math.round(x-w/2),Math.round(y-6),w,12);}
@@ -1218,7 +1488,7 @@ function drawSign(cx){
   const x=goal.x*TS-cx;
   ctx.fillStyle='#5a3510';ctx.fillRect(x+33,150,6,42);ctx.fillStyle='#8a5a2a';ctx.fillRect(x+34,150,2,42);
   ctx.fillStyle='#4a2a10';ctx.fillRect(x-2,128,76,30);ctx.fillStyle='#c89050';ctx.fillRect(x,130,72,26);ctx.fillStyle='#e0b070';ctx.fillRect(x,130,72,2);
-  txt('MESOPOTAMIA',x+36,134,'#5a1a0a',1,'c',null);txt(G.level===0?'→ 2 KM':'→ 500 M',x+36,145,'#a02a0a',1,'c',null);
+  txt('MESOPOTAMIA',x+36,134,'#5a1a0a',1,'c',null);txt(['→ 3 KM','→ 2 KM','→ 500 M'][G.level]||'→ 500 M',x+36,145,'#a02a0a',1,'c',null);
 }
 function drawRestaurant(cx){
   const x=goal.x*TS-cx,y=192-RH;
@@ -1268,6 +1538,7 @@ function drawEnemy(e,cx){
     const f=(e.vx!==0&&(Math.floor(e.anim/7)%2))?'B':'A';
     ctx.drawImage(MAN[f][e.dir>0?'r':'l'],sx-3,Math.round(e.y-2));
     if(e.alert>0)txt('!',sx+3,Math.round(e.y-12),'#ff4040',1,'l','#000');
+    else if(e.puzzled>0)txt('?',sx+3,Math.round(e.y-12),'#ffd23f',1,'l','#000');
   }else{
     const lit=e.lit>0,flash=lit&&((e.lit<36)?(e.lit>>1)%2:(e.lit>>3)%2);
     const step=Math.floor(e.anim/8)%2;
@@ -1278,6 +1549,7 @@ function drawEnemy(e,cx){
     if(e.sink)return;  // stinsă în apă: fără scânteie
     // Scânteia de pe fitil (coborâtă cu 2px când stă în fund).
     const fx=bx+(e.dir>0?11:4),fy=by+(e.sit?3:1);
+    if(lit&&theme.night)glow(fx,fy,6,'255,220,120',0.8);  // noaptea, scânteia de pe fitil luminează
     const sc=['#fff','#ffd23f','#ff7a1a'][(G.t>>1)%3];ctx.fillStyle=sc;ctx.fillRect(fx,fy,1,1);
     if(lit||G.t%8<4){ctx.fillRect(fx-1,fy,3,1);ctx.fillRect(fx,fy-1,1,3);}
     if(lit&&G.t%4<2){ctx.fillStyle='#fff';ctx.fillRect(fx-2,fy-2,1,1);ctx.fillRect(fx+2,fy-2,1,1);}
@@ -1295,19 +1567,49 @@ function drawWorld(){
   drawBG();
   const sh=G.shake>0?Math.round((Math.random()-0.5)*4):0;
   const cx=Math.round(cam.x)+sh;
-  if(goal){if(goal.type==='sign')drawSign(cx);else drawRestaurant(cx);}
-  for(const cp of cps)drawCP(cp,cx);
-  for(const it of items){
+  // Noaptea: lumea de joc (sol, blocuri, personaje, apă) se desenează pe un canvas separat, ca să primească
+  // umbra albastră doar ea — fundalul are deja culori de noapte, iar luminile se pun după, nealterate.
+  const night=theme.night,main=ctx;
+  if(night){ctx=shadeCtx;ctx.clearRect(0,0,W,H);}
+  const drawItem=it=>{
     const gx=Math.round(it.x-cx),gy=Math.round(it.y),berry=it.type==='berry';
     // Aură care pulsează: aurie pentru grăunte, roșie (și mai puternică) pentru boaba de foc.
-    ctx.globalAlpha=(berry?0.34:0.28)+0.12*Math.sin(G.t*(berry?0.3:0.2));pcirc(ctx,gx+5,gy+5,9+Math.round(Math.sin(G.t*0.15)),berry?'#ff4a3a':'#ffe060');ctx.globalAlpha=1;
+    // Noaptea (și doar după ce a ieșit din bloc) e lumină adevărată, care strălucește în jur.
+    if(night&&!(it.rise>0))glow(gx+5,gy+5,15+Math.sin(G.t*0.15)*1.5,berry?'255,80,60':'255,210,90',0.6);
+    else{ctx.globalAlpha=(berry?0.34:0.28)+0.12*Math.sin(G.t*(berry?0.3:0.2));pcirc(ctx,gx+5,gy+5,9+Math.round(Math.sin(G.t*0.15)),berry?'#ff4a3a':'#ffe060');ctx.globalAlpha=1;}
     ctx.drawImage(berry?BERRY:GRAIN,gx,gy);
     const a=G.t*(berry?-0.16:0.12);
-    for(let k=0;k<3;k++){const ang=a+k*TAU/3;ctx.fillStyle=berry&&k%2?'#ffd040':'#fff';ctx.fillRect(Math.round(gx+5+Math.cos(ang)*10),Math.round(gy+5+Math.sin(ang)*10),1,1);}}
+    for(let k=0;k<3;k++){const ang=a+k*TAU/3;ctx.fillStyle=berry&&k%2?'#ffd040':'#fff';ctx.fillRect(Math.round(gx+5+Math.cos(ang)*10),Math.round(gy+5+Math.sin(ang)*10),1,1);}};
+  // Noaptea bănuții strălucesc: o lumină caldă care pulsează ușor în jurul lor.
+  const drawCoins=()=>coins.forEach((c,i)=>{if(c.taken||c.x-cx<=-10||c.x-cx>=W+10)return;const y=c.y+Math.round(Math.sin(G.t*0.08+i)*1);
+    if(night)glow(Math.round(c.x-cx),y,13+Math.sin(G.t*0.1+i)*1.5,'255,190,70',0.6);
+    drawCoin(c.x-cx,y,i*0.5);});
+  if(goal){if(goal.type==='sign')drawSign(cx);else drawRestaurant(cx);}
+  for(const cp of cps)drawCP(cp,cx);
+  // Noaptea, bănuții și power-up-urile luminează: se desenează după umbră (vezi mai jos).
+  // Doar cel care încă iese din bloc rămâne aici, ca să apară din spatele blocului.
+  for(const it of items)if(!night||it.rise>0)drawItem(it);
   drawTiles(cx);
-  coins.forEach((c,i)=>{if(!c.taken&&c.x-cx>-10&&c.x-cx<W+10)drawCoin(c.x-cx,c.y+Math.round(Math.sin(G.t*0.08+i)*1),i*0.5);});
-  for(const e of enemies)if(e.active||(e.x-cx<W+24))drawEnemy(e,cx);
+  if(!night)drawCoins();
+  // Noaptea, bomba aprinsă luminează: nu primește umbra, se desenează după ea, cu strălucire (vezi mai jos).
+  const litBomb=e=>night&&e.type==='bomb'&&e.lit>0&&!e.sink;
+  for(const e of enemies)if((e.active||(e.x-cx<W+24))&&!litBomb(e))drawEnemy(e,cx);
   drawPlayer(cx);
+  // Decorul de pe sol stă în fața personajelor; nu pe marginea gropilor și nu sub țepi/trepte.
+  if(theme.farm)drawGroundDecor(cx,theme,tx=>grid[12][tx]==='G'&&grid[11][tx]==='.'&&tileAt(tx-1,12)!=='.'&&tileAt(tx+1,12)!=='.');
+  drawWater(cx);
+  if(night){
+    // Umbra de noapte: amestecă doar pixelii desenați cu un albastru închis (mai întunecat, dar se vede tot).
+    ctx.globalCompositeOperation='source-atop';ctx.fillStyle='rgba(12,18,56,0.4)';ctx.fillRect(0,0,W,H);
+    ctx.globalCompositeOperation='source-over';
+    ctx=main;ctx.drawImage(shadeCv,0,0);
+    drawNightLights(cx);
+    // Strălucire portocalie care pulsează odată cu clipirea bombei și crește spre explozie.
+    for(const e of enemies)if(e.active&&litBomb(e)){const fl=(e.lit<36)?(e.lit>>1)%2:(e.lit>>3)%2;
+      glow(Math.round(e.x+6-cx),Math.round(e.y+(e.sit?8:6)),e.lit<36?22:17,'255,120,40',fl?0.75:0.45);drawEnemy(e,cx);}
+    for(const it of items)if(!(it.rise>0))drawItem(it);
+    drawCoins();
+  }
   for(const f of feathers){
     // Ușoară fluturare în zbor; spre capătul distanței pana se estompează.
     const img=FEATHER[(f.t>>2)%2?'B':'A'][f.dir>0?'r':'l'];
@@ -1315,7 +1617,6 @@ function drawWorld(){
     ctx.drawImage(img,Math.round(f.x-cx),Math.round(f.y-2+Math.sin(f.t*0.6)));
     ctx.globalAlpha=1;
   }
-  drawWater(cx);
   for(const b of booms)ctx.drawImage(BOOM[Math.min(5,b.t>>2)],Math.round(b.x-cx-42),Math.round(b.y-42));
   for(const p of parts){
     if(p.type==='coin'){drawCoin(p.x-cx,p.y,G.t*0.3);continue;}
@@ -1325,16 +1626,55 @@ function drawWorld(){
   for(const p of popups)txt(p.s,p.x-cx,p.y,p.c,1,'c','#000');
   if(TEST&&G.showHB)drawHitboxes(cx);
 }
+// Luminile nopții, peste umbră: conul felinarului fiecărui fermier (galben cald; portocaliu când te-a văzut),
+// felinarul care pâlpâie, apoi licuricii.
+function drawNightLights(cx){
+  for(const e of enemies){
+    if(e.type!=='man'||!e.active||e.dead||e.sink)continue;
+    const l=lanternPos(e),lx=Math.round(l.x-cx),ly=Math.round(l.y);
+    if(lx<-LANTERN_LEN||lx>W+LANTERN_LEN)continue;
+    const col=e.chasing?'255,150,90':'255,220,130',a0=e.dir>0?0:Math.PI;
+    const gr=ctx.createRadialGradient(lx,ly,2,lx,ly,LANTERN_LEN);
+    gr.addColorStop(0,`rgba(${col},0.3)`);gr.addColorStop(1,`rgba(${col},0)`);
+    ctx.globalCompositeOperation='lighter';
+    ctx.fillStyle=gr;ctx.beginPath();ctx.moveTo(lx,ly);ctx.arc(lx,ly,LANTERN_LEN,a0-LANTERN_HALF,a0+LANTERN_HALF);ctx.closePath();ctx.fill();
+    ctx.globalCompositeOperation='source-over';
+    const fl=0.8+0.2*Math.sin(G.t*0.3+e.x);
+    glow(lx,ly,8*fl,'255,210,110',0.7);
+    ctx.fillStyle='#2a2018';ctx.fillRect(lx,ly-5,1,2);ctx.fillRect(lx-1,ly-3,3,1);ctx.fillRect(lx-2,ly-2,1,4);ctx.fillRect(lx+2,ly-2,1,4);ctx.fillRect(lx-1,ly+2,3,1);
+    ctx.fillStyle=fl>0.9?'#fff4c0':'#ffd56a';ctx.fillRect(lx-1,ly-2,3,4);
+  }
+  drawFireflies(cx);
+}
+// Licurici ici-colo, aproape de sol: plutesc încet și se aprind/sting pe rând (cu puțină paralaxă).
+function drawFireflies(cx){
+  for(let i=0;i<14;i++){const h=vhash(i,321);
+    let sx=((h%520)-cx*0.9)%520;if(sx<0)sx+=520;sx=Math.round(sx-40+Math.sin(G.t*0.013+i)*10);
+    const sy=Math.round(150+((h>>>8)%40)+Math.sin(G.t*0.021+i*2)*6),a=0.5+0.5*Math.sin(G.t*0.06+i*1.7);
+    if(a<0.15||sx<-4||sx>W+4)continue;
+    glow(sx,sy,5,'200,255,110',0.7*a);ctx.globalAlpha=a;ctx.fillStyle='#f4ffb0';ctx.fillRect(sx,sy,1,1);ctx.globalAlpha=1;
+  }
+}
+// Lumină „aditivă” (se adună peste ce e dedesubt) care se stinge spre margini — ca strălucirea să pară
+// lumină, nu o pată gri (un galben transparent peste albastru-închis iese gri).
+function glow(x,y,r,rgb,a){
+  const gr=ctx.createRadialGradient(x,y,0,x,y,r);
+  gr.addColorStop(0,`rgba(${rgb},${a})`);gr.addColorStop(0.45,`rgba(${rgb},${a*0.35})`);gr.addColorStop(1,`rgba(${rgb},0)`);
+  ctx.globalCompositeOperation='lighter';ctx.fillStyle=gr;ctx.fillRect(x-r,y-r,r*2,r*2);ctx.globalCompositeOperation='source-over';
+}
 function panel(x,y,w,h){ctx.fillStyle='rgba(16,8,32,0.85)';ctx.fillRect(x,y,w,h);ctx.fillStyle='#ffcf40';ctx.fillRect(x,y,w,2);ctx.fillRect(x,y+h-2,w,2);ctx.fillRect(x,y,2,h);ctx.fillRect(x+w-2,y,2,h);}
 function drawTitle(){
   tiles=getTiles(0);bg=getBG(0);
   drawBG();
-  const off=-(Math.floor(cam.x)%16);for(let x=off;x<W;x+=16){ctx.drawImage(tiles.G,x,192);ctx.drawImage(tiles.D,x,208);}
+  const fc=Math.floor(cam.x),off=-(fc%16);
+  for(let x=off;x<W;x+=16){const tx=(fc+x)/16;
+    ctx.drawImage(tiles.Gv?pickVar(tiles.Gv,tx,12):tiles.G,x,192);ctx.drawImage(tiles.Dv?pickVar(tiles.Dv,tx,13):tiles.D,x,208);}
   // Curcanul mic (ca la începutul jocului) fuge, fermierii îl urmăresc — la mărimea din joc.
   const f=TK_RUN[Math.floor(G.t/5)%4],bob=Math.floor(G.t/5)%2?-1:0;
   ctx.drawImage(TKS[f].r,239,176+bob);
   const mf=Math.floor(G.t/6)%2?'B':'A';
   ctx.drawImage(MAN[mf].r,175,172);ctx.drawImage(MAN[mf==='A'?'B':'A'].r,145,172);
+  if(THEMES[0].farm)drawGroundDecor(fc,THEMES[0],()=>true);
   if((G.t>>4)%2)txt('!',180,160,'#ff4040');
   txtCute('CURCANUL',W/2,18,4,'#e8323e','#000000');
   txtCute('ÎN FUGĂ',W/2,59,3,'#e8323e','#000000');
@@ -1342,6 +1682,8 @@ function drawTitle(){
   if((G.t>>5)%2===0)txt(AC?'APASĂ ENTER SAU SPACE':'APASĂ ORICE TASTĂ PENTRU SUNET',W/2,134,'#ffffff',1,'c','#000');
   // Două casete simetrice, de o parte și de alta a textului din mijloc:
   // stânga = controalele de joc, dreapta = recordul (mare) și opțiunile (mai discrete).
+  // (Doar când nu e loc în spațiul negru din jurul jocului — altfel le desenează drawInfoPanels.)
+  if(!INFO.out){
   const PY=100,PH=68,PW=100,PL=6,PR=W-6-PW;
   const panel=(x,title)=>{ctx.fillStyle='rgba(0,0,0,0.28)';ctx.fillRect(x,PY,PW,PH);txt(title,x+6,PY+6,'#ffd23f',1,'l',null);};
   const divider=(x,y)=>{ctx.fillStyle='rgba(255,255,255,0.22)';ctx.fillRect(x+6,y,PW-12,1);};
@@ -1358,6 +1700,29 @@ function drawTitle(){
   keyRow(PR+8,153,'P','PAUZĂ','#b8c8d8');
   // Versiunea jocului, în colțul din dreapta jos (urcă puțin când apare „MUZICĂ OFF”).
   txt('V'+GAME_VERSION,W-4,G.muted?H-26:H-10,'#f0e0c8',1,'r','#000');
+  }
+}
+// Casetele din spațiul negru din dreapta: sus toate controalele (jos, după o linie, muzică și pauză),
+// dedesubt recordul; versiunea separat, în colț.
+// Pe fiecare rând: tasta într-o „clapă” în stânga, acțiunea aliniată la dreapta.
+function drawInfoPanels(){
+  const line=(g,y)=>{g.fillStyle='#2e2840';g.fillRect(6,y,INFO_W-12,1);};
+  const box=(g,title,h,sep=true)=>{g.fillStyle='#15121f';g.fillRect(0,0,INFO_W,h);
+    g.fillStyle='#2e2840';g.fillRect(0,0,INFO_W,1);g.fillRect(0,h-1,INFO_W,1);g.fillRect(0,0,1,h);g.fillRect(INFO_W-1,0,1,h);
+    txt(title,6,6,'#ffd23f',1,'l',null,g);if(sep)line(g,16);};
+  const key=(g,x,y,k)=>{const kw=[...k].length*6-1;g.fillStyle='#3a3450';g.fillRect(x-2,y-2,kw+4,11);txt(k,x,y,'#ffffff',1,'l',null,g);};
+  const gL=INFO.L.getContext('2d');box(gL,'CONTROALE',INFO_LH);
+  [['← →','MERGI'],['SPACE','SARI'],['X','FUGI/FOC']].forEach(([k,a],i)=>{const y=24+i*14;key(gL,8,y,k);txt(a,INFO_W-6,y,'#e8f4ff',1,'r',null,gL);});
+  // Sub o linie: controalele de joc „de sistem” (muzică, pauză), puțin mai discrete.
+  line(gL,64);
+  key(gL,8,71,'M');txt('MUZICĂ',INFO_W-6,71,G.muted?'#ff8a8a':'#b8c8d8',1,'r',null,gL);
+  key(gL,8,85,'P');txt('PAUZĂ',INFO_W-6,85,'#b8c8d8',1,'r',null,gL);
+  // Recordul: valoarea lipită de titlu (fără linie între ele), într-o casetă mai închisă.
+  // Cifre simple (fără îngroșare — fontul de 5x7 devine ilizibil dacă le umplem golurile).
+  const gR=INFO.R.getContext('2d');box(gR,'RECORD',INFO_RH,false);
+  gR.fillStyle='#0b0914';gR.fillRect(5,16,INFO_W-10,14);
+  txt(pad(G.hi,6),INFO_W/2,19,'#ffd23f',1,'c',null,gR);
+  const gV=INFO.V.getContext('2d');gV.clearRect(0,0,INFO_VW,INFO_VH);txt('V'+GAME_VERSION,0,0,'#7a7490',1,'l',null,gV);
 }
 function drawIntro(){
   ctx.fillStyle='#0d0b14';ctx.fillRect(0,0,W,H);
@@ -1392,6 +1757,10 @@ function render(){
       if(G.state==='play'&&G.paused){panel(130,80,140,50);txt('PAUZĂ',W/2,90,'#ffd23f',2,'c','#7a2a0a');txt('P - CONTINUĂ',W/2,112,'#fff',1,'c',null);}
   }
   if(G.muted){ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(W-58,H-14,56,12);txt('MUZICĂ OFF',W-4,H-12,'#ff8a8a',1,'r',null);}
+  // Casetele din spațiul negru apar doar în meniu (și doar dacă încap).
+  const showInfo=INFO.out&&G.state==='title';
+  if(showInfo!==INFO.shown){INFO.shown=showInfo;INFO.L.style.display=INFO.R.style.display=INFO.V.style.display=showInfo?'block':'none';}
+  if(showInfo)drawInfoPanels();
 }
 
 // ================= MOD DE TEST (index.html?test, folosit de test.html) =================
@@ -1427,6 +1796,8 @@ const TEST_CMDS={
   god(){G.god=!G.god;},
   hitbox(){G.showHB=!G.showHB;},
   slow(){G.slow=!G.slow;},
+  // Arena ziua / noaptea (fermierii cu felinar, umbra de noapte, muzica de noapte).
+  night(){const n=TEST_LEVEL.theme!==3;TEST_LEVEL.theme=n?3:0;TEST_LEVEL.song=n?'night':undefined;TEST_CMDS.reset();},
   reset(){const alive=!player.dead;G.carryBig=alive&&player.big;G.carryFire=alive&&player.fire;startLevel();},
 };
 if(TEST)addEventListener('message',e=>{
@@ -1437,7 +1808,7 @@ if(TEST)addEventListener('message',e=>{
 // Trimite starea către test.html, ca panoul să arate ce e pornit.
 function testStatus(){
   if(window.parent===window)return;
-  window.parent.postMessage({status:{big:!!(player&&player.big),fire:!!(player&&player.fire),god:!!G.god,hitbox:!!G.showHB,slow:!!G.slow,enemies:enemies.length}},'*');
+  window.parent.postMessage({status:{big:!!(player&&player.big),fire:!!(player&&player.fire),god:!!G.god,hitbox:!!G.showHB,slow:!!G.slow,night:!!theme.night,enemies:enemies.length}},'*');
 }
 // Contururile hitbox-urilor: verde = curcan, roșu = fermier, portocaliu = bombă, mov = furca (cât lovește),
 // galben = zona solidă a bombei în fund (dacă e mai mare decât hitbox-ul), albastru = power-up, portocaliu deschis = pene.
