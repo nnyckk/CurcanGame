@@ -23,8 +23,6 @@
 </head>
 <body>
 <div id="wrap"><canvas id="game"></canvas></div>
-<canvas id="infoL" class="info"></canvas>
-<canvas id="infoR" class="info"></canvas>
 <canvas id="infoV" class="info"></canvas>
 <div id="touch">
   <div class="pad"><button data-k="left">◀</button><button data-k="right">▶</button></div>
@@ -34,7 +32,7 @@
 <script>
 'use strict';
 // ================= SETUP =================
-const GAME_VERSION='0.8.4';
+const GAME_VERSION='0.9.0';
 // Modul de test (index.html?test): arenă de test, comenzi din test.html. Pentru jucători nu se schimbă nimic.
 const TEST=/[?&]test\b/.test(location.search);
 const W=400,H=224,TS=16,ROWS=14,TAU=Math.PI*2;
@@ -44,26 +42,22 @@ const cv=document.getElementById('game');
 let ctx=cv.getContext('2d');
 const [shadeCv,shadeCtx]=mkCanvas(W,H);
 cv.width=W;cv.height=H;ctx.imageSmoothingEnabled=false;
-// Casetele din meniu (controale, apoi record + opțiuni) stau una sub alta în spațiul negru din dreapta
-// jocului, când e loc; versiunea stă singură, jos în colțul din dreapta. Sunt canvas-uri mici, desenate
-// cu același font pixel și mărite cu un factor întreg. Dacă nu încap la cel puțin 2x (să se poată citi),
-// se desenează în joc, ca înainte.
-const INFO_W=72,INFO_LH=100,INFO_RH=36,INFO_GAP=8,INFO_VW=[...('V'+GAME_VERSION)].length*6,INFO_VH=8;
-const INFO={L:document.getElementById('infoL'),R:document.getElementById('infoR'),V:document.getElementById('infoV'),out:false,shown:false};
-INFO.L.width=INFO.R.width=INFO_W;INFO.L.height=INFO_LH;INFO.R.height=INFO_RH;INFO.V.width=INFO_VW;INFO.V.height=INFO_VH;
+// Versiunea jocului (în meniu) stă jos, în colțul din dreapta al ferestrei, în spațiul negru de lângă joc: un canvas
+// mic, desenat cu același font pixel și mărit cu un factor întreg. Dacă nu încape acolo la cel puțin 2x (să se poată
+// citi), se desenează în joc. (Controalele și recordul sunt în meniu: SETĂRI → CONTROALE și insigna RECORD.)
+const INFO_VW=[...('V'+GAME_VERSION)].length*6,INFO_VH=8;
+const INFO={V:document.getElementById('infoV'),out:false,shown:false};
+INFO.V.width=INFO_VW;INFO.V.height=INFO_VH;
 function resize(){
   const s=Math.min(innerWidth/W,innerHeight/H);const k=s>=2?Math.floor(s):s;
   const cw=Math.floor(W*k);cv.style.width=cw+'px';cv.style.height=Math.floor(H*k)+'px';
-  const side=(innerWidth-cw)/2,stackH=INFO_LH+INFO_GAP+INFO_RH;
-  // Pe înălțime rămâne loc și pentru versiunea din colț (câte 12 px-info sus și jos), ca să nu se suprapună.
-  const sc=Math.min(Math.floor(k),Math.floor((side-16)/INFO_W),Math.floor((innerHeight-16)/(stackH+24)));
+  const side=(innerWidth-cw)/2;
+  const sc=Math.min(Math.floor(k),Math.floor(side/(INFO_VW+8)));
   INFO.out=sc>=2;
   if(!INFO.out)return;
-  const place=(c,l,t,w,h)=>{c.style.left=Math.round(l)+'px';c.style.top=Math.round(t)+'px';c.style.width=w+'px';c.style.height=h+'px';};
-  const x=innerWidth-side+(side-INFO_W*sc)/2,top=(innerHeight-stackH*sc)/2;
-  place(INFO.L,x,top,INFO_W*sc,INFO_LH*sc);
-  place(INFO.R,x,top+(INFO_LH+INFO_GAP)*sc,INFO_W*sc,INFO_RH*sc);
-  place(INFO.V,innerWidth-(INFO_VW+4)*sc,innerHeight-(INFO_VH+4)*sc,INFO_VW*sc,INFO_VH*sc);
+  const st=INFO.V.style;
+  st.left=Math.round(innerWidth-(INFO_VW+4)*sc)+'px';st.top=Math.round(innerHeight-(INFO_VH+4)*sc)+'px';
+  st.width=INFO_VW*sc+'px';st.height=INFO_VH*sc+'px';
 }
 addEventListener('resize',resize);resize();
 
@@ -170,6 +164,10 @@ const LEG_C=["..........l.l.......","..........l.l.......","..........lllll.....
 const LEG_J=[".........l....l.....","........ll...ll.....","...................."];
 const TK={A:spr(TK_TOP.concat(LEG_A),TK_PAL),B:spr(TK_TOP.concat(LEG_B),TK_PAL),C:spr(TK_TOP.concat(LEG_C),TK_PAL),J:spr(TK_TOP.concat(LEG_J),TK_PAL)};
 TK.DEAD=mkSprite(TK_TOP.concat(LEG_A).reverse(),TK_PAL,false);
+// Pentru ecranul JOC TERMINAT: curcanul în picioare, cu un X (3x3) în locul ochiului (ochiul e coloana 14, rândurile 6-7).
+TK.OVER=mkSprite(TK_TOP.map((r,y)=>{const a=[...r];
+  if(y===5||y===7){a[13]='k';a[14]=y===7?'W':a[14];a[15]='k';}
+  return a.join('');}).concat(LEG_A),TK_PAL,false);
 // Curcanul de FOC (după boaba roșie): tot mare, cu costum roșu închis și umbrit.
 // Lumina vine din stânga-sus: E = luciu, B = roșul de bază, D = umbră (marginea dreaptă și jos).
 const TKF_TOP=TK_TOP.slice(0,12).concat([
@@ -892,9 +890,10 @@ function mkPulse(d){const n=32,re=new Float32Array(n),im=new Float32Array(n);for
 function initAudio(){
   if(AC){if(AC.state==='suspended')AC.resume();return;}
   try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return;}
-  master=AC.createGain();master.gain.value=G.muted?0:0.55;master.connect(AC.destination);
-  musicG=AC.createGain();musicG.gain.value=0.32;musicG.connect(master);
-  sfxG=AC.createGain();sfxG.gain.value=0.7;sfxG.connect(master);
+  master=AC.createGain();master.gain.value=0.55;master.connect(AC.destination);
+  musicG=AC.createGain();musicG.connect(master);
+  sfxG=AC.createGain();sfxG.connect(master);
+  applyAudio();
   noiseBuf=AC.createBuffer(1,AC.sampleRate,AC.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
   pulseW=mkPulse(0.25);pulse12=mkPulse(0.125);
   if(seq.pending){const p=seq.pending;seq.pending=null;playSong(p);}
@@ -1029,14 +1028,13 @@ setInterval(sched,25);
 
 // ================= INPUT =================
 const keys={},pressed={},touch={left:0,right:0,jump:0,run:0};
-// Browserele nu pornesc sunetul până la prima apăsare. Pe ecranul de titlu, prima apăsare doar
-// pornește sunetul (și muzica de meniu), fără să înceapă jocul — altfel muzica nu s-ar auzi niciodată.
-// Întoarce true dacă apăsarea a fost „consumată” pentru deblocarea sunetului.
-function unlockAudio(){const first=!AC;initAudio();return first&&!!AC&&G.state==='title';}
+// Browserele nu pornesc sunetul până la prima apăsare, așa că orice tastă/atingere îl pornește (și muzica de meniu).
+// În meniu, tastele se tratează chiar aici, în eveniment (vezi menuKey), nu în bucla jocului.
 addEventListener('keydown',e=>{
   if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space'].includes(e.code))e.preventDefault();
-  const used=unlockAudio();
-  if(!keys[e.code]&&!used)pressed[e.code]=true;keys[e.code]=true;
+  initAudio();
+  if(!keys[e.code]){pressed[e.code]=true;if(G.state==='title')menuKey(e.code);}
+  keys[e.code]=true;
 });
 addEventListener('keyup',e=>{keys[e.code]=false;});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;for(const k in touch)touch[k]=0;});
@@ -1052,12 +1050,17 @@ const startPressed=()=>pressed.Enter||pressed.Space||pressed.TouchJump||pressed.
 if('ontouchstart' in window||navigator.maxTouchPoints>0){document.getElementById('touch').classList.add('on');document.getElementById('pauseBtn').classList.add('on');}
 document.querySelectorAll('[data-k]').forEach(b=>{
   const k=b.dataset.k;
-  const down=e=>{e.preventDefault();if(unlockAudio())return;if(k==='pause'){pressed.KeyP=true;return;}touch[k]=1;if(k==='jump')pressed.TouchJump=true;if(k==='run')pressed.TouchRun=true;};
+  const down=e=>{e.preventDefault();initAudio();if(k==='pause'){pressed.KeyP=true;return;}touch[k]=1;if(k==='jump')pressed.TouchJump=true;if(k==='run')pressed.TouchRun=true;};
   const up=e=>{e.preventDefault();if(k!=='pause')touch[k]=0;};
   b.addEventListener('pointerdown',down);b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('pointerleave',up);
   b.addEventListener('contextmenu',e=>e.preventDefault());
 });
-cv.addEventListener('pointerdown',()=>{if(!unlockAudio())pressed.Tap=true;});
+// În meniu, butoanele se apasă la „click” (abia acolo browserul dă voie la ecran complet și pe telefon), și doar
+// dacă apăsarea a început tot în meniu — altfel atingerea care închide ecranul de final ar apăsa și un buton din meniu.
+let downOnTitle=false;
+cv.addEventListener('pointerdown',()=>{initAudio();downOnTitle=G.state==='title';if(!downOnTitle)pressed.Tap=true;});
+cv.addEventListener('click',e=>{initAudio();if(G.state!=='title'||!downOnTitle)return;const i=menuHit(e);if(i>=0)menuPick(i);});
+cv.addEventListener('pointermove',e=>{const i=G.state==='title'?menuHit(e):-1;if(i>=0)G.sel=i;cv.style.cursor=i>=0?'pointer':'';});
 
 // ================= LEVELS =================
 function newMap(w){
@@ -1212,8 +1215,13 @@ const LEVELS=[
 ];
 
 // ================= GAME STATE =================
-const G={state:'title',t:0,level:0,lives:3,score:0,coins:0,time:300,hi:0,cp:null,frame:0,shake:0,stateT:0,muted:false,paused:false,final:false,tally:0,lastAlert:0};
+const G={state:'title',t:0,level:0,lives:3,score:0,coins:0,time:300,hi:0,cp:null,frame:0,shake:0,stateT:0,music:true,sfx:true,menu:'main',sel:0,paused:false,final:false,tally:0,lastAlert:0};
 try{G.hi=+localStorage.getItem('curcan_hi')||0;}catch(e){}
+// Setările (muzică, efecte sonore) se țin minte în browser.
+try{const s=JSON.parse(localStorage.getItem('curcan_settings')||'{}');G.music=s.music!==false;G.sfx=s.sfx!==false;}catch(e){}
+function saveSettings(){try{localStorage.setItem('curcan_settings',JSON.stringify({music:G.music,sfx:G.sfx}));}catch(e){}}
+// Volumul muzicii (mai încet în pauză) și al efectelor, după setări.
+function applyAudio(){if(!AC)return;musicG.gain.value=G.music?(G.paused?0.06:0.32):0;sfxG.gain.value=G.sfx?0.7:0;}
 function saveHi(){if(G.score>G.hi){G.hi=G.score;try{localStorage.setItem('curcan_hi',G.hi);}catch(e){}}}
 let grid=null,cols=0,theme=THEMES[0],tiles=getTiles(0),bg=getBG(0),goal=null;
 let player=null,enemies=[],coins=[],items=[],parts=[],popups=[],booms=[],bumps=[],cps=[],feathers=[];
@@ -1316,7 +1324,7 @@ function startLevel(){
   G.time=300;G.frame=0;G.paused=false;G.tally=0;
   cam.x=clamp(player.x-W*0.4,0,cols*TS-W);
   G.state='play';playSong(def.song||'main');
-  if(musicG)musicG.gain.value=0.32;
+  applyAudio();
 }
 
 // ================= FX HELPERS =================
@@ -1888,15 +1896,68 @@ function updateWin(){
   updateFx();
   if(G.stateT>120&&startPressed()){G.state='title';stopSong();playSong('title');}
 }
-function toggleMute(){G.muted=!G.muted;if(master)master.gain.value=G.muted?0:0.55;}
+function toggleMusic(){G.music=!G.music;saveSettings();applyAudio();}
+
+// ================= MENIU (ecranul de titlu) =================
+// Meniul principal (JOACĂ, SETĂRI, MOD TEST) și pagina de setări: butoane pixel desenate în joc. Se aleg cu ↑ ↓
+// și ENTER/SPACE, cu mouse-ul sau cu degetul. Se apasă direct din evenimentul de tastă/click (nu din bucla jocului),
+// pentru că browserul dă voie la ecran complet doar în timpul unei apăsări.
+const FS_OK=!!(document.fullscreenEnabled||document.webkitFullscreenEnabled);
+const isFS=()=>!!(document.fullscreenElement||document.webkitFullscreenElement);
+function toggleFS(){try{
+  const d=document,el=d.documentElement;
+  const p=isFS()?(d.exitFullscreen||d.webkitExitFullscreen).call(d):(el.requestFullscreen||el.webkitRequestFullscreen).call(el);
+  if(p&&p.catch)p.catch(()=>{});
+}catch(e){}}
+function openMenu(m,sel=0){G.menu=m;G.sel=sel;}
+// Paginile meniului: principal → SETĂRI → CONTROALE. „sub” = butonul deschide o altă pagină (are „>” în dreapta).
+const MENU={
+  main:[
+    {label:'JOACĂ',act:()=>newGame()},
+    {label:'SETĂRI',sub:true,act:()=>openMenu('settings')},
+    {label:'MOD TEST',act:()=>{location.href='test.html';}}],
+  settings:[
+    {label:'MUZICĂ',val:()=>G.music,act:toggleMusic},
+    {label:'EFECTE SONORE',val:()=>G.sfx,act:()=>{G.sfx=!G.sfx;saveSettings();applyAudio();}},
+    ...(FS_OK?[{label:'ECRAN COMPLET',val:isFS,act:toggleFS}]:[]),
+    {label:'CONTROALE',sub:true,act:()=>openMenu('controls')},
+    {label:'ÎNAPOI',act:()=>menuBack()}],
+  controls:[
+    {label:'ÎNAPOI',act:()=>menuBack()}],
+};
+// Înapoi (butonul ÎNAPOI, ESC): o pagină mai sus, cu butonul de unde ai venit ales.
+function menuBack(){
+  if(G.menu==='controls')openMenu('settings',MENU.settings.findIndex(it=>it.label==='CONTROALE'));
+  else if(G.menu==='settings')openMenu('main',1);
+}
+// Unde stă fiecare buton, în pixeli de joc: meniul principal sub titlu; setările (mai late) sub „SETĂRI”, cu ÎNAPOI
+// puțin mai jos, despărțit de restul; la controale, ÎNAPOI e sub lista de taste.
+function menuRects(){
+  const m=G.menu,items=MENU[m],h=15;
+  const L=m==='main'?{w:96,gap:5,y0:102}:m==='settings'?{w:168,gap:4,y0:54}:{w:96,gap:0,y0:142};
+  return items.map((it,i)=>({it,x:W/2-L.w/2,y:L.y0+i*(h+L.gap)+(m==='settings'&&i===items.length-1?6:0),w:L.w,h}));
+}
+function menuHit(e){
+  const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W,y=(e.clientY-r.top)/r.height*H;
+  return menuRects().findIndex(b=>x>=b.x&&x<b.x+b.w&&y>=b.y&&y<b.y+b.h);
+}
+function menuPick(i){G.sel=i;MENU[G.menu][i].act();sfx.coin();}
+function menuKey(code){
+  const n=MENU[G.menu].length;
+  if(code==='ArrowUp'||code==='ArrowDown'){G.sel=(G.sel+(code==='ArrowUp'?-1:1)+n)%n;sfx.blip();}
+  else if(code==='Enter'||code==='Space')menuPick(G.sel);
+  else if((code==='ArrowLeft'||code==='ArrowRight')&&MENU[G.menu][G.sel].val)menuPick(G.sel);
+  else if(code==='Escape'||code==='Backspace')menuBack();
+}
+
 function update(){
   G.t++;
-  if(pressed.KeyM)toggleMute();
+  if(pressed.KeyM)toggleMusic();
   switch(G.state){
-    case 'title':cam.x+=0.6;if(AC&&!seq.song)playSong('title');if(startPressed())newGame();break;
+    case 'title':cam.x+=0.6;if(AC&&!seq.song)playSong('title');break;
     case 'intro':G.stateT++;if(G.stateT>150||(G.stateT>40&&startPressed()))startLevel();break;
     case 'play':
-      if(pressed.KeyP||pressed.Escape){G.paused=!G.paused;sfx.pause();if(musicG)musicG.gain.value=G.paused?0.06:0.32;}
+      if(pressed.KeyP||pressed.Escape){G.paused=!G.paused;sfx.pause();applyAudio();}
       if(!G.paused)updatePlay();break;
     case 'dying':updateDying();updateFx();break;
     case 'clear':updateClear();updateFx();break;
@@ -2232,53 +2293,75 @@ function drawTitle(){
   ctx.drawImage(MAN[mf].r,175,172);ctx.drawImage(BOY[mf==='A'?'B':'A'].r,145,172);
   if(THEMES[0].farm)drawGroundDecor(fc,THEMES[0],()=>true);
   if((G.t>>4)%2)txt('!',180,160,'#ff4040');
+  if(G.menu==='settings'){txtCute('SETĂRI',W/2,20,3,'#e8323e','#000000');drawMenuButtons();return;}
+  if(G.menu==='controls'){txtCute('CONTROALE',W/2,20,3,'#e8323e','#000000');drawControls();drawMenuButtons();return;}
   txtCute('CURCANUL',W/2,18,4,'#e8323e','#000000');
   txtCute('ÎN FUGĂ',W/2,59,3,'#e8323e','#000000');
   txt('DRUMUL SPRE MESOPOTAMIA',W/2,88,'#ffffff',1,'c','#2a6aa0');
-  if((G.t>>5)%2===0)txt(AC?'APASĂ ENTER SAU SPACE':'APASĂ ORICE TASTĂ PENTRU SUNET',W/2,134,'#ffffff',1,'c','#000');
-  // Două casete simetrice, de o parte și de alta a textului din mijloc:
-  // stânga = controalele de joc, dreapta = recordul (mare) și opțiunile (mai discrete).
-  // (Doar când nu e loc în spațiul negru din jurul jocului — altfel le desenează drawInfoPanels.)
-  if(!INFO.out){
-  const PY=100,PH=68,PW=100,PL=6,PR=W-6-PW;
-  const panel=(x,title)=>{ctx.fillStyle='rgba(0,0,0,0.28)';ctx.fillRect(x,PY,PW,PH);txt(title,x+6,PY+6,'#ffd23f',1,'l',null);};
-  const divider=(x,y)=>{ctx.fillStyle='rgba(255,255,255,0.22)';ctx.fillRect(x+6,y,PW-12,1);};
-  // Tasta într-o „clapă” deschisă la culoare; acțiunea aliniată pe o coloană, la 38px de tastă.
-  const keyRow=(x,y,key,action,col)=>{const kw=[...key].length*6-1;
-    ctx.fillStyle='rgba(255,255,255,0.18)';ctx.fillRect(x-2,y-2,kw+4,11);
-    txt(key,x,y,'#ffffff',1,'l',null);txt(action,x+38,y,col,1,'l',null);};
-  panel(PL,'CONTROALE');divider(PL,118);
-  keyRow(PL+8,125,'← →','MERGI','#e8f4ff');
-  keyRow(PL+8,139,'SPACE','SARI','#e8f4ff');
-  keyRow(PL+8,153,'X','FUGI/FOC','#e8f4ff');
-  panel(PR,'RECORD');txt(pad(G.hi,6),PR+6,116,'#ffd23f',2,'l','#7a4a00');divider(PR,134);
-  keyRow(PR+8,139,'M','MUZICĂ','#b8c8d8');
-  keyRow(PR+8,153,'P','PAUZĂ','#b8c8d8');
-  // Versiunea jocului, în colțul din dreapta jos (urcă puțin când apare „MUZICĂ OFF”).
-  txt('V'+GAME_VERSION,W-4,G.muted?H-26:H-10,'#f0e0c8',1,'r','#000');
+  drawMenuButtons();
+  drawRecordBadge();
+  // Versiunea jocului, în colțul din dreapta jos (urcă deasupra insignei „MUZICĂ OFF”, când apare) — doar când nu
+  // încape în spațiul negru de lângă joc.
+  if(!INFO.out)txt('V'+GAME_VERSION,W-4,G.music?H-10:H-30,'#f0e0c8',1,'r','#000');
+}
+// Casetă în stilul meniului: colțuri rotunjite (lipsește pixelul din colț), contur, relief de 1 px (luciu sus,
+// umbră jos) și o umbră mică dedesubt. Implicit mov închis, cu contur alb discret.
+function uiBox(x,y,w,h,fill='#1c1730',edge='rgba(255,255,255,0.45)',hi='#2c2645',lo='#120e20'){
+  ctx.fillStyle='rgba(0,0,0,0.3)';ctx.fillRect(x+1,y+2,w,h);
+  ctx.fillStyle=edge;ctx.fillRect(x+1,y,w-2,1);ctx.fillRect(x+1,y+h-1,w-2,1);ctx.fillRect(x,y+1,1,h-2);ctx.fillRect(x+w-1,y+1,1,h-2);
+  ctx.fillStyle=fill;ctx.fillRect(x+1,y+1,w-2,h-2);
+  ctx.fillStyle=hi;ctx.fillRect(x+1,y+1,w-2,1);
+  ctx.fillStyle=lo;ctx.fillRect(x+1,y+h-2,w-2,1);
+}
+// Iconiță mică desenată din text („#” = un pixel).
+function icon(rows,x,y,col){ctx.fillStyle=col;rows.forEach((r,j)=>{for(let i=0;i<r.length;i++)if(r[i]==='#')ctx.fillRect(x+i,y+j,1,1);});}
+// Butoanele meniului: cel ales e roșu (ca titlul), cu contur alb și o săgeată care se mișcă în stânga lui;
+// celelalte sunt mov închis. La setări, valoarea (DA/NU) stă în dreapta, într-o pastilă închisă la culoare;
+// butoanele care deschid altă pagină au „>” în dreapta.
+function drawMenuButtons(){
+  menuRects().forEach((b,i)=>{
+    const on=i===G.sel,it=b.it,ty=b.y+4;
+    if(on)uiBox(b.x,b.y,b.w,b.h,'#e8323e','#ffffff','#ff6a72','#a01822');else uiBox(b.x,b.y,b.w,b.h);
+    const tc=on?'#ffffff':'#d8e4f0',sh=on?'#7a0a10':null;
+    if(it.val){
+      txt(it.label,b.x+7,ty,tc,1,'l',sh);
+      const v=it.val();
+      ctx.fillStyle='rgba(0,0,0,0.45)';ctx.fillRect(b.x+b.w-21,b.y+2,15,b.h-4);
+      txt(v?'DA':'NU',b.x+b.w-8,ty,v?'#7fff7f':'#ff8a8a',1,'r',null);
+    }else if(it.sub&&b.w>120){txt(it.label,b.x+7,ty,tc,1,'l',sh);txt('>',b.x+b.w-11,ty,tc,1,'l',sh);}
+    else txt(it.label,b.x+b.w/2,ty,tc,1,'c',sh);
+    if(on)txt('→',b.x-11+((G.t>>4)%2),ty,'#ffffff',1,'l','#000');
+  });
+}
+// Pagina CONTROALE: tasta într-o „clapă” în stânga, ce face pe aceeași coloană în dreapta. Sus mișcarea, iar sub
+// o linie tastele „de sistem” (pauză, muzică), puțin mai discrete.
+const CONTROLS=[['← →','MERGI'],['SPACE','SARI (ȚINE: MAI SUS)'],['X','ȚINUT: FUGI, SCURT: FOC'],null,['P','PAUZĂ'],['M','MUZICĂ PORNITĂ/OPRITĂ']];
+function drawControls(){
+  const x=100,w=200,y0=50;uiBox(x,y0,w,84);
+  let y=y0+8,sys=false;
+  for(const row of CONTROLS){
+    if(!row){ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(x+8,y-3,w-16,1);y+=4;sys=true;continue;}
+    const [k,a]=row,kw=[...k].length*6-1;
+    ctx.fillStyle='#3a3450';ctx.fillRect(x+8,y-2,kw+4,11);txt(k,x+10,y,'#ffffff',1,'l',null);
+    txt(a,x+48,y,sys?'#b8c8d8':'#e8f4ff',1,'l',null);
+    y+=14;
   }
 }
-// Casetele din spațiul negru din dreapta: sus toate controalele (jos, după o linie, muzică și pauză),
-// dedesubt recordul; versiunea separat, în colț.
-// Pe fiecare rând: tasta într-o „clapă” în stânga, acțiunea aliniată la dreapta.
-function drawInfoPanels(){
-  const line=(g,y)=>{g.fillStyle='#2e2840';g.fillRect(6,y,INFO_W-12,1);};
-  const box=(g,title,h,sep=true)=>{g.fillStyle='#15121f';g.fillRect(0,0,INFO_W,h);
-    g.fillStyle='#2e2840';g.fillRect(0,0,INFO_W,1);g.fillRect(0,h-1,INFO_W,1);g.fillRect(0,0,1,h);g.fillRect(INFO_W-1,0,1,h);
-    txt(title,6,6,'#ffd23f',1,'l',null,g);if(sep)line(g,16);};
-  const key=(g,x,y,k)=>{const kw=[...k].length*6-1;g.fillStyle='#3a3450';g.fillRect(x-2,y-2,kw+4,11);txt(k,x,y,'#ffffff',1,'l',null,g);};
-  const gL=INFO.L.getContext('2d');box(gL,'CONTROALE',INFO_LH);
-  [['← →','MERGI'],['SPACE','SARI'],['X','FUGI/FOC']].forEach(([k,a],i)=>{const y=24+i*14;key(gL,8,y,k);txt(a,INFO_W-6,y,'#e8f4ff',1,'r',null,gL);});
-  // Sub o linie: controalele de joc „de sistem” (muzică, pauză), puțin mai discrete.
-  line(gL,64);
-  key(gL,8,71,'M');txt('MUZICĂ',INFO_W-6,71,G.muted?'#ff8a8a':'#b8c8d8',1,'r',null,gL);
-  key(gL,8,85,'P');txt('PAUZĂ',INFO_W-6,85,'#b8c8d8',1,'r',null,gL);
-  // Recordul: valoarea lipită de titlu (fără linie între ele), într-o casetă mai închisă.
-  // Cifre simple (fără îngroșare — fontul de 5x7 devine ilizibil dacă le umplem golurile).
-  const gR=INFO.R.getContext('2d');box(gR,'RECORD',INFO_RH,false);
-  gR.fillStyle='#0b0914';gR.fillRect(5,16,INFO_W-10,14);
-  txt(pad(G.hi,6),INFO_W/2,19,'#ffd23f',1,'c',null,gR);
-  const gV=INFO.V.getContext('2d');gV.clearRect(0,0,INFO_VW,INFO_VH);txt('V'+GAME_VERSION,0,0,'#7a7490',1,'l',null,gV);
+// Insignele din colțurile de jos, în stilul butoanelor: RECORD (stânga, cu o cupă) în meniul principal și
+// MUZICĂ OFF (dreapta, cu o notă muzicală tăiată cu roșu) peste tot, cât timp muzica e oprită.
+const CUP_ICON=["#######","#.###.#",".#####.","..###..","...#...","..###..",".#####."];
+const NOTE_ICON=["..#####","..#####","..#...#","..#...#",".##..##","###.###","##..##."];
+function drawRecordBadge(){
+  const w=98,h=15,x=4,y=H-4-h,ty=y+4;
+  uiBox(x,y,w,h);icon(CUP_ICON,x+5,ty,'#ffd23f');
+  txt('RECORD',x+16,ty,'#ffd23f',1,'l',null);txt(pad(G.hi,6),x+16+42,ty,'#ffffff',1,'l',null);
+}
+function drawMusicOff(){
+  const w=80,h=15,x=W-4-w,y=H-4-h,ty=y+5,ix=x+5;
+  uiBox(x,y,w,h);icon(NOTE_ICON,ix,ty,'#d8e4f0');
+  // Linia roșie în diagonală, cu o „tăietură” de culoarea fundalului lângă ea, ca să se despartă de notă.
+  for(let i=-1;i<=7;i++){ctx.fillStyle='#1c1730';ctx.fillRect(ix+i+1,ty+i,1,1);ctx.fillStyle='#ff4a5a';ctx.fillRect(ix+i,ty+i,1,1);}
+  txt('MUZICĂ',x+16,ty,'#d8e4f0',1,'l',null);txt('OFF',x+16+42,ty,'#ff6a72',1,'l',null);
 }
 function drawIntro(){
   ctx.fillStyle='#0d0b14';ctx.fillRect(0,0,W,H);
@@ -2297,7 +2380,7 @@ function render(){
     case 'gameover':
       ctx.fillStyle='#0d0b14';ctx.fillRect(0,0,W,H);
       txt('JOC TERMINAT',W/2,60,'#ff4a5a',3,'c','#4a0a10');
-      ctx.drawImage(TK.DEAD,W/2-8,100);
+      ctx.drawImage(TK.OVER,W/2-10,100);
       txt('SCOR '+pad(G.score,6),W/2,132,'#fff',1,'c',null);txt('RECORD '+pad(G.hi,6),W/2,146,'#ffd23f',1,'c',null);
       if(G.stateT>90&&(G.t>>5)%2===0)txt('ENTER - ÎNCEARCĂ DIN NOU',W/2,176,'#9fe8ff',1,'c',null);
       break;
@@ -2312,11 +2395,12 @@ function render(){
         if(G.stateT>120&&(G.t>>5)%2===0)txt('ENTER - JOACĂ DIN NOU',W/2,211,'#7fff7f',1,'c',null);}
       if(G.state==='play'&&G.paused){panel(130,80,140,50);txt('PAUZĂ',W/2,90,'#ffd23f',2,'c','#7a2a0a');txt('P - CONTINUĂ',W/2,112,'#fff',1,'c',null);}
   }
-  if(G.muted){ctx.fillStyle='rgba(0,0,0,.5)';ctx.fillRect(W-58,H-14,56,12);txt('MUZICĂ OFF',W-4,H-12,'#ff8a8a',1,'r',null);}
-  // Casetele din spațiul negru apar doar în meniu (și doar dacă încap).
-  const showInfo=INFO.out&&G.state==='title';
-  if(showInfo!==INFO.shown){INFO.shown=showInfo;INFO.L.style.display=INFO.R.style.display=INFO.V.style.display=showInfo?'block':'none';}
-  if(showInfo)drawInfoPanels();
+  if(!G.music)drawMusicOff();
+  if(G.state!=='title'&&cv.style.cursor)cv.style.cursor='';
+  // Versiunea din spațiul negru apare doar în meniul principal (și doar dacă încape); se desenează o dată, când apare.
+  const showInfo=INFO.out&&G.state==='title'&&G.menu==='main';
+  if(showInfo!==INFO.shown){INFO.shown=showInfo;INFO.V.style.display=showInfo?'block':'none';
+    if(showInfo){const g=INFO.V.getContext('2d');g.clearRect(0,0,INFO_VW,INFO_VH);txt('V'+GAME_VERSION,0,0,'#7a7490',1,'l',null,g);}}
 }
 
 // ================= MOD DE TEST (index.html?test, folosit de test.html) =================

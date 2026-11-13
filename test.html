@@ -16,7 +16,10 @@
   /* Când nu e loc în dreapta, panoul trece sub joc, cu secțiunile una lângă alta. */
   body.stacked{flex-direction:column;align-items:center}
   body.stacked aside{width:100%;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));align-items:start}
-  body.stacked aside h1,body.stacked #status{grid-column:1/-1}
+  body.stacked aside .top,body.stacked #status{grid-column:1/-1}
+  .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+  .top a{color:var(--muted);font-size:12px;text-decoration:none}
+  .top a:hover{color:var(--accent)}
   h1{font-size:16px;margin:0;color:var(--accent)}
   h2{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 6px}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
@@ -39,7 +42,7 @@
     După orice buton din panou, jocul primește din nou tastatura.</p>
 </main>
 <aside>
-  <h1>Laborator de test</h1>
+  <div class="top"><h1>Laborator de test</h1><a href="index.html">← Înapoi la meniu</a></div>
 
   <section>
     <h2>Curcanul</h2>

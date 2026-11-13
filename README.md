@@ -12,11 +12,21 @@ Deschide `index.html` în orice browser modern. Nu e nevoie de instalare sau ser
 | SPACE | Sari (ține apăsat ca să sari mai sus) |
 | X (ținut apăsat) | Fugi |
 | X (apăsare scurtă) | Aruncă o pană de foc (doar cu boaba roșie) |
-| Enter | Start |
+| ↑ ↓ + Enter | Alegi din meniu (merge și cu mouse-ul) |
 | P | Pauză |
 | M | Muzică pornită / oprită |
 
 Pe telefon apar butoane pe ecran.
+
+## Meniul
+
+Pe ecranul de titlu sunt trei butoane:
+
+- **JOACĂ** pornește jocul.
+- **SETĂRI**: muzică (DA/NU), efecte sonore (DA/NU), ecran complet (dacă browserul îl permite) și **CONTROALE** (lista tastelor). Muzica și efectele se țin minte în browser. ESC sau ÎNAPOI te duce o pagină înapoi.
+- **MOD TEST** deschide `test.html` (vezi mai jos).
+
+Recordul apare în colțul din stânga jos al meniului principal. Cât timp muzica e oprită, în colțul din dreapta jos apare „MUZICĂ OFF”.
 
 ## Ce găsești în joc
 
@@ -46,7 +56,7 @@ Pe telefon apar butoane pe ecran.
 
 ## Testare
 
-Deschide `test.html`: jocul pornește într-o arenă de test (fără cronometru, cu vieți infinite), iar în dreapta ai un panou cu butoane. Poți da power-up-uri, poți aduce fermieri și bombe în fața curcanului și poți porni invincibilitatea, slow motion-ul și afișarea hitbox-urilor. Arena se poate trece și pe noapte (felinare) sau pe iarnă (cu un lac înghețat). Același mod se poate deschide și direct, cu `index.html?test`.
+Deschide `test.html` (sau apasă MOD TEST în meniu): jocul pornește într-o arenă de test (fără cronometru, cu vieți infinite), iar în dreapta ai un panou cu butoane. Poți da power-up-uri, poți aduce fermieri și bombe în fața curcanului și poți porni invincibilitatea, slow motion-ul și afișarea hitbox-urilor. Arena se poate trece și pe noapte (felinare) sau pe iarnă (cu un lac înghețat). Același mod se poate deschide și direct, cu `index.html?test`. Din panou te întorci la meniu cu „← Înapoi la meniu”.
 
 ## Tehnic
 
