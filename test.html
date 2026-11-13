@@ -46,7 +46,8 @@
     <div class="grid">
       <button data-cmd="grain">Grăunte (mare)</button>
       <button data-cmd="berry">Boabă roșie (foc)</button>
-      <button data-cmd="small" class="wide">Fă-l mic</button>
+      <button data-cmd="iceberry">Afină înghețată</button>
+      <button data-cmd="small">Fă-l mic</button>
     </div>
   </section>
 
@@ -107,7 +108,7 @@ addEventListener('message',e=>{
   if(e.source!==frame.contentWindow||!e.data||!e.data.status)return;
   const s=e.data.status;
   document.querySelectorAll('button[data-toggle]').forEach(b=>b.setAttribute('aria-pressed',String(!!s[b.dataset.toggle])));
-  statusEl.textContent='Curcan: '+(s.big?'mare':'mic')+(s.fire?', de foc':'')+' · Mobi: '+s.enemies;
+  statusEl.textContent='Curcan: '+(s.big?'mare':'mic')+(s.fire?', de foc':'')+(s.ice?', de gheață':'')+' · Mobi: '+s.enemies;
 });
 
 frame.addEventListener('load',focusGame);

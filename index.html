@@ -34,7 +34,7 @@
 <script>
 'use strict';
 // ================= SETUP =================
-const GAME_VERSION='0.8';
+const GAME_VERSION='0.8.3';
 // Modul de test (index.html?test): arenă de test, comenzi din test.html. Pentru jucători nu se schimbă nimic.
 const TEST=/[?&]test\b/.test(location.search);
 const W=400,H=224,TS=16,ROWS=14,TAU=Math.PI*2;
@@ -182,9 +182,28 @@ const TKF_TOP=TK_TOP.slice(0,12).concat([
 "......kDBBBDDDDk....",
 ".......kkDDDDkk.....",
 ]);
-const TKF_PAL=Object.assign({},TK_PAL,{B:'#a81e1e',D:'#5c0c12',E:'#cc3a2c'});
-const TKF={A:spr(TKF_TOP.concat(LEG_A),TKF_PAL),B:spr(TKF_TOP.concat(LEG_B),TKF_PAL),C:spr(TKF_TOP.concat(LEG_C),TKF_PAL),J:spr(TKF_TOP.concat(LEG_J),TKF_PAL)};
+const TKF_PAL=Object.assign({},TK_PAL,{B:'#a81e1e',D:'#5c0c12',E:'#cc3a2c'});const TKF={A:spr(TKF_TOP.concat(LEG_A),TKF_PAL),B:spr(TKF_TOP.concat(LEG_B),TKF_PAL),C:spr(TKF_TOP.concat(LEG_C),TKF_PAL),J:spr(TKF_TOP.concat(LEG_J),TKF_PAL)};
 TKF.DEAD=mkSprite(TKF_TOP.concat(LEG_A).reverse(),TKF_PAL,false);
+// Curcanul de GHEAȚĂ (după afina înghețată, iarna): costum umbrit albastru deschis, ca gheața, cu un fular de
+// iarnă cu dungi la gât (S/s, în locul gulerului în carouri), vârfurile aripii brumate (F) și o margine de gheață
+// cu țurțuri jos pe burtă (I). Capetele fularului, sclipirea de pe costum și aburul din cioc se desenează separat.
+const TKI_TOP=TK_TOP.slice(0,10).concat([
+"rWWrWWkSSssSSsrr....",
+".WrWWksSSssSSskrR...",
+"..WrWkEEEEBBBBDkR...",
+"...WknNnnnEBBBBDk...",
+"....knnNnnBWBWWDk...",
+"....kmnnNnBBBBBDk...",
+"....kNmnnnBBBBDDk...",
+".....kFnFBBBBDDk....",
+"......kIIIIIIIIk....",
+".......kIkIIkIk.....",
+]);
+const TKI_PAL=Object.assign({},TK_PAL,{B:'#7cc4ea',D:'#3a86b8',E:'#c8eeff',S:'#3a7ad8',s:'#ffffff',I:'#dff6ff',F:'#e8f8ff'});
+const TKI={A:spr(TKI_TOP.concat(LEG_A),TKI_PAL),B:spr(TKI_TOP.concat(LEG_B),TKI_PAL),C:spr(TKI_TOP.concat(LEG_C),TKI_PAL),J:spr(TKI_TOP.concat(LEG_J),TKI_PAL)};
+TKI.DEAD=mkSprite(TKI_TOP.concat(LEG_A).reverse(),TKI_PAL,false);
+// Pixelii costumului (pentru sclipirea care trece din când în când peste el, ca lumina pe gheață).
+const TKI_SHEEN=[];TKI_TOP.forEach((r,y)=>{for(let x=0;x<r.length;x++)if('BEDI'.includes(r[x]))TKI_SHEEN.push([x,y]);});
 // Curcanul MIC (16x16) — starea de start; devine mare cu grăuntele auriu.
 const TKS_TOP=[
 "..........rr....",
@@ -214,6 +233,7 @@ const TK_RUN=['A','C','B','C'];
 // (~0,7 s), apoi la fiecare BREATH_T cadre (~1,7 s) corpul stă coborât BREATH_OUT cadre și urcă la loc.
 TK.I=spr(TK_TOP.concat(LEG_A.slice(1)),TK_PAL);
 TKF.I=spr(TKF_TOP.concat(LEG_A.slice(1)),TKF_PAL);
+TKI.I=spr(TKI_TOP.concat(LEG_A.slice(1)),TKI_PAL);
 TKS.I=spr(TKS_TOP.concat(SLEG_A.slice(1)),TK_PAL);
 const IDLE_WAIT=40,BREATH_T=100,BREATH_OUT=45;
 
@@ -368,6 +388,16 @@ const BOMB_SIT_FUSE=200,BOMB_KICK=4.5,BOMB_SLIDE_T=84;
 // Viteza de alunecare: ușor de împins — pornește direct cu viteză maximă (mai repede decât fuga)
 // și doar încetinește lin până se oprește (ease-out). ~1,4 secunde, cam 15 tile-uri.
 function bombSlideSpeed(t){return BOMB_KICK*Math.cos(Math.PI/2*Math.min(1,t/BOMB_SLIDE_T));}
+// --- Dușmani înghețați (loviți de o pană de gheață) ---
+// Sprite-urile lor de stat, cu culorile amestecate pe jumătate cu albastrul gheții (peste ele se pune blocul de gheață).
+function mixHex(a,b,t){const p=s=>[1,3,5].map(i=>parseInt(s.slice(i,i+2),16)),A=p(a),B=p(b);
+  return '#'+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,'0')).join('');}
+function icePal(pal){const o={};for(const k in pal)o[k]=mixHex(pal[k],'#a8e0ff',0.55);return o;}
+MAN.ICE=spr(MAN_TOP.concat(MLEG_A),icePal(MAN_PAL));
+BOY.ICE=spr(BOY_TOP.concat(BLEG_A),icePal(BOY_PAL));
+BOMB.ICE=spr(bombTop(0).concat(BF_A),icePal(BOMB_PAL));
+// Cât stau înghețați (~5 s); în ultima secundă tremură și gheața crapă, ca să știi că își revin.
+const FREEZE_T=300,THAW_WARN=60;
 // Cât de lată e zona „solidă” a bombei față de hitbox. La 0, curcanul se oprește exact lipit de ea
 // (marginea din față a sprite-ului curcanului coincide cu hitbox-ul lui).
 const BOMB_PUSH_PAD=0;
@@ -416,10 +446,28 @@ const BERRY=mkSprite([
 "..kooook..",
 "...kkkk...",
 ],{k:'#5a0a10',R:'#ff7a7a',W:'#ffffff',r:'#e8202a',o:'#a01018',G:'#5ac04a',g:'#2a7a2a'},false);
+// Afina înghețată (power-up de gheață, iarna) — albastră, cu chiciură și coroniță; iese din blocuri în locul
+// boabei roșii când curcanul e deja mare (dacă e mic și o ia, se face direct curcan de gheață).
+const ICEBERRY=mkSprite([
+"....kk....",
+"...kFFk...",
+"..kFkkFk..",
+".kBBbbbbk.",
+"kBWWBbbFbk",
+"kBWBbbbbdk",
+"kBbbbFbbdk",
+"kbbFbbbddk",
+".kbbbbdFk.",
+"..kddddk..",
+"...kkkk...",
+],{k:'#1a2a5a',B:'#8ab8f0',W:'#ffffff',b:'#4a6ad8',d:'#2a3a9a',F:'#dff4ff'},false);
 // Pana de foc: pană maro cu flăcări care pâlpâie (2 cadre). Orientată spre dreapta.
 const FEATHER_PAL={n:'#8a4a22',m:'#b8723a',N:'#5a2c12',l:'#ecdcb8',k:'#3a1a08',o:'#ff8a1a',y:'#ffe040',r:'#e03a10'};
 const FEATHER_BODY=["..nnnnnnn.","lNNNNNNNNk","..mnnnnnn.","...mmmm..."];
 const FEATHER={A:spr(["..yo.oy...",".oroyoro.."].concat(FEATHER_BODY),FEATHER_PAL),B:spr([".y..oy.o..","..oyoroyo."].concat(FEATHER_BODY),FEATHER_PAL)};
+// Pana de gheață: aceeași pană, albastru deschis, cu sclipiri de chiciură în loc de flăcări.
+const FEATHER_ICE_PAL={n:'#7cc4ea',m:'#c8eeff',N:'#3a86b8',l:'#ffffff',k:'#1a4a6a',o:'#bfe8ff',y:'#ffffff',r:'#5ab0e0'};
+const FEATHER_ICE={A:spr(["..yo.oy...",".oroyoro.."].concat(FEATHER_BODY),FEATHER_ICE_PAL),B:spr([".y..oy.o..","..oyoroyo."].concat(FEATHER_BODY),FEATHER_ICE_PAL)};
 const FEATHER_RANGE=128,FEATHER_MAX=2;
 const HEAD=mkSprite(["...rr...","..krrk..",".kWWWWk.","kWWWWkWy","kWWWWkyo","kWWpWrr.",".kWkWkr.","..kkkkR."],TK_PAL,false);
 
@@ -896,6 +944,12 @@ const sfx={
   crack(){if(!AC)return;const t=AC.currentTime;noise(t,0.09,0.3,sfxG,3200);tone('square',1400,t,0.05,0.05,sfxG,500);},
   iceBreak(){if(!AC)return;const t=AC.currentTime;noise(t,0.45,0.4,sfxG,2600);tone('triangle',1200,t,0.3,0.12,sfxG,180);},
   freeze(){arp([86,93,98],0.05,0.05,'triangle');},
+  // Puterea de gheață: urcare cristalină la afină, „fiu” subțire la aruncarea penei, clinchet când îngheață
+  // un dușman, spargere de gheață când moare înghețat.
+  iceUp(){arp([72,76,79,84,79,84,88,91,88,91,96],0.04,0.09,'triangle');},
+  fwipIce(){if(!AC)return;const t=AC.currentTime;noise(t,0.08,0.1,sfxG,6000);tone('sine',1200,t,0.1,0.08,sfxG,2600);},
+  freezeHit(){arp([84,91,96,103],0.03,0.07,'triangle');},
+  shatter(){if(!AC)return;const t=AC.currentTime;noise(t,0.3,0.35,sfxG,4000);tone('triangle',1600,t,0.16,0.1,sfxG,400);},
   hurry(){arp([74,75,74,75,74,75],0.07,0.09);},
   pause(){arp([74,69,74],0.05,0.08);},
   pop(){if(!AC)return;const t=AC.currentTime;noise(t,0.3,0.15,sfxG,2000);tone('square',300+Math.random()*400,t,0.25,0.05,sfxG,1200);},
@@ -1161,7 +1215,8 @@ function spikeAhead(e,dir){
   return false;
 }
 // E sol sigur în față? Țepii și gheața lacurilor nu contează ca sol: mobii se opresc înaintea lor, ca la marginea unei gropi.
-function groundAhead(e,dir){const ax=dir>0?e.x+e.w+1:e.x-1;const c=tileAt(Math.floor(ax/TS),Math.floor((e.y+e.h+2)/TS));return (solid(c)&&c!=='^'&&c!=='I')||c==='=';}
+// (Doar dacă mobul e deja pe gheață — de exemplu împins acolo înghețat, apoi dezghețat — merge pe ea până la mal.)
+function groundAhead(e,dir){const ax=dir>0?e.x+e.w+1:e.x-1;const c=tileAt(Math.floor(ax/TS),Math.floor((e.y+e.h+2)/TS));return (solid(c)&&c!=='^'&&(c!=='I'||onIce(e)))||c==='=';}
 
 // ================= GHEAȚĂ (lacurile înghețate din nivelul 3) =================
 // Fiecare tile de gheață strânge „crăpături” cât timp curcanul stă pe el și se vindecă încet când pleacă — așa
@@ -1179,12 +1234,13 @@ function stepOnIce(under){
     if(iceStage(tx)>s0)sfx.crack();
     if(iceCrack[tx]>=ICE_CRACK_T)brk=true;}
   // Se sparge tot ce e sub picioare deodată, ca să cazi sigur (nu să rămâi sprijinit pe tile-ul vecin).
-  if(brk)for(const tx of under)breakIce(tx);
+  if(brk){for(const tx of under)breakIce(tx,true);sfx.iceBreak();}
 }
-function breakIce(tx){
+// quiet: fără sunet (când se sparg mai multe tile-uri deodată, sunetul se pune o singură dată).
+function breakIce(tx,quiet){
   grid[12][tx]='.';iceCrack[tx]=0;iceHole[tx]=ICE_REFREEZE_T;
   for(let i=0;i<7;i++)parts.push({x:tx*TS+2+Math.random()*12,y:12*TS+1,vx:(Math.random()-0.5)*2.4,vy:-1.5-Math.random()*2,g:0.25,life:30,max:30,col:i%2?'#ffffff':'#bfe6f8',s:2,edge:'#7ab0d0'});
-  sfx.iceBreak();
+  if(!quiet)sfx.iceBreak();
 }
 function updateIce(){
   for(let tx=0;tx<cols;tx++){
@@ -1207,7 +1263,7 @@ function updateIce(){
 function makeEnemy(type,tx,ty){return type==='man'||type==='boy'
   ?{type:'man',boy:type==='boy',x:tx*TS+3,y:(ty+1)*TS-18,w:10,h:18,vx:0,vy:0,dir:-1,active:false,dead:0,deadT:0,anim:0,chasing:false,alert:0,atk:0,cd:0,onGround:false}
   :{type:'bomb',x:tx*TS+2,y:(ty+1)*TS-12,w:12,h:12,vx:0,vy:0,dir:-1,active:false,lit:0,sit:false,slideDir:0,slideT:0,kickT:0,anim:0,onGround:false};}
-function newGame(){G.carryBig=false;G.carryFire=false;G.lives=3;G.score=0;G.coins=0;G.level=0;G.cp=null;G.state='intro';G.stateT=0;stopSong();}
+function newGame(){G.carryBig=false;G.carryFire=false;G.carryIce=false;G.lives=3;G.score=0;G.coins=0;G.level=0;G.cp=null;G.state='intro';G.stateT=0;stopSong();}
 function startLevel(){
   const def=LEVELS[G.level],m=def.build();
   grid=m.grid;cols=m.w;theme=THEMES[def.theme];tiles=getTiles(def.theme);bg=getBG(def.theme);goal=m.goalDef;
@@ -1219,7 +1275,7 @@ function startLevel(){
   cps=m.cps.map(x=>({x:x*TS,tx:x,on:atCp&&G.cp.x===x,raise:atCp&&G.cp.x===x?1:0}));
   const sx=atCp?G.cp.x*TS+3:2*TS+3;
   const big=!!G.carryBig;
-  player={x:sx,y:12*TS-(big?20:13),w:big?12:10,h:big?20:13,big,fire:big&&!!G.carryFire,vx:0,vy:0,face:1,onGround:false,coyote:0,jbuf:0,inv:0,anim:0,combo:0,dead:false,alpha:1};
+  player={x:sx,y:12*TS-(big?20:13),w:big?12:10,h:big?20:13,big,fire:big&&!!G.carryFire,ice:big&&!!G.carryIce,vx:0,vy:0,face:1,onGround:false,coyote:0,jbuf:0,inv:0,anim:0,combo:0,dead:false,alpha:1};
   G.growT=0;
   G.time=300;G.frame=0;G.paused=false;G.tally=0;
   cam.x=clamp(player.x-W*0.4,0,cols*TS-W);
@@ -1255,6 +1311,7 @@ function enterWater(e){
   let l=Math.floor((e.x+e.w/2)/TS),r=l;const wet=c=>c==='.'||c==='I';
   while(wet(tileAt(l-1,12)))l--;while(wet(tileAt(r+1,12)))r++;
   e.pitL=l*TS;e.pitR=(r+1)*TS;
+  if(e.type==='man'&&e.frozen&&e.slideDir)addScore(e.boy?100:200,e.x+5,WATER_Y-14);  // l-ai împins tu în apă, înghețat
   if(e.type==='bomb'){
     if(e.slideDir)addScore(100,e.x+6,WATER_Y-14);  // ai împins-o tu în apă
     if(e.lit){e.lit=0;steam(e.x+6);sfx.hiss();}
@@ -1373,12 +1430,12 @@ function hitBlock(tx,ty){
   if(c==='M'||c==='H'){
     grid[ty][tx]='U';bumps.push({tx,ty,t:0});
     if(c==='M'){parts.push({type:'coin',x:tx*TS+8,y:ty*TS-6,vx:0,vy:-5.5,g:0.35,life:26,max:26});addCoin(tx*TS+8,ty*TS);}
-    // Curcan mic → grăunte auriu; curcan deja mare → boabă roșie de foc.
-    else{items.push({type:player.big?'berry':'grain',x:tx*TS+3,y:ty*TS,w:10,h:11,vx:0,vy:0,rise:11,dir:player.x<tx*TS?1:-1});sfx.sprout();}
+    // Curcan mic → grăunte auriu; curcan deja mare → boabă roșie de foc (iarna: afină înghețată).
+    else{items.push({type:player.big?(theme.snow?'ice':'berry'):'grain',x:tx*TS+3,y:ty*TS,w:10,h:11,vx:0,vy:0,rise:11,dir:player.x<tx*TS?1:-1});sfx.sprout();}
   }else if(c==='B'){if(player.big)breakBrick(tx,ty);else{bumps.push({tx,ty,t:0});sfx.bump();}}
   else sfx.bump();
   for(const e of enemies){if(e.dead||e.remove||!e.active)continue;
-    if(overlap(e,{x:tx*TS,y:ty*TS-4,w:TS,h:5})){if(e.type==='man')killMan(e,2,200);else lightBomb(e);}}
+    if(overlap(e,{x:tx*TS,y:ty*TS-4,w:TS,h:5})){if(e.frozen)shatter(e,200);else if(e.type==='man')killMan(e,2,200);else lightBomb(e);}}
 }
 function breakBrick(tx,ty){
   grid[ty][tx]='.';sfx.brk();addScore(50);
@@ -1386,13 +1443,60 @@ function breakBrick(tx,ty){
 }
 // pts = punctele fermierului cu furcă (200 sărit în cap); ucenicul dă jumătate (100).
 function killMan(e,mode,pts){
-  e.dead=mode;e.deadT=mode===1?30:120;
+  e.dead=mode;e.deadT=mode===1?30:120;e.frozen=0;
   if(mode===2){e.vy=-4.5;e.vx=(Math.random()<0.5?-1:1)*1.2;}
   addScore(e.boy?pts/2:pts,e.x+5,e.y-4);
 }
-function lightBomb(e){if(e.type!=='bomb')return;if(!e.lit){e.lit=96;sfx.fuse();}}
+function lightBomb(e){if(e.type!=='bomb'||e.frozen)return;if(!e.lit){e.lit=96;sfx.fuse();}}
+// ================= ÎNGHEȚAT (pana de gheață) =================
+// Un dușman lovit de o pană de gheață rămâne prins într-un bloc de gheață ~5 s: nu se mișcă, nu rănește și poate fi
+// împins (alunecă la fel ca bomba). Dacă gheața se sparge — îi sari în cap sau îl împingi în ceva (perete, alt mob) —
+// moare; doi înghețați care se ciocnesc mor amândoi. Dacă nu-l spargi, se dezgheață singur și își revine.
+// Bomba înghețată are fitilul stins: spartă, dispare fără explozie; dezghețată, redevine bombă normală.
+function freeze(e){
+  const again=e.frozen>0;e.frozen=FREEZE_T;
+  if(again)return;  // deja înghețat: doar reîncepe timpul
+  e.vx=0;e.slideDir=0;e.slideT=0;e.kickT=0;
+  if(e.type==='man'){e.atk=0;e.alert=0;e.chasing=false;e.puzzled=0;e.lost=0;}
+  else{e.lit=0;e.sit=false;}
+  for(let i=0;i<8;i++)parts.push({x:e.x+Math.random()*e.w,y:e.y+Math.random()*e.h,vx:(Math.random()-0.5)*0.6,vy:-0.3-Math.random()*0.5,g:0,life:18,max:18,col:i%2?'#ffffff':'#bfe8ff',s:1});
+  sfx.freezeHit();
+}
+function iceShards(x,y,n){for(let i=0;i<n;i++){const a=Math.random()*TAU,s=1+Math.random()*2;
+  parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1.5,g:0.2,life:28,max:28,col:i%3?'#c8eeff':'#ffffff',s:2,edge:'#5aa8d8'});}}
+// Gheața se sparge cu el cu tot: moare (bomba dispare, fără explozie).
+function shatter(e,pts){
+  iceShards(e.x+e.w/2,e.y+e.h/2,12);sfx.shatter();
+  e.frozen=0;e.slideDir=0;
+  if(e.type==='man')killMan(e,2,pts);else{e.remove=true;addScore(pts,e.x+6,e.y-4);}
+}
+// Se dezgheață singur: își revine (fermierul nu atacă chiar în aceeași clipă).
+function thaw(e){
+  e.frozen=0;e.slideDir=0;e.vx=0;iceShards(e.x+e.w/2,e.y+e.h/2,6);sfx.crack();
+  if(e.type==='man'){e.atk=0;e.cd=40;}
+}
+function updateFrozen(e){
+  if(e.kickT>0)e.kickT--;
+  if(--e.frozen<=0){thaw(e);return;}
+  if(e.slideDir){
+    e.slideT+=onIce(e)?0.5:1;  // pe gheața lacului alunecă de două ori mai mult
+    if(e.slideT>=BOMB_SLIDE_T){e.slideDir=0;e.vx=0;}
+    else{e.vx=e.slideDir*bombSlideSpeed(e.slideT);if(e.onGround&&G.t%3===0&&Math.abs(e.vx)>0.8)parts.push({x:e.x+e.w/2,y:e.y+e.h,vx:-e.vx*0.2,vy:-0.4,g:0.03,life:12,max:12,col:'#dff4ff',s:1});}
+  }else e.vx=0;
+  e.vy=Math.min(e.vy+0.4,7);
+  moveX(e);
+  if(e.hitWall&&e.slideDir){shatter(e,200);return;}   // izbit de un perete (sau de țepi)
+  moveY(e);
+  if(e.y+e.h>WATER_Y&&overPit(e)){enterWater(e);return;}
+  if(e.slideDir&&Math.abs(e.vx)>0.3)for(const o of enemies){
+    if(o===e||!o.active||o.dead||o.remove||o.sink||!overlap(e,o))continue;
+    if(o.frozen)shatter(o,200);   // alt înghețat: mor amândoi
+    shatter(e,200);return;
+  }
+  if(e.y>H+20)e.remove=true;
+}
 // Lovită (sărită în cap sau de o pană), bomba se așază în fund pe loc și se aprinde.
-// Prima dată primește fitil nou, ca să ai timp s-o împingi; loviturile următoare doar o opresc.
+// Prima dată primește fitil nou, ca să ai timp s-o împingi; apelată din nou (bomba alunecă), doar o oprește.
 function sitBomb(e){
   if(!e.sit){addScore(100,e.x+6,e.y-4);e.lit=BOMB_SIT_FUSE;sfx.fuse();}
   e.sit=true;e.slideDir=0;e.vx=0;
@@ -1414,15 +1518,19 @@ function explode(e){
   for(let i=0;i<22;i++){const a=Math.random()*TAU,s=1+Math.random()*2.5;parts.push({x:cx,y:cy,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1,g:0.08,life:30+Math.random()*20|0,max:50,col:['#fff3a0','#ffb02a','#ff5a1a','#6a5a62'][i%4],s:3});}
   if(!player.dead){const dx=player.x+player.w/2-cx,dy=player.y+player.h/2-cy;if(dx*dx+dy*dy<R*R)hurt(Math.sign(dx)||1);}
   for(const o of enemies){if(o===e||o.dead||o.remove||o.sink)continue;const dx=o.x+o.w/2-cx,dy=o.y+o.h/2-cy;
-    if(dx*dx+dy*dy<R*R){if(o.type==='man')killMan(o,2,300);else o.lit=o.lit?Math.min(o.lit,12):12;}}
+    if(dx*dx+dy*dy<R*R){if(o.frozen)shatter(o,300);else if(o.type==='man')killMan(o,2,300);else o.lit=o.lit?Math.min(o.lit,12):12;}}
   const t0=Math.floor((cy-R)/TS),t1=Math.floor((cy+R)/TS),l0=Math.floor((cx-R)/TS),l1=Math.floor((cx+R)/TS);
   for(let ty=t0;ty<=t1;ty++)for(let tx=l0;tx<=l1;tx++){if(tileAt(tx,ty)!=='B')continue;const dx=tx*TS+8-cx,dy=ty*TS+8-cy;if(dx*dx+dy*dy<R*R)breakBrick(tx,ty);}
+  // Explozia sparge și gheața lacurilor pe care o atinge (gaura îngheață la loc după câteva secunde, ca de obicei).
+  let ice=false;
+  for(let tx=l0;tx<=l1;tx++){if(tileAt(tx,12)!=='I')continue;const dx=tx*TS+8-cx,dy=12*TS+3-cy;if(dx*dx+dy*dy<R*R){breakIce(tx,true);ice=true;}}
+  if(ice)sfx.iceBreak();
 }
 function hurt(dir=0){
   if(player.inv>0||player.dead||G.state!=='play'||G.god)return;
   if(!player.big){die();return;}
-  // Curcanul de foc pierde întâi costumul roșu (rămâne mare); abia apoi se micșorează.
-  if(player.fire){player.fire=false;G.morph='fire';}else{setBig(false);G.morph='size';}
+  // Curcanul de foc (sau de gheață) pierde întâi costumul (rămâne mare); abia apoi se micșorează.
+  if(player.fire){player.fire=false;G.morph='fire';}else if(player.ice){player.ice=false;G.morph='ice';}else{setBig(false);G.morph='size';}
   G.growT=48;player.inv=120;sfx.shrink();G.shake=6;
 }
 // Schimbă mărimea curcanului păstrând picioarele pe loc.
@@ -1441,31 +1549,43 @@ function powerFire(x,y){
   // Mic: clipește între mic și mare-roșu; deja mare: clipește între costumul normal și cel roșu.
   const wasSmall=!player.big;
   if(wasSmall)setBig(true);
-  player.fire=true;G.morph=wasSmall?'size':'fire';G.growT=48;sfx.fireUp();
+  player.fire=true;player.ice=false;G.morph=wasSmall?'size':'fire';G.growT=48;sfx.fireUp();
   popup('PENE DE FOC!',player.x+player.w/2,player.y-14,'#ff9a3a');
+}
+// Afina înghețată: costum albastru deschis și pene de gheață (în locul celor de foc, dacă le avea).
+function powerIce(x,y){
+  addScore(1000,x,y);
+  if(player.ice){sfx.coin();return;}
+  const wasSmall=!player.big;
+  if(wasSmall)setBig(true);
+  player.ice=true;player.fire=false;G.morph=wasSmall?'size':'ice';G.growT=48;sfx.iceUp();
+  popup('PENE DE GHEAȚĂ!',player.x+player.w/2,player.y-14,'#9fe8ff');
 }
 function throwFeather(){
   const p=player,d=p.face;
   // Mai rapidă decât curcanul; dacă fuge în aceeași direcție, pana primește puțin din viteza lui.
   const sp=6+Math.max(0,p.vx*d)*0.5;
-  feathers.push({x:d>0?p.x+p.w-2:p.x-8,y:p.y+10,w:10,h:4,vx:d*sp,dir:d,dist:0,t:0});
-  sfx.fwip();
+  feathers.push({x:d>0?p.x+p.w-2:p.x-8,y:p.y+10,w:10,h:4,vx:d*sp,dir:d,dist:0,t:0,ice:!!p.ice});
+  if(p.ice){sfx.fwipIce();frostBreath(6);}else sfx.fwip();   // cu un puf de abur mai mare la aruncare
 }
 function puffFeather(f){
   f.remove=true;
-  for(let i=0;i<6;i++)parts.push({x:f.x+5,y:f.y+2,vx:(Math.random()-0.5)*1.4,vy:-Math.random()*1.2,g:-0.01,life:16,max:16,col:i%2?'#8a8494':'#ff9a2a',s:2});
+  for(let i=0;i<6;i++)parts.push({x:f.x+5,y:f.y+2,vx:(Math.random()-0.5)*1.4,vy:-Math.random()*1.2,g:-0.01,life:16,max:16,col:f.ice?(i%2?'#ffffff':'#9fdcff'):(i%2?'#8a8494':'#ff9a2a'),s:2});
 }
 function updateFeathers(){
   for(const f of feathers){
     f.x+=f.vx;f.dist+=Math.abs(f.vx);f.t++;
-    // Dâră de flăcări în urma penei.
-    if(f.t%2===0)parts.push({x:f.x+(f.dir>0?0:9),y:f.y-2+Math.random()*3,vx:-f.dir*0.4,vy:-0.4-Math.random()*0.5,g:-0.01,life:10,max:10,col:Math.random()<0.5?'#ffb02a':'#ffe040',s:2});
+    // Dâră de flăcări (sau de chiciură, la pana de gheață) în urma penei.
+    if(f.t%2===0)parts.push({x:f.x+(f.dir>0?0:9),y:f.y-2+Math.random()*3,vx:-f.dir*0.4,vy:f.ice?0.2:-0.4-Math.random()*0.5,g:-0.01,life:10,max:10,
+      col:f.ice?(Math.random()<0.5?'#ffffff':'#bfe8ff'):(Math.random()<0.5?'#ffb02a':'#ffe040'),s:f.ice?1:2});
     // Zboară doar o anumită distanță; se stinge și dacă lovește un perete.
     const tx=Math.floor((f.dir>0?f.x+f.w:f.x)/TS),ty=Math.floor((f.y+f.h/2)/TS);
     if(solid(tileAt(tx,ty))||f.dist>=FEATHER_RANGE){puffFeather(f);continue;}
     for(const e of enemies){
       if(!e.active||e.dead||e.remove||e.sink||!overlap(f,e))continue;
-      if(e.type==='man'){killMan(e,2,200);sfx.burn();}
+      if(f.ice)freeze(e);                       // pana de gheață îngheață (fermieri, ucenici, bombe)
+      else if(e.frozen)shatter(e,200);          // pana de foc topește gheața cu el cu tot
+      else if(e.type==='man'){killMan(e,2,200);sfx.burn();}
       else if(!e.sit)sitBomb(e);
       puffFeather(f);break;
     }
@@ -1473,7 +1593,7 @@ function updateFeathers(){
   feathers=feathers.filter(f=>!f.remove);
 }
 function die(){
-  if(player.dead)return;player.dead=true;G.carryBig=false;G.carryFire=false;feathers=[];G.state='dying';G.stateT=0;
+  if(player.dead)return;player.dead=true;G.carryBig=false;G.carryFire=false;G.carryIce=false;feathers=[];G.state='dying';G.stateT=0;
   stopSong();playSong('death');player.vx=0;player.vy=0;
 }
 // Curcanul cade în apă (încă nu poate înota): pleoscăie, apoi se scufundă încet și pierde viața.
@@ -1482,7 +1602,7 @@ function drown(){
   const vy=player.vy;splash(player.x+player.w/2);die();
   player.drown=true;player.vy=Math.min(Math.max(vy,0.5),2.5);
 }
-function levelClear(final){G.carryBig=player.big;G.carryFire=player.fire;feathers=[];G.state='clear';G.final=final;G.stateT=0;G.tally=0;stopSong();playSong('clear');player.vx=0;}
+function levelClear(final){G.carryBig=player.big;G.carryFire=player.fire;G.carryIce=player.ice;feathers=[];G.state='clear';G.final=final;G.stateT=0;G.tally=0;stopSong();playSong('clear');player.vx=0;}
 
 // ================= UPDATE =================
 function updatePlayer(){
@@ -1495,7 +1615,9 @@ function updatePlayer(){
   if(p.inv>0)p.inv--;
   const dir=(R&&!L)?1:(L&&!R)?-1:0;
   if(dir)p.face=dir;
-  if(p.fire&&firePressed()&&feathers.length<FEATHER_MAX)throwFeather();
+  if((p.fire||p.ice)&&firePressed()&&feathers.length<FEATHER_MAX)throwFeather();
+  // Curcanul de gheață sclipește rece din când în când.
+  if(p.ice&&G.t%12===0)parts.push({x:p.x+Math.random()*p.w,y:p.y+4+Math.random()*(p.h-6),vx:0,vy:-0.2,g:0,life:16,max:16,col:'#ffffff',s:1});
   if(p.onGround){
     const target=dir*(run?RUN:WALK);
     // Pe gheață aluneci: pornești ceva mai greu, iar când te oprești sau întorci, mai aluneci puțin.
@@ -1520,9 +1642,15 @@ function updatePlayer(){
   moveX(p);moveY(p);
   if(p.headHit)hitBlock(p.headHit[0],p.headHit[1]);
   if(p.onGround&&wasAir&&vyB>3)dust(p.x+p.w/2,p.y+p.h,4);
+  // Curcanul de foc: jar din coadă și de pe costum (mai des când fuge), scântei din picioare la aterizare.
+  if(p.fire&&p.big){const sp=Math.abs(p.vx),rate=sp>2.5?4:sp>0.5?8:14;if(G.t%rate===0)ember();if(p.onGround&&wasAir&&vyB>2)landSparks();}
   if(p.onGround&&Math.abs(p.vx)>0.1)p.anim+=Math.abs(p.vx)*0.22;
   // Cât timp a stat pe loc (pentru respirație); orice pas sau săritură o ia de la capăt.
   p.idle=p.onGround&&Math.abs(p.vx)<=0.1?(p.idle||0)+1:0;
+  // Curcanul de gheață scoate abur din cioc: la fiecare expirație când stă pe loc, altfel cam o dată la 1,5 s.
+  if(p.ice&&p.big&&((p.idle>IDLE_WAIT&&(p.idle-IDLE_WAIT)%BREATH_T===0)||(!p.idle&&G.t%90===0)))frostBreath(3);
+  // Curcanul de foc, când stă pe loc: la fiecare expirație scoate pe cioc o flăcăruie care se face fum.
+  if(p.fire&&p.big&&p.idle>IDLE_WAIT&&(p.idle-IDLE_WAIT)%BREATH_T===0)fireBreath();
   // Pe gheață: aluneci (vezi mai sus), iar gheața de sub picioare crapă dacă stai prea mult pe același loc.
   p.onIce=onIce(p);
   if(p.onGround){const under=iceUnder(p);if(under.length)stepOnIce(under);}
@@ -1538,6 +1666,7 @@ function updateMan(e){
       if(!e.wet&&e.y+e.h>WATER_Y&&overPit(e)){e.wet=true;splash(e.x+e.w/2);}}
     if(e.deadT<=0)e.remove=true;return;}
   if(e.sink){sinkStep(e);return;}
+  if(e.frozen){updateFrozen(e);return;}
   const dx=(player.x+player.w/2)-(e.x+5),dy=(player.y+player.h)-(e.y+e.h);
   if(e.cd>0)e.cd--;
   if(e.boy){
@@ -1589,6 +1718,7 @@ function updateMan(e){
 }
 function updateBomb(e){
   if(e.sink){sinkStep(e);return;}
+  if(e.frozen){updateFrozen(e);return;}
   if(e.kickT>0)e.kickT--;
   // Încruntată când curcanul e în fața ei, destul de aproape (aprinsă e oricum furioasă — vezi drawEnemy).
   const sdx=(player.x+player.w/2)-(e.x+6),sdy=(player.y+player.h)-(e.y+e.h);
@@ -1654,10 +1784,17 @@ function updatePlay(){
     const stomp=player.vy>0&&(player.y+player.h-e.y)<=Math.max(8,player.vy+3);
     if(stomp){
       player.y=e.y-player.h;player.vy=inJump()?-6.6:-4.3;
-      if(e.type==='man'){killMan(e,1,[200,400,800,1600,3200][Math.min(player.combo,4)]);player.combo++;sfx.stomp();}
-      else{sitBomb(e);sfx.stomp();}
-    }else if(e.type==='man')hurt(Math.sign(player.x-e.x)||1);
-    else if(e.sit)pushBomb(e,box);
+      // Înghețat: săritura în cap sparge gheața cu el cu tot (moare).
+      if(e.frozen){shatter(e,[200,400,800,1600,3200][Math.min(player.combo,4)]);player.combo++;}
+      else if(e.type==='man'){killMan(e,1,[200,400,800,1600,3200][Math.min(player.combo,4)]);player.combo++;sfx.stomp();}
+      else{
+        // Bomba: prima săritură în cap o așază în fund; a doua (și ricoșeul de după prima, dacă aterizezi iar pe ea)
+        // o lansează în direcția în care se uită curcanul; dacă alunecă, o săritură în cap o oprește.
+        if(!e.sit||e.slideDir)sitBomb(e);else kickBomb(e,player.face);
+        sfx.stomp();
+      }
+    }else if(e.frozen||(e.type==='bomb'&&e.sit))pushBomb(e,box);   // înghețații nu rănesc: se împing, ca bomba în fund
+    else if(e.type==='man')hurt(Math.sign(player.x-e.x)||1);
   }
   enemies=enemies.filter(e=>!e.remove);
   updateIce();
@@ -1666,7 +1803,7 @@ function updatePlay(){
   for(const it of items){
     if(it.rise>0){it.y-=1;it.rise--;continue;}
     // Boaba roșie stă pe loc deasupra blocului; grăuntele auriu se plimbă.
-    if(it.type==='berry'){if(overlap(player,it)){it.remove=true;powerFire(it.x+5,it.y);}continue;}
+    if(it.type==='berry'||it.type==='ice'){if(overlap(player,it)){it.remove=true;if(it.type==='ice')powerIce(it.x+5,it.y);else powerFire(it.x+5,it.y);}continue;}
     it.vx=it.dir*0.8;it.vy=Math.min(it.vy+0.35,6);moveX(it);if(it.hitWall)it.dir*=-1;moveY(it);
     if(it.y+it.h>WATER_Y&&overPit(it)){it.remove=true;splash(it.x+it.w/2);continue;}
     if(overlap(player,it)){it.remove=true;powerUp(it.x+5,it.y);}
@@ -1823,9 +1960,10 @@ function drawCP(cp,cx){
 function drawPlayer(cx){
   const p=player;
   // În timpul transformării alternează între mic și mare.
-  let showBig=p.big,showFire=p.fire;
-  if(G.growT>0&&(G.growT>>2)%2){if(G.morph==='fire')showFire=!showFire;else showBig=!showBig;}
-  const S=showBig?(showFire?TKF:TK):TKS,sw=showBig?20:16,sh=showBig?23:16;
+  // Costumul: roșu (foc) sau albastru deschis (gheață). La schimbarea costumului clipește între costum și fără.
+  let showBig=p.big,suit=p.fire?'fire':p.ice?'ice':'';
+  if(G.growT>0&&(G.growT>>2)%2){if(G.morph==='fire'||G.morph==='ice')suit=suit?'':G.morph;else showBig=!showBig;}
+  const S=showBig?(suit==='fire'?TKF:suit==='ice'?TKI:TK):TKS,sw=showBig?20:16,sh=showBig?23:16;
   const dx=Math.round(p.x+p.w/2-sw/2-cx),dy=Math.round(p.y+p.h-sh);
   if(p.dead){ctx.drawImage(p.drown?S.J[p.face>0?'r':'l']:S.DEAD,dx,dy);return;}
   if(p.inv>0&&G.growT<=0&&(p.inv>>2)%2)return;
@@ -1834,10 +1972,75 @@ function drawPlayer(cx){
   const img=S[f][p.face>0?'r':'l'];
   if(p.alpha<1)ctx.globalAlpha=p.alpha;
   ctx.drawImage(img,dx,dy+sh-img.height);  // cadrul de respirație e mai scund: tălpile rămân pe sol
-  ctx.globalAlpha=1;
+  // Costumul de gheață: sclipirea care trece peste costum și capetele fularului (de la ceafă, din spate).
+  if(showBig&&suit==='ice'){const oy=dy+sh-img.height;drawIceSheen(dx,oy,p.face);drawScarf(dx+(p.face>0?6:13),oy+11,p);}  ctx.globalAlpha=1;
+}
+// O dungă de lumină care trece pe diagonală peste costumul de gheață, cam o dată la 2,5 secunde.
+function drawIceSheen(x0,y0,face){
+  const t=G.t%150;if(t>=24)return;
+  const pos=t*1.3-6,a=ctx.globalAlpha;ctx.globalAlpha=a*0.6;ctx.fillStyle='#ffffff';
+  for(const [x,y] of TKI_SHEEN)if(Math.abs((x-4)+(y-12)*0.7-pos)<1)ctx.fillRect(x0+(face>0?x:19-x),y0+y,1,1);
+  ctx.globalAlpha=a;
+}
+// Capetele fularului: două fâșii cu dungi albastre și albe. Când stă, atârnă pe spate; când fuge, flutură
+// orizontal în urma lui (cu valuri mai mari cu cât fuge mai repede); în aer rămân puțin în urmă pe verticală.
+function drawScarf(ax,ay,p){
+  const face=p.face,run=Math.min(1,Math.abs(p.vx)/3),air=!p.onGround;
+  for(const [len,oy,ph] of [[7,0,0],[5,1,1.3]])for(let i=0;i<len;i++){
+    const k=i+1;
+    const sx=-face*(0.3+run*0.9+(air?0.3:0))*k,sy=(1-run)*k*0.9+run*k*0.15+(air?-p.vy*0.08*k:0);
+    const wave=Math.sin(G.t*(0.25+run*0.2)-i*0.8+ph)*(0.3+run*1.2)*(i/len);
+    ctx.fillStyle=i===len-1?'#2a5aa8':((i>>1)%2)?'#ffffff':'#3a7ad8';
+    ctx.fillRect(Math.round(ax+sx),Math.round(ay+oy+sy+wave),2,2);
+  }
+}
+// Jar care se ridică din coada și de pe costumul curcanului de foc și se stinge în aer.
+const EMBER_COLS=['#ffe040','#ff9a1a','#ff5a1a'];
+function ember(){
+  const p=player,f=p.face,tail=Math.random()<0.5;
+  const cx=tail?1+Math.random()*5:6+Math.random()*9,cy=tail?3+Math.random()*9:12+Math.random()*7;   // în sprite (spre dreapta)
+  parts.push({x:p.x+p.w/2-10+(f>0?cx:19-cx),y:p.y+p.h-23+cy,vx:(Math.random()-0.5)*0.4-f*0.2,vy:-0.5-Math.random()*0.6,g:-0.01,
+    life:18+(Math.random()*12|0),max:30,col:EMBER_COLS[Math.random()*3|0],s:1});
+}
+// Scântei care sar din picioare când curcanul de foc aterizează.
+function landSparks(){
+  const p=player;
+  for(let i=0;i<6;i++){const d=i%2?1:-1;parts.push({x:p.x+p.w/2,y:p.y+p.h-1,vx:d*(0.6+Math.random()*1.2),vy:-1-Math.random()*1.2,g:0.15,life:16,max:16,col:EMBER_COLS[i%3],s:1});}
+}
+// Vârful ciocului (curcan mare), în lume: x, y. La expirație (cadrul de respirație) capul e cu 1 px mai jos.
+function beakTip(){
+  const p=player,f=p.face,down=p.idle>IDLE_WAIT&&(p.idle-IDLE_WAIT)%BREATH_T<BREATH_OUT?1:0;
+  return [p.x+p.w/2-10+(f>0?19:0),p.y+p.h-23+7+down];
+}
+// Curcanul de foc, la expirație când stă pe loc: o flăcăruie mică iese din cioc și se face fum care se ridică.
+function fireBreath(){
+  const f=player.face,[bx,by]=beakTip();
+  for(let i=0;i<4;i++)parts.push({x:bx+f*i*0.8,y:by-0.5+Math.random(),vx:f*(0.5+Math.random()*0.4),vy:-0.15-Math.random()*0.2,g:-0.01,
+    life:8+(Math.random()*6|0),max:14,col:EMBER_COLS[i%3],s:1});
+  for(let i=0;i<3;i++)parts.push({x:bx+f*(2+i),y:by-1,vx:f*(0.25+Math.random()*0.2),vy:-0.3-Math.random()*0.25,g:-0.008,
+    life:30+(Math.random()*12|0),max:42,col:i%2?'#8a8494':'#6a6474',s:i===1?2:1});
+}
+// Abur rece din cioc (curcanul de gheață): un nor mic, alb, care iese în față și se risipește.
+function frostBreath(n){
+  const p=player,f=p.face,[bx,by]=beakTip();
+  for(let i=0;i<n;i++)parts.push({x:bx+f*Math.random()*2,y:by-1+Math.random()*2,vx:f*(0.3+Math.random()*0.4),vy:-0.1-Math.random()*0.2,g:-0.005,
+    life:26+(Math.random()*10|0),max:36,col:i%3?'#ffffff':'#dff4ff',s:i%2?2:1});
+}
+// Un dușman înghețat: sprite-ul lui albăstrit, prins într-un bloc de gheață translucid (cu luciu sus-stânga).
+// În ultima secundă tremură și gheața crapă — urmează să-și revină.
+function drawFrozen(e,sx){
+  const sh=e.frozen<THAW_WARN&&(G.t>>1)%2?1:0,f=e.dir>0?'r':'l';
+  if(e.type==='man')ctx.drawImage((e.boy?BOY:MAN).ICE[f],sx-3+sh,Math.round(e.y-2));
+  else ctx.drawImage(BOMB.ICE[f],sx-2+sh,Math.round(e.y-4));
+  const x=sx-2+sh,y=Math.round(e.y)-3,w=e.w+4,h=e.h+3;
+  ctx.globalAlpha=0.45;ctx.fillStyle='#bfeaff';ctx.fillRect(x,y,w,h);ctx.globalAlpha=1;
+  ctx.fillStyle='#5aa8d8';ctx.fillRect(x,y,w,1);ctx.fillRect(x,y+h-1,w,1);ctx.fillRect(x,y,1,h);ctx.fillRect(x+w-1,y,1,h);
+  ctx.fillStyle='#ffffff';ctx.fillRect(x+1,y+1,w-2,1);ctx.fillRect(x+1,y+1,1,h-2);ctx.fillRect(x+3,y+3,1,3);ctx.fillRect(x+w-3,y+h-5,1,2);
+  if(e.frozen<THAW_WARN){ctx.fillStyle='#ffffff';[[3,6],[4,7],[4,8],[5,9],[w-4,4],[w-5,5],[w-5,6],[w-6,7]].forEach(([dx,dy])=>ctx.fillRect(x+dx,y+dy,1,1));}
 }
 function drawEnemy(e,cx){
   const sx=Math.round(e.x-cx);if(sx<-24||sx>W+24)return;
+  if(e.frozen&&!e.dead){drawFrozen(e,sx);return;}
   if(e.type==='man'){
     const S=e.boy?BOY:MAN;
     if(e.dead===1){ctx.drawImage(S.A[e.dir>0?'r':'l'],sx-3,Math.round(e.y+e.h-8),16,8);return;}
@@ -1886,14 +2089,14 @@ function drawWorld(){
   const night=theme.night,main=ctx;
   if(night){ctx=shadeCtx;ctx.clearRect(0,0,W,H);}
   const drawItem=it=>{
-    const gx=Math.round(it.x-cx),gy=Math.round(it.y),berry=it.type==='berry';
-    // Aură care pulsează: aurie pentru grăunte, roșie (și mai puternică) pentru boaba de foc.
-    // Noaptea (și doar după ce a ieșit din bloc) e lumină adevărată, care strălucește în jur.
-    if(night&&!(it.rise>0))glow(gx+5,gy+5,15+Math.sin(G.t*0.15)*1.5,berry?'255,80,60':'255,210,90',0.6);
-    else{ctx.globalAlpha=(berry?0.34:0.28)+0.12*Math.sin(G.t*(berry?0.3:0.2));pcirc(ctx,gx+5,gy+5,9+Math.round(Math.sin(G.t*0.15)),berry?'#ff4a3a':'#ffe060');ctx.globalAlpha=1;}
-    ctx.drawImage(berry?BERRY:GRAIN,gx,gy);
+    const gx=Math.round(it.x-cx),gy=Math.round(it.y),ice=it.type==='ice',berry=it.type==='berry'||ice;
+    // Aură care pulsează: aurie pentru grăunte, roșie (și mai puternică) pentru boaba de foc, albastru rece
+    // pentru afina înghețată. Noaptea (și doar după ce a ieșit din bloc) e lumină adevărată, care strălucește în jur.
+    if(night&&!(it.rise>0))glow(gx+5,gy+5,15+Math.sin(G.t*0.15)*1.5,ice?'140,210,255':berry?'255,80,60':'255,210,90',0.6);
+    else{ctx.globalAlpha=(berry?0.34:0.28)+0.12*Math.sin(G.t*(berry?0.3:0.2));pcirc(ctx,gx+5,gy+5,9+Math.round(Math.sin(G.t*0.15)),ice?'#7fd0ff':berry?'#ff4a3a':'#ffe060');ctx.globalAlpha=1;}
+    ctx.drawImage(ice?ICEBERRY:berry?BERRY:GRAIN,gx,gy);
     const a=G.t*(berry?-0.16:0.12);
-    for(let k=0;k<3;k++){const ang=a+k*TAU/3;ctx.fillStyle=berry&&k%2?'#ffd040':'#fff';ctx.fillRect(Math.round(gx+5+Math.cos(ang)*10),Math.round(gy+5+Math.sin(ang)*10),1,1);}};
+    for(let k=0;k<3;k++){const ang=a+k*TAU/3;ctx.fillStyle=berry&&k%2?(ice?'#bfe8ff':'#ffd040'):'#fff';ctx.fillRect(Math.round(gx+5+Math.cos(ang)*10),Math.round(gy+5+Math.sin(ang)*10),1,1);}};
   // Noaptea bănuții strălucesc: o lumină caldă care pulsează ușor în jurul lor.
   const drawCoins=()=>coins.forEach((c,i)=>{if(c.taken||c.x-cx<=-10||c.x-cx>=W+10)return;const y=c.y+Math.round(Math.sin(G.t*0.08+i)*1);
     if(night)glow(Math.round(c.x-cx),y,13+Math.sin(G.t*0.1+i)*1.5,'255,190,70',0.6);
@@ -1928,7 +2131,7 @@ function drawWorld(){
   }
   for(const f of feathers){
     // Ușoară fluturare în zbor; spre capătul distanței pana se estompează.
-    const img=FEATHER[(f.t>>2)%2?'B':'A'][f.dir>0?'r':'l'];
+    const img=(f.ice?FEATHER_ICE:FEATHER)[(f.t>>2)%2?'B':'A'][f.dir>0?'r':'l'];
     ctx.globalAlpha=clamp((FEATHER_RANGE-f.dist)/28,0.35,1);
     ctx.drawImage(img,Math.round(f.x-cx),Math.round(f.y-2+Math.sin(f.t*0.6)));
     ctx.globalAlpha=1;
@@ -1947,7 +2150,7 @@ function drawWorld(){
 // felinarul care pâlpâie, apoi licuricii.
 function drawNightLights(cx){
   for(const e of enemies){
-    if(e.type!=='man'||e.boy||!e.active||e.dead||e.sink)continue;  // ucenicul n-are felinar
+    if(e.type!=='man'||e.boy||!e.active||e.dead||e.sink||e.frozen)continue;  // ucenicul n-are felinar; înghețat, felinarul e stins
     const l=lanternPos(e),lx=Math.round(l.x-cx),ly=Math.round(l.y);
     if(lx<-LANTERN_LEN||lx>W+LANTERN_LEN)continue;
     const col=e.chasing?'255,150,90':'255,220,130',a0=e.dir>0?0:Math.PI;
@@ -2107,7 +2310,8 @@ function testSpawn(type){
 const TEST_CMDS={
   grain(){if(G.state==='play'&&!player.dead)powerUp(player.x+player.w/2,player.y);},
   berry(){if(G.state==='play'&&!player.dead)powerFire(player.x+player.w/2,player.y);},
-  small(){if(G.state!=='play'||player.dead)return;player.fire=false;if(player.big){setBig(false);G.morph='size';G.growT=48;sfx.shrink();}},
+  iceberry(){if(G.state==='play'&&!player.dead)powerIce(player.x+player.w/2,player.y);},
+  small(){if(G.state!=='play'||player.dead)return;player.fire=false;player.ice=false;if(player.big){setBig(false);G.morph='size';G.growT=48;sfx.shrink();}},
   boy(){testSpawn('boy');},
   man(){testSpawn('man');},
   bomb(){testSpawn('bomb');},
@@ -2120,7 +2324,7 @@ const TEST_CMDS={
   night(){const n=TEST_LEVEL.theme!==3;TEST_LEVEL.theme=n?3:0;TEST_LEVEL.song=n?'night':undefined;TEST_CMDS.reset();},
   // Arena iarna: zăpadă, lac înghețat (alunecă, crapă dacă stai pe loc), muzica de iarnă.
   winter(){const n=TEST_LEVEL.theme!==1;TEST_LEVEL.theme=n?1:0;TEST_LEVEL.song=n?'winter':undefined;TEST_CMDS.reset();},
-  reset(){const alive=!player.dead;G.carryBig=alive&&player.big;G.carryFire=alive&&player.fire;startLevel();},
+  reset(){const alive=!player.dead;G.carryBig=alive&&player.big;G.carryFire=alive&&player.fire;G.carryIce=alive&&player.ice;startLevel();},
 };
 if(TEST)addEventListener('message',e=>{
   // Doar comenzi de la pagina care ne-a deschis (test.html), din același loc.
@@ -2130,7 +2334,7 @@ if(TEST)addEventListener('message',e=>{
 // Trimite starea către test.html, ca panoul să arate ce e pornit.
 function testStatus(){
   if(window.parent===window)return;
-  window.parent.postMessage({status:{big:!!(player&&player.big),fire:!!(player&&player.fire),god:!!G.god,hitbox:!!G.showHB,slow:!!G.slow,night:!!theme.night,winter:!!theme.snow,enemies:enemies.length}},'*');
+  window.parent.postMessage({status:{big:!!(player&&player.big),fire:!!(player&&player.fire),ice:!!(player&&player.ice),god:!!G.god,hitbox:!!G.showHB,slow:!!G.slow,night:!!theme.night,winter:!!theme.snow,enemies:enemies.length}},'*');
 }
 // Contururile hitbox-urilor: verde = curcan, roșu = fermier, alb = ucenic, portocaliu = bombă, mov = furca (cât lovește),
 // galben = zona solidă a bombei în fund (dacă e mai mare decât hitbox-ul), albastru = power-up, portocaliu deschis = pene.
