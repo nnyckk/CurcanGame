@@ -34,7 +34,7 @@
 <script>
 'use strict';
 // ================= SETUP =================
-const GAME_VERSION='0.7.1';
+const GAME_VERSION='0.7.2';
 // Modul de test (index.html?test): arenă de test, comenzi din test.html. Pentru jucători nu se schimbă nimic.
 const TEST=/[?&]test\b/.test(location.search);
 const W=400,H=224,TS=16,ROWS=14,TAU=Math.PI*2;
@@ -209,20 +209,28 @@ const SLEG_J=[".......l...l....","......ll..ll...."];
 const TKS={A:spr(TKS_TOP.concat(SLEG_A),TK_PAL),B:spr(TKS_TOP.concat(SLEG_B),TK_PAL),C:spr(TKS_TOP.concat(SLEG_C),TK_PAL),J:spr(TKS_TOP.concat(SLEG_J),TK_PAL)};
 TKS.DEAD=mkSprite(TKS_TOP.concat(SLEG_A).reverse(),TK_PAL,false);
 const TK_RUN=['A','C','B','C'];
+// Respirația, când stă pe loc: cadrul „I” (expiră) e cel de stat fără primul rând de picioare, deci corpul
+// coboară 1 px pe picioare; drawPlayer îl așază tot cu tălpile pe sol. Pornește după IDLE_WAIT cadre de stat
+// (~0,7 s), apoi la fiecare BREATH_T cadre (~1,7 s) corpul stă coborât BREATH_OUT cadre și urcă la loc.
+TK.I=spr(TK_TOP.concat(LEG_A.slice(1)),TK_PAL);
+TKF.I=spr(TKF_TOP.concat(LEG_A.slice(1)),TKF_PAL);
+TKS.I=spr(TKS_TOP.concat(SLEG_A.slice(1)),TK_PAL);
+const IDLE_WAIT=40,BREATH_T=100,BREATH_OUT=45;
 
 // --- Bad man (farmer with pitchfork) ---
-const MAN_PAL={k:'#1a1020',H:'#d8b050',R:'#c0282f',s:'#f0b088',K:'#3a1a0a',w:'#ececec',P:'#2c4c8c',g:'#b8bcc8',f:'#7a5230'};
+// h = păr castaniu (sub pălărie, la ceafă, perciuni), b = barbă scurtă tunsă (falcă, bărbie, deasupra buzei).
+const MAN_PAL={k:'#1a1020',H:'#d8b050',R:'#c0282f',s:'#f0b088',K:'#3a1a0a',w:'#ececec',P:'#2c4c8c',g:'#b8bcc8',f:'#7a5230',h:'#5a3418',b:'#b07a5a'};
 const MAN_TOP=[
 ".....kkkkk......",
 "....kHHHHHk.....",
 "....kRRRRRk.....",
 "..kHHHHHHHHHk...",
-"....ksssssk.g.g.",
-"....kssKsKk.ggg.",
-"....ksskskk..f..",
-"....ksssssk..f..",
-"....kKKKKsk..f..",
-".....kssk....f..",
+"....khhssskg.g.g",
+"....khsKsKkggggg",
+"....khskskk..f..",
+"....kbssbbk..f..",
+"....kbbbKbk..f..",
+".....kbbk....f..",
 "...kkRRRRRkk.f..",
 "..kRRRwwwRRRkf..",
 ".ksRRRwwwRRRsf..",
@@ -236,20 +244,21 @@ const MAN={A:spr(MAN_TOP.concat(MLEG_A),MAN_PAL),B:spr(MAN_TOP.concat(MLEG_B),MA
 MAN.FLIP=mkSprite(MAN_TOP.concat(MLEG_A).reverse(),MAN_PAL,false);
 // Atacul cu furca: capul fără furca verticală + două poziții (trage furca înapoi, apoi împunge).
 const MAN_HEAD=MAN_TOP.slice(0,10).map(r=>r.replace(/[gf]/g,'.'));
+// Furca are 3 dinți: capul e o bară verticală de 5 px, cu dinții pe rândurile 1, 3 și 5.
 const MAN_WIND_BODY=[
-"...kkRRRRRkk.....",
-"..kRRRwwwRRRk.ggg",
-"ffkRRRwwwRRssfg..",
-"..kRRRwwwRRRk.ggg",
-"..kkkPPPPPkkk....",
+"...kkRRRRRkk..ggg",
+"..kRRRwwwRRRk.g..",
+"ffkRRRwwwRRssfggg",
+"..kRRRwwwRRRk.g..",
+"..kkkPPPPPkkk.ggg",
 "....kPPPPPk......",
 ];
 const MAN_STAB_BODY=[
-"...kkRRRRRkk...............",
-"..kRRRwwwRRRk...........ggg",
-"..kRRRwwwRRRssffffffffffg..",
-"..kRRRwwwRRRk...........ggg",
-"..kkkPPPPPkkk..............",
+"...kkRRRRRkk............ggg",
+"..kRRRwwwRRRk...........g..",
+"..kRRRwwwRRRssffffffffffggg",
+"..kRRRwwwRRRk...........g..",
+"..kkkPPPPPkkk...........ggg",
 "....kPPPPPk................",
 ];
 MAN.WIND=spr(MAN_HEAD.concat(MAN_WIND_BODY,MLEG_A),MAN_PAL);
@@ -1302,6 +1311,8 @@ function updatePlayer(){
   if(p.headHit)hitBlock(p.headHit[0],p.headHit[1]);
   if(p.onGround&&wasAir&&vyB>3)dust(p.x+p.w/2,p.y+p.h,4);
   if(p.onGround&&Math.abs(p.vx)>0.1)p.anim+=Math.abs(p.vx)*0.22;
+  // Cât timp a stat pe loc (pentru respirație); orice pas sau săritură o ia de la capăt.
+  p.idle=p.onGround&&Math.abs(p.vx)<=0.1?(p.idle||0)+1:0;
   // Țepii rănesc doar când calci pe ei de sus; dacă doar mergi în ei din lateral, te opresc ca un perete.
   if(p.onGround&&standsOnSpikes(p))hurt(-p.face);
   if(p.y+p.h>WATER_Y&&overPit(p))drown();
@@ -1558,9 +1569,10 @@ function drawPlayer(cx){
   if(p.dead){ctx.drawImage(p.drown?S.J[p.face>0?'r':'l']:S.DEAD,dx,dy);return;}
   if(p.inv>0&&G.growT<=0&&(p.inv>>2)%2)return;
   let f='A';if(!p.onGround&&G.state!=='clear')f='J';else if(Math.abs(p.vx)>0.1||(G.state==='clear'))f=TK_RUN[Math.floor(p.anim)%4];
+  else if(p.idle>IDLE_WAIT&&(p.idle-IDLE_WAIT)%BREATH_T<BREATH_OUT)f='I';
   const img=S[f][p.face>0?'r':'l'];
   if(p.alpha<1)ctx.globalAlpha=p.alpha;
-  ctx.drawImage(img,dx,dy);
+  ctx.drawImage(img,dx,dy+sh-img.height);  // cadrul de respirație e mai scund: tălpile rămân pe sol
   ctx.globalAlpha=1;
 }
 function drawEnemy(e,cx){
