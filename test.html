@@ -3,135 +3,461 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Curcanul în Fugă — Test</title>
+<title>Curcanul în Fugă — Laborator</title>
 <style>
-  :root{--bg:#0d0b14;--panel:#1a1626;--line:#2e2840;--text:#e8e4f0;--muted:#9a94ad;--accent:#ffd23f;--on:#2f7a3c}
+  :root{
+    --bg:#0d0b14;--panel:#15111e;--card:#1d1829;--card2:#262037;--line:#2e2840;--line2:#433a5c;
+    --text:#ece8f4;--muted:#9a94ad;--dim:#6f6886;--accent:#ffd23f;--accent-ink:#2a1d00;--accent-bg:#2c2510;
+    --on:#1f3a26;--on-line:#4fb35f;--on-text:#d9ffe0;--danger:#ff6a6a;
+  }
   *{box-sizing:border-box}
-  body{margin:0;min-height:100vh;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,sans-serif;
+  html,body{margin:0}
+  body{min-height:100vh;background:var(--bg);color:var(--text);font:13px/1.35 system-ui,-apple-system,"Segoe UI",sans-serif;
     display:flex;justify-content:center;align-items:flex-start;gap:16px;padding:16px}
+  /* ---- Stânga: jocul, harta de sub el și tastele ---- */
   main{flex:none;width:min-content;display:flex;flex-direction:column;gap:8px}
   /* Mărimea iframe-ului o pune scriptul de jos: exact jocul mărit de un număr întreg de ori (fără margini negre). */
   iframe{width:804px;height:452px;border:2px solid var(--line);border-radius:6px;background:#000;display:block}
-  aside{width:270px;flex:none;display:flex;flex-direction:column;gap:16px}
+  .mapbox{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px 9px}
+  .maphead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:6px}
+  #mapName{font-weight:600}
+  #mapPos{font:12px ui-monospace,Consolas,monospace;color:var(--muted);white-space:nowrap}
+  #map{display:block;width:100%;height:62px;border-radius:5px;background:#000;cursor:crosshair;touch-action:none}
+  .maphint{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 14px;margin-top:6px;font-size:12px;color:var(--muted)}
+  .maphint .how{display:flex;align-items:center;gap:6px}
+  .dots{display:flex;flex-wrap:wrap;gap:2px 10px}
+  .dots i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:0}
+  .keys{display:flex;flex-wrap:wrap;align-items:center;gap:6px 14px;margin:0;color:var(--muted);font-size:12px}
+  .keys span{display:inline-flex;align-items:center;gap:4px}
+  kbd{display:inline-block;min-width:20px;padding:1px 5px;border:1px solid var(--line2);border-bottom-width:2px;border-radius:4px;
+    background:var(--card);font:11px/1.5 ui-monospace,Consolas,monospace;color:var(--text);text-align:center}
+
+  /* ---- Dreapta: panoul ---- */
+  aside{width:304px;flex:none;display:flex;flex-direction:column;gap:10px;max-height:calc(100vh - 32px);overflow-y:auto;
+    padding-right:2px;scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
   /* Când nu e loc în dreapta, panoul trece sub joc, cu secțiunile una lângă alta. */
   body.stacked{flex-direction:column;align-items:center}
-  body.stacked aside{width:100%;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));align-items:start}
-  body.stacked aside .top,body.stacked #status{grid-column:1/-1}
-  .top{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
-  .top a{color:var(--muted);font-size:12px;text-decoration:none}
-  .top a:hover{color:var(--accent)}
-  h1{font-size:16px;margin:0;color:var(--accent)}
-  h2{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 6px}
-  .grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
-  button{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:6px;
-    padding:8px 10px;font:inherit;text-align:left;cursor:pointer}
-  button:hover{border-color:var(--accent)}
-  button[aria-pressed="true"]{background:var(--on);border-color:var(--on)}
-  .wide{grid-column:1/-1}
-  #status{font:12px ui-monospace,Consolas,monospace;color:var(--muted);background:var(--panel);
-    border:1px solid var(--line);border-radius:6px;padding:8px 10px}
-  .hint{color:var(--muted);font-size:12px;margin:0}
-  .legend{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12px;color:var(--muted);margin:6px 0 0}
+  body.stacked aside{width:100%;max-height:none;overflow:visible;display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));align-items:start}
+  body.stacked aside .top{grid-column:1/-1}
+  .top{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:2px 2px 0}
+  h1{display:flex;align-items:center;gap:8px;font-size:16px;margin:0;color:var(--accent)}
+  h1 img{image-rendering:pixelated;width:24px;height:24px}
+  h1 small{font:11px ui-monospace,Consolas,monospace;color:var(--dim);font-weight:400}
+  .back{color:var(--muted);font-size:12px;text-decoration:none;padding:4px 8px;border:1px solid var(--line);border-radius:6px}
+  .back:hover{color:var(--accent);border-color:var(--line2)}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px}
+  h2{display:flex;align-items:baseline;gap:8px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 8px;font-weight:600}
+  h2 small{text-transform:none;letter-spacing:0;color:var(--dim);font-weight:400;font-size:11.5px}
+  .note{display:flex;align-items:center;gap:6px;margin:8px 0 0;color:var(--dim);font-size:12px}
+  .px{flex:none;width:14px;height:14px}
+
+  /* Butoane */
+  button{font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  button:disabled{opacity:.35;cursor:not-allowed}
+  .btn{display:flex;align-items:center;gap:8px;width:100%;background:var(--card);border:1px solid var(--line);border-radius:8px;
+    padding:7px 10px;text-align:left;transition:background .12s,border-color .12s}
+  .btn:hover:not(:disabled){background:var(--card2);border-color:var(--line2)}
+  .btn:active:not(:disabled){transform:translateY(1px)}
+  .btn kbd{margin-left:auto}
+  .btn.tog[aria-pressed="true"]{background:var(--on);border-color:var(--on-line);color:var(--on-text)}
+  .btn.danger .px{color:var(--danger)}
+  .count{margin-left:auto;min-width:22px;padding:0 6px;border-radius:9px;background:var(--line);font-size:11px;text-align:center}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .stack{display:flex;flex-direction:column;gap:6px}
+
+  /* Comutator cu mai multe variante (Pornește de la, Viteză) */
+  .seg{display:flex;gap:2px;padding:2px;background:var(--card);border:1px solid var(--line);border-radius:8px}
+  .seg button{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 4px;border:0;border-radius:6px;
+    background:none;color:var(--muted);font-size:12px;white-space:nowrap}
+  .seg button:hover:not(:disabled){color:var(--text);background:var(--card2)}
+  .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+  .row{display:flex;align-items:center;gap:10px}
+  .row .lbl{flex:none;width:52px;color:var(--muted);font-size:12px}
+  .row .seg{flex:1}
+
+  /* Cardurile de nivel: poza primului ecran (desenată de joc) + numele */
+  .levels{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .lvl{display:flex;flex-direction:column;padding:0;background:var(--card);border:1px solid var(--line);border-radius:8px;
+    overflow:hidden;text-align:left;transition:border-color .12s,box-shadow .12s}
+  .lvl:hover{border-color:var(--line2)}
+  .thumb{position:relative;display:block;aspect-ratio:2/1;background:#000}
+  .thumb img{display:block;width:100%;height:100%;object-fit:cover}
+  .lvl .name{flex:1;display:flex;align-items:center;gap:6px;padding:5px 7px;font-size:12px;min-height:28px}
+  .num{flex:none;display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 4px;border-radius:4px;background:var(--line);font-weight:700;font-size:11px}
+  .now{display:none;position:absolute;top:4px;right:4px;padding:1px 5px;border-radius:3px;background:var(--accent);color:var(--accent-ink);
+    font-size:9.5px;font-weight:800;letter-spacing:.06em}
+  .lvl[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+  .lvl[aria-pressed="true"] .num{background:var(--accent);color:var(--accent-ink)}
+  .lvl[aria-pressed="true"] .now{display:block}
+  .arena{margin-top:10px}
+  .cap{display:block;margin:0 0 5px;font-size:11.5px;color:var(--dim)}
+  .themes{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .chip{display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 2px;
+    background:var(--card);border:1px solid var(--line);border-radius:8px;font-size:11.5px;color:var(--muted)}
+  .chip:hover{border-color:var(--line2);color:var(--text)}
+  .chip[aria-pressed="true"]{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+  .loading{grid-column:1/-1;color:var(--dim);font-size:12px;padding:8px 0}
+
+  /* Butoanele cu sprite-uri (curcanul, mobii): personajul stă pe o linie de „sol” */
+  .tiles4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .tile{display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 2px 6px;background:var(--card);border:1px solid var(--line);
+    border-radius:8px;font-size:11.5px;transition:background .12s,border-color .12s}
+  .tile:hover{background:var(--card2);border-color:var(--line2)}
+  .tile:active{transform:translateY(1px)}
+  .stage{display:flex;align-items:flex-end;justify-content:center;width:100%;height:50px;padding-bottom:2px;border-bottom:2px solid var(--line2)}
+  .stage img{image-rendering:pixelated;display:block}
+  .tile[aria-pressed="true"]{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+  .tile[aria-pressed="true"] .stage{border-color:var(--accent)}
+  .legend{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12px;color:var(--muted);margin:2px 0 0}
+  .legend[hidden]{display:none}
   .legend i{display:inline-block;width:10px;height:10px;border:2px solid;margin-right:4px;vertical-align:-1px}
 </style>
 </head>
 <body>
 <main>
   <iframe id="frame" src="index.html?test" title="Jocul în modul de test"></iframe>
-  <p class="hint">Controale: ← → mergi, SPACE sari, X fugi / aruncă pene, P pauză, M muzică.
-    După orice buton din panou, jocul primește din nou tastatura.</p>
+  <div class="mapbox">
+    <div class="maphead"><span id="mapName">Se încarcă jocul…</span><span id="mapPos"></span></div>
+    <canvas id="map" aria-label="Harta nivelului: click ca să muți curcanul acolo"></canvas>
+    <div class="maphint">
+      <span class="how"><i data-px="aim"></i>Click sau trage pe hartă ca să muți curcanul acolo.</span>
+      <span class="dots">
+        <span><i style="background:#ffd23f"></i>curcan</span>
+        <span><i style="background:#ff4a4a"></i>fermier</span>
+        <span><i style="background:#f4f4f4"></i>ucenic</span>
+        <span><i style="background:#ffa024"></i>bombă</span>
+        <span><i style="background:#9fe8ff"></i>înghețat</span>
+      </span>
+    </div>
+  </div>
+  <p class="keys">
+    <span><kbd>←</kbd><kbd>→</kbd> mergi</span>
+    <span><kbd>Space</kbd> sari</span>
+    <span><kbd>X</kbd> fugi / aruncă pene</span>
+    <span><kbd>P</kbd> pauză</span>
+    <span><kbd>R</kbd> repornește</span>
+    <span><kbd>M</kbd> muzică</span>
+  </p>
 </main>
+
 <aside>
-  <div class="top"><h1>Laborator de test</h1><a href="index.html">← Înapoi la meniu</a></div>
+  <div class="top">
+    <h1><img data-icon="head" data-scale="3" alt="">Laborator <small id="ver"></small></h1>
+    <a class="back" href="index.html">← Meniu</a>
+  </div>
+
+  <section>
+    <h2>Nivel <small>click ca să-l joci</small></h2>
+    <div class="levels" id="levels">
+      <div class="loading">Se încarcă nivelurile…</div>
+      <button class="lvl" id="arenaCard" data-arena="0" aria-pressed="false" title="Arena de test: un ecran cu de toate, pentru încercat mecanici">
+        <span class="thumb"><img id="arenaThumb" alt=""><span class="now">ACUM</span></span>
+        <span class="name"><span class="num">A</span>Arena de test</span>
+      </button>
+    </div>
+    <div class="arena">
+      <span class="cap">Decorul arenei</span>
+      <div class="themes" role="group" aria-label="Decorul arenei">
+        <button class="chip" data-arena="0" aria-pressed="false"><i data-px="sun"></i>Zi</button>
+        <button class="chip" data-arena="3" aria-pressed="false"><i data-px="moon"></i>Noapte</button>
+        <button class="chip" data-arena="1" aria-pressed="false"><i data-px="flake"></i>Iarnă</button>
+        <button class="chip" data-arena="2" aria-pressed="false"><i data-px="palm"></i>Deșert</button>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Pornește de la</h2>
+    <div class="stack">
+      <div class="seg" id="from">
+        <button data-from="0" aria-pressed="true"><i data-px="play"></i>Început</button>
+        <button data-from="1" aria-pressed="false" disabled><i data-px="flag"></i>Salvare 1</button>
+        <button data-from="2" aria-pressed="false" disabled><i data-px="flag"></i>Salvare 2</button>
+      </div>
+      <button class="btn" data-cmd="reset" title="Reia nivelul de unde ai reapărea dacă ai muri, cu aceeași formă a curcanului">
+        <i data-px="redo"></i>Repornește de aici<kbd>R</kbd></button>
+    </div>
+    <p class="note"><i data-px="aim"></i>Sau mută curcanul din harta de sub joc.</p>
+  </section>
 
   <section>
     <h2>Curcanul</h2>
-    <div class="grid">
-      <button data-cmd="grain">Grăunte (mare)</button>
-      <button data-cmd="berry">Boabă roșie (foc)</button>
-      <button data-cmd="iceberry">Afină înghețată</button>
-      <button data-cmd="small">Fă-l mic</button>
+    <div class="tiles4" role="group" aria-label="Forma curcanului">
+      <button class="tile" data-form="small" aria-pressed="false" title="Mic (cum pornește)"><span class="stage"><img data-icon="tks" alt=""></span>Mic</button>
+      <button class="tile" data-form="big" aria-pressed="false" title="Mare (grăuntele auriu)"><span class="stage"><img data-icon="tk" alt=""></span>Mare</button>
+      <button class="tile" data-form="fire" aria-pressed="false" title="De foc (boaba roșie): aruncă pene de foc cu X"><span class="stage"><img data-icon="tkf" alt=""></span>Foc</button>
+      <button class="tile" data-form="ice" aria-pressed="false" title="De gheață (afina înghețată): aruncă pene de gheață cu X"><span class="stage"><img data-icon="tki" alt=""></span>Gheață</button>
     </div>
   </section>
 
   <section>
-    <h2>Mobi (apar în fața curcanului)</h2>
-    <div class="grid">
-      <button data-cmd="boy">Ucenic (găleată)</button>
-      <button data-cmd="man">Fermier (furcă)</button>
-      <button data-cmd="bomb">Bombă</button>
-      <button data-cmd="sitbomb">Bombă în fund</button>
-      <button data-cmd="clear" class="wide">Șterge toți mobii</button>
+    <h2>Mobi <small>apar în fața curcanului</small></h2>
+    <div class="stack">
+      <div class="tiles4">
+        <button class="tile" data-cmd="boy" title="Ucenic: fără furcă, se plimbă încet"><span class="stage"><img data-icon="boy" alt=""></span>Ucenic</button>
+        <button class="tile" data-cmd="man" title="Fermier cu furcă: te urmărește și te împunge"><span class="stage"><img data-icon="man" alt=""></span>Fermier</button>
+        <button class="tile" data-cmd="bomb" title="Bombă: își aprinde fitilul când te apropii"><span class="stage"><img data-icon="bomb" alt=""></span>Bombă</button>
+        <button class="tile" data-cmd="sitbomb" title="Bombă în fund, cu fitilul aprins (o poți împinge)"><span class="stage"><img data-icon="sit" alt=""></span>În fund</button>
+      </div>
+      <button class="btn danger" data-cmd="clear"><i data-px="x"></i>Șterge toți mobii<span class="count" id="mobCount">0</span></button>
     </div>
   </section>
 
   <section>
-    <h2>Moduri</h2>
-    <div class="grid">
-      <button data-cmd="god" data-toggle="god" aria-pressed="false">Invincibil</button>
-      <button data-cmd="slow" data-toggle="slow" aria-pressed="false">Slow motion</button>
-      <button data-cmd="hitbox" data-toggle="hitbox" aria-pressed="false" class="wide">Arată hitbox-urile</button>
-      <button data-cmd="night" data-toggle="night" aria-pressed="false" class="wide">Noapte (felinare)</button>
-      <button data-cmd="winter" data-toggle="winter" aria-pressed="false" class="wide">Iarnă (lac înghețat)</button>
-    </div>
-    <div class="legend">
-      <span><i style="border-color:#00ff66"></i>curcan</span>
-      <span><i style="border-color:#ff4040"></i>fermier</span>
-      <span><i style="border-color:#ffffff"></i>ucenic</span>
-      <span><i style="border-color:#ff40ff"></i>furca</span>
-      <span><i style="border-color:#ffa000"></i>bombă</span>
-      <span><i style="border-color:#40c0ff"></i>power-up</span>
-      <span><i style="border-color:#ffc080"></i>pene</span>
+    <h2>Unelte</h2>
+    <div class="stack">
+      <div class="grid2">
+        <button class="btn tog" data-cmd="god" data-toggle="god" aria-pressed="false" title="Nimic nu te rănește (apa și gropile tot te omoară)"><i data-px="star"></i>Invincibil</button>
+        <button class="btn tog" data-cmd="hitbox" data-toggle="hitbox" aria-pressed="false" title="Arată dreptunghiurile de coliziune"><i data-px="box"></i>Hitbox-uri</button>
+      </div>
+      <div class="legend" id="legend" hidden>
+        <span><i style="border-color:#00ff66"></i>curcan</span>
+        <span><i style="border-color:#ff4040"></i>fermier</span>
+        <span><i style="border-color:#ffffff"></i>ucenic</span>
+        <span><i style="border-color:#ff40ff"></i>furca</span>
+        <span><i style="border-color:#ffa000"></i>bombă</span>
+        <span><i style="border-color:#40c0ff"></i>power-up</span>
+        <span><i style="border-color:#ffc080"></i>pene</span>
+        <span><i style="border-color:#40ffd0"></i>platforme</span>
+      </div>
+      <div class="row"><span class="lbl">Viteză</span>
+        <div class="seg" id="speed">
+          <button data-speed="1" aria-pressed="true">1×</button>
+          <button data-speed="0.5" aria-pressed="false">½×</button>
+          <button data-speed="0.25" aria-pressed="false">¼×</button>
+        </div>
+      </div>
+      <div class="grid2">
+        <button class="btn tog" data-cmd="pause" data-toggle="paused" aria-pressed="false"><i data-px="pause"></i>Pauză<kbd>P</kbd></button>
+        <button class="btn" data-cmd="step" title="Avansează jocul un singur cadru (dacă merge, întâi îl pune pe pauză)"><i data-px="step"></i>Un cadru</button>
+      </div>
     </div>
   </section>
-
-  <section>
-    <h2>Nivel</h2>
-    <div class="grid">
-      <button data-cmd="reset" class="wide">Resetează arena</button>
-    </div>
-  </section>
-
-  <div id="status">Se încarcă jocul…</div>
 </aside>
 
 <script>
 'use strict';
-const frame=document.getElementById('frame'),statusEl=document.getElementById('status');
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const frame=$('#frame'),main=$('main'),aside=$('aside');
+const send=(cmd,data)=>frame.contentWindow.postMessage(Object.assign({cmd},data),'*');
 const focusGame=()=>{try{frame.focus();frame.contentWindow.focus();}catch(e){}};
+const press=(b,on)=>{const v=String(!!on);if(b.getAttribute('aria-pressed')!==v)b.setAttribute('aria-pressed',v);};
+// „NOAPTEA LA FERMĂ” → „Noaptea la fermă”
+const nice=s=>{s=s.toLowerCase();return s.charAt(0).toUpperCase()+s.slice(1);};
+const ARENA_NAMES={0:'Zi',3:'Noapte',1:'Iarnă',2:'Deșert'};
 
-// Fiecare buton trimite o comandă jocului (vezi TEST_CMDS în index.html), apoi îi dă înapoi tastatura.
-document.querySelectorAll('button[data-cmd]').forEach(b=>b.addEventListener('click',()=>{
-  frame.contentWindow.postMessage({cmd:b.dataset.cmd},'*');
+// ---- Iconițe pixel, în stilul jocului: 7×7, „#” = pixel aprins (în culoarea textului) ----
+const PX={
+  play:['.#.....','.##....','.###...','.####..','.###...','.##....','.#.....'],
+  flag:['.####..','.#####.','.####..','.#.....','.#.....','.#.....','###....'],
+  redo:['.###.#.','#...##.','#..###.','#......','#.....#','.#...#.','..###..'],
+  x:   ['#.....#','##...##','.##.##.','..###..','.##.##.','##...##','#.....#'],
+  star:['...#...','...#...','#######','.#####.','..###..','.##.##.','.#...#.'],
+  box: ['##.#.##','#.....#','.......','#.....#','.......','#.....#','##.#.##'],
+  pause:['.......','.##.##.','.##.##.','.##.##.','.##.##.','.##.##.','.......'],
+  step:['.......','##.#...','##.##..','##.###.','##.##..','##.#...','.......'],
+  sun: ['#..#..#','.#...#.','..###..','#.###.#','..###..','.#...#.','#..#..#'],
+  moon:['...###.','..##...','.##....','.##....','.##....','..##...','...###.'],
+  flake:['#..#..#','.#.#.#.','..###..','#######','..###..','.#.#.#.','#..#..#'],
+  palm:['.##.##.','#..#..#','...#...','...#...','...#...','...#...','.#####.'],
+  aim: ['...#...','.#####.','.#...#.','##.#.##','.#...#.','.#####.','...#...'],
+};
+function pix(name){
+  const rows=PX[name];let r='';
+  rows.forEach((row,y)=>{for(let x=0;x<row.length;){if(row[x]!=='#'){x++;continue;}let w=0;while(row[x+w]==='#')w++;r+=`<rect x="${x}" y="${y}" width="${w}" height="1"/>`;x+=w;}});
+  return `<svg class="px" viewBox="0 0 7 7" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true">${r}</svg>`;
+}
+$$('[data-px]').forEach(el=>{el.outerHTML=pix(el.dataset.px);});
+
+// ---- Butoanele: fiecare trimite o comandă jocului (vezi TEST_CMDS în index.html), apoi îi dă înapoi tastatura ----
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b||b.disabled)return;
+  const d=b.dataset;
+  if(d.level!==undefined)send('level',{level:+d.level});
+  else if(d.arena!==undefined)send('level',{arena:+d.arena});
+  else if(d.from!==undefined)send('from',{cp:+d.from});
+  else if(d.form)send('form',{form:d.form});
+  else if(d.speed)send('speed',{v:+d.speed});
+  else if(d.cmd)send(d.cmd);
+  else return;
   focusGame();
-}));
-
-// Jocul trimite starea de câteva ori pe secundă: aprindem butoanele de mod și scriem un rezumat.
-addEventListener('message',e=>{
-  if(e.source!==frame.contentWindow||!e.data||!e.data.status)return;
-  const s=e.data.status;
-  document.querySelectorAll('button[data-toggle]').forEach(b=>b.setAttribute('aria-pressed',String(!!s[b.dataset.toggle])));
-  statusEl.textContent='Curcan: '+(s.big?'mare':'mic')+(s.fire?', de foc':'')+(s.ice?', de gheață':'')+' · Mobi: '+s.enemies;
 });
 
-frame.addEventListener('load',focusGame);
+// ---- Mesajele de la joc ----
+let HELLO=null,MAP=null,STATUS=null,arenaTheme=0;
+addEventListener('message',e=>{
+  if(e.source!==frame.contentWindow||!e.data)return;
+  if(e.data.hello)onHello(e.data.hello);
+  if(e.data.map)onMap(e.data.map);
+  if(e.data.status)onStatus(e.data.status);
+});
+// O dată: cardurile de nivel (cu pozele făcute de joc) și iconițele (sprite-urile din joc).
+function onHello(h){
+  HELLO=h;
+  $('#ver').textContent='v'+h.version;
+  // Cardurile nivelurilor intră înaintea cardului arenei (care rămâne ultimul în grilă).
+  const box=$('#levels'),arenaCard=$('#arenaCard');
+  box.querySelectorAll('.loading,[data-level]').forEach(el=>el.remove());
+  h.levels.forEach((l,i)=>{
+    const b=document.createElement('button');
+    b.className='lvl';b.dataset.level=i;b.setAttribute('aria-pressed','false');
+    b.title=`Nivelul ${i+1}: ${nice(l.name)}`+(l.cps?` · ${l.cps} ${l.cps>1?'puncte':'punct'} de salvare`:'');
+    b.innerHTML=`<span class="thumb"><img alt=""><span class="now">ACUM</span></span><span class="name"><span class="num">${i+1}</span><span></span></span>`;
+    b.querySelector('.name span:last-child').textContent=nice(l.name);
+    if(h.thumbs)b.querySelector('img').src=h.thumbs.levels[i];
+    box.insertBefore(b,arenaCard);
+  });
+  $$('img[data-icon]').forEach(img=>{
+    const src=h.icons[img.dataset.icon];if(!src)return;
+    const k=+(img.dataset.scale||2);
+    img.onload=()=>{img.style.width=img.naturalWidth*k+'px';img.style.height=img.naturalHeight*k+'px';};
+    img.src=src;
+  });
+  setArenaTheme(MAP&&MAP.arena?MAP.theme:MAP?arenaTheme:h.arenaTheme);
+  selectLevel();
+}
+function setArenaTheme(t){
+  arenaTheme=t;$('#arenaCard').dataset.arena=t;
+  if(HELLO&&HELLO.thumbs)$('#arenaThumb').src=HELLO.thumbs.arena[t];
+}
+// La fiecare pornire de nivel: ce card e ales, de unde poți porni și harta.
+function onMap(m){
+  MAP=m;terrain=null;
+  if(m.arena)setArenaTheme(m.theme);
+  selectLevel();
+  $$('[data-from]').forEach(b=>{const n=+b.dataset.from;b.disabled=n>m.cps.length;
+    b.title=b.disabled?(m.arena?'Arena n-are puncte de salvare':'Nivelul ăsta n-are al doilea punct de salvare'):'';});
+  $('#mapName').textContent=m.arena?'Arena · '+ARENA_NAMES[m.theme]:`Nivelul ${m.level+1} · ${nice(m.name)}`;
+  drawMap();
+}
+function selectLevel(){
+  if(!MAP)return;
+  $$('#levels .lvl').forEach(b=>press(b,!MAP.arena&&+b.dataset.level===MAP.level));
+  press($('#arenaCard'),MAP.arena);
+  $$('.chip').forEach(b=>press(b,MAP.arena&&+b.dataset.arena===MAP.theme));
+}
+// De 10 ori pe secundă: butoanele aprinse și poziția pe hartă.
+function onStatus(s){
+  STATUS=s;
+  $$('[data-form]').forEach(b=>press(b,b.dataset.form===s.form));
+  $$('[data-toggle]').forEach(b=>press(b,s[b.dataset.toggle]));
+  $$('[data-speed]').forEach(b=>press(b,+b.dataset.speed===s.speed));
+  $$('[data-from]').forEach(b=>press(b,+b.dataset.from===s.cp));
+  $('#mobCount').textContent=s.mobs.length;
+  $('#legend').hidden=!s.hitbox;
+  showPos();drawMap();
+}
+function showPos(){
+  if(!MAP)return;
+  const s=STATUS&&STATUS.level===MAP.level?STATUS:null;
+  let t=s?`coloana ${Math.round(s.px)} / ${MAP.cols}`:'';
+  if(hoverX!==null)t=`→ coloana ${Math.floor(hoverX*MAP.cols)}`+(t?'  ·  '+t:'');
+  $('#mapPos').textContent=t;
+}
+frame.addEventListener('load',()=>{send('hello');focusGame();});
 
-// Așezarea: panoul stă în dreapta doar dacă jocul încape acolo cel puțin la fel de mare ca atunci când panoul e
-// dedesubt; altfel (ecran îngust sau fereastră mică) panoul trece sub joc. Jocul se mărește cu un număr întreg de
-// ori (2x, 3x...), ca pixelii să rămână egali, iar iframe-ul primește exact mărimea lui.
-const aside=document.querySelector('aside'),hintEl=document.querySelector('.hint');
+// ---- Harta mică a nivelului (sub joc) ----
+// Desenată din tile-urile trimise de joc: fiecare coloană a nivelului e o fâșie, fiecare rând câteva pixeli.
+// Peste ea: fereastra camerei, punctele de salvare, ținta, mobii și curcanul. Click / tras = mută curcanul.
+const mapCv=$('#map'),mg=mapCv.getContext('2d');
+const TILE_COL={B:'#c98a4b',M:'#f2b630',H:'#f2b630',U:'#9a6030',X:'#8a8fa0','=':'#b5793a','^':'#d8dce6',I:'#dff4ff'};
+const MOB_COL={m:'#ff4a4a',u:'#f4f4f4',b:'#ffa024',f:'#9fe8ff'};
+const MTOP=10;                       // spațiul de sus (px), pentru stegulețe
+let terrain=null,hoverX=null;
+function sizeMap(){
+  const dpr=devicePixelRatio||1,w=Math.round(mapCv.clientWidth*dpr),h=Math.round(mapCv.clientHeight*dpr);
+  if(mapCv.width!==w||mapCv.height!==h){mapCv.width=w;mapCv.height=h;terrain=null;}
+}
+function buildTerrain(){
+  const dpr=devicePixelRatio||1,Wd=mapCv.width,Hd=mapCv.height,top=MTOP*dpr,rh=(Hd-top)/14,sx=Wd/MAP.cols,c=MAP.colors;
+  const mk=()=>{const k=document.createElement('canvas');k.width=Wd;k.height=Hd;return [k,k.getContext('2d')];};
+  const [out,g]=mk(),[lay,t]=mk();
+  c.sky.forEach((col,i)=>{const y0=Math.round(i*Hd/c.sky.length),y1=Math.round((i+1)*Hd/c.sky.length);g.fillStyle=col;g.fillRect(0,y0,Wd,y1-y0);});
+  const R=MAP.rows;
+  for(let tx=0;tx<MAP.cols;tx++){
+    const x0=Math.floor(tx*sx),w=Math.max(1,Math.floor((tx+1)*sx)-x0),pit=R[12][tx]==='.',lake=R[12][tx]==='I';
+    for(let ty=0;ty<14;ty++){
+      const ch=R[ty][tx],y0=Math.round(top+ty*rh),y1=Math.round(top+(ty+1)*rh);
+      if(ch==='.'){
+        if(ty===12&&pit){t.fillStyle=c.water;const ys=Math.round(top+(12+5/16)*rh);t.fillRect(x0,ys,w,y1-ys);}
+        else if(ty===13&&(pit||lake)){t.fillStyle=c.water;t.fillRect(x0,y0,w,y1-y0);}
+        continue;}
+      if(ch==='G'){t.fillStyle=c.dirt;t.fillRect(x0,y0,w,y1-y0);t.fillStyle=c.grass;t.fillRect(x0,y0,w,Math.max(1,Math.round(rh*0.45)));continue;}
+      t.fillStyle=ch==='D'?c.dirt:(TILE_COL[ch]||'#888');
+      if(ch==='I'){t.fillRect(x0,y0,w,Math.max(1,Math.round(rh*0.45)));continue;}
+      if(ch==='='){t.fillRect(x0,y0,w,Math.max(1,Math.round(rh*0.4)));continue;}
+      t.fillRect(x0,y0,w,y1-y0);
+    }
+  }
+  // Platformele care se mișcă (locul de pornire, plus drumul lor, mai șters) și cele care cad (lemn vechi).
+  for(const p of MAP.plats||[]){
+    const x0=Math.floor(p.x*sx),y0=Math.round(top+p.y*rh),pw=Math.max(1,Math.round(p.w*sx)),ph=Math.max(1,Math.round(rh*0.45));
+    if(p.kind==='move'){
+      t.fillStyle='rgba(240,192,128,.4)';
+      if(p.ax==='y')t.fillRect(x0,y0,pw,Math.round(p.range*rh)+ph);else t.fillRect(x0,y0,Math.round((p.w+p.range)*sx),ph);
+      t.fillStyle='#e0a050';t.fillRect(x0,y0,pw,ph);
+    }else{t.fillStyle='#9a7046';t.fillRect(x0,y0,pw,ph);}
+  }
+  if(c.night){t.globalCompositeOperation='source-atop';t.fillStyle='rgba(12,18,56,.45)';t.fillRect(0,0,Wd,Hd);}
+  g.drawImage(lay,0,0);
+  terrain=out;
+}
+function drawMap(){
+  if(!MAP)return;
+  sizeMap();if(!terrain)buildTerrain();
+  const dpr=devicePixelRatio||1,Wd=mapCv.width,Hd=mapCv.height,top=MTOP*dpr,rh=(Hd-top)/14,sx=Wd/MAP.cols;
+  const X=tx=>tx*sx,Y=ty=>top+ty*rh,s=STATUS&&STATUS.level===MAP.level?STATUS:null;
+  mg.clearRect(0,0,Wd,Hd);mg.drawImage(terrain,0,0);
+  // Ce se vede acum pe ecran
+  if(s){const x=Math.round(X(s.cam)),w=Math.round(s.view*sx);
+    mg.fillStyle='rgba(255,255,255,.14)';mg.fillRect(x,0,w,Hd);
+    mg.strokeStyle='rgba(255,255,255,.7)';mg.lineWidth=dpr;mg.strokeRect(x+dpr/2,dpr/2,w-dpr,Hd-dpr);}
+  // Stegulețe: punctele de salvare (aurii după ce le-ai atins) și ținta (în carouri)
+  const pole=(tx,col)=>{const x=Math.round(X(tx));mg.fillStyle='#cfd3dc';mg.fillRect(x,dpr,Math.max(1,dpr),Math.round(Y(12))-dpr);return x;};
+  MAP.cps.forEach((cp,i)=>{const on=s&&s.cpOn[i],x=pole(cp+0.5);mg.fillStyle=on?'#ffcf40':'#8a8a9a';mg.fillRect(x+dpr,dpr,6*dpr,4*dpr);});
+  if(MAP.goal){const x=pole(MAP.goal.x+(MAP.goal.type==='sign'?2.2:6)),q=2*dpr;
+    for(let i=0;i<3;i++)for(let j=0;j<2;j++){mg.fillStyle=(i+j)%2?'#111':'#fff';mg.fillRect(x+dpr+i*q,dpr+j*q,q,q);}}
+  if(s){
+    for(const [mx,my,k] of s.mobs){mg.fillStyle=MOB_COL[k]||'#fff';mg.beginPath();mg.arc(X(mx),Y(my)-rh*0.6,1.8*dpr,0,Math.PI*2);mg.fill();}
+    // Curcanul: punct galben cu contur, plus o săgeată sus, ca să se vadă și pe nivelurile lungi
+    const px=X(s.px),py=Y(s.py)-rh*0.8;
+    mg.fillStyle='#ffd23f';mg.strokeStyle='#000';mg.lineWidth=1.5*dpr;
+    mg.beginPath();mg.arc(px,py,3*dpr,0,Math.PI*2);mg.fill();mg.stroke();
+    mg.beginPath();mg.moveTo(px-4*dpr,dpr);mg.lineTo(px+4*dpr,dpr);mg.lineTo(px,top-2*dpr);mg.closePath();mg.fill();mg.stroke();
+  }
+  // Unde ar ajunge curcanul la click
+  if(hoverX!==null){const x=Math.round(hoverX*Wd);mg.fillStyle='rgba(255,210,63,.75)';mg.fillRect(x,0,Math.max(1,dpr),Hd);}
+}
+let dragging=false,lastTp=0;
+const mapFrac=e=>{const r=mapCv.getBoundingClientRect();return Math.min(1,Math.max(0,(e.clientX-r.left)/r.width));};
+const tpTo=f=>{if(MAP){send('tp',{x:f*MAP.cols});lastTp=performance.now();}};
+mapCv.addEventListener('pointerdown',e=>{if(!MAP)return;dragging=true;mapCv.setPointerCapture(e.pointerId);tpTo(mapFrac(e));});
+mapCv.addEventListener('pointermove',e=>{hoverX=mapFrac(e);if(dragging&&performance.now()-lastTp>60)tpTo(hoverX);showPos();drawMap();});
+const endDrag=e=>{if(!dragging)return;dragging=false;tpTo(mapFrac(e));focusGame();};
+mapCv.addEventListener('pointerup',endDrag);
+mapCv.addEventListener('pointercancel',()=>{dragging=false;});
+mapCv.addEventListener('pointerleave',()=>{if(dragging)return;hoverX=null;showPos();drawMap();});
+
+// ---- Așezarea ----
+// Panoul stă în dreapta doar dacă jocul încape acolo cel puțin la fel de mare ca atunci când panoul e dedesubt;
+// altfel (ecran îngust sau fereastră mică) panoul trece sub joc. Jocul se mărește cu un număr întreg de ori (2x, 3x...),
+// ca pixelii să rămână egali, iar iframe-ul primește exact mărimea lui. Sub joc stau harta și tastele.
 function layout(){
   const PAD=16,GAP=16,B=4;                                  // B = rama iframe-ului (2px pe fiecare parte)
   const fit=(w,h)=>Math.min((w-B)/400,(h-B)/224);
-  document.body.classList.remove('stacked');const asideW=aside.offsetWidth;
-  document.body.classList.add('stacked');const panelH=aside.offsetHeight;
-  const hintH=hintEl.offsetHeight+8;
-  const side=fit(innerWidth-2*PAD-GAP-asideW,innerHeight-2*PAD-hintH);
-  const below=fit(innerWidth-2*PAD,innerHeight-2*PAD-hintH-GAP-panelH);
-  const stacked=side<2||Math.floor(below)>Math.floor(side);
-  document.body.classList.toggle('stacked',stacked);
-  const s=stacked?below:side,k=s>=2?Math.floor(s):Math.max(1,s);
-  frame.style.width=Math.floor(400*k)+B+'px';frame.style.height=Math.floor(224*k)+B+'px';
+  for(let pass=0;pass<2;pass++){                            // a doua trecere: textul de sub joc se poate rupe altfel la noua lățime
+    const below0=main.offsetHeight-frame.offsetHeight;      // harta + tastele (cu spațiile dintre ele)
+    document.body.classList.remove('stacked');const asideW=aside.offsetWidth;
+    document.body.classList.add('stacked');const panelH=aside.offsetHeight;
+    const side=fit(innerWidth-2*PAD-GAP-asideW,innerHeight-2*PAD-below0);
+    const below=fit(innerWidth-2*PAD,innerHeight-2*PAD-below0-GAP-panelH);
+    const stacked=side<2||Math.floor(below)>Math.floor(side);
+    document.body.classList.toggle('stacked',stacked);
+    const s=stacked?below:side,k=s>=2?Math.floor(s):Math.max(1,s);
+    frame.style.width=Math.floor(400*k)+B+'px';frame.style.height=Math.floor(224*k)+B+'px';
+  }
+  drawMap();
 }
 addEventListener('resize',layout);layout();
 </script>

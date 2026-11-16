@@ -32,7 +32,7 @@
 <script>
 'use strict';
 // ================= SETUP =================
-const GAME_VERSION='0.9.0';
+const GAME_VERSION='0.9.5';
 // Modul de test (index.html?test): arenă de test, comenzi din test.html. Pentru jucători nu se schimbă nimic.
 const TEST=/[?&]test\b/.test(location.search);
 const W=400,H=224,TS=16,ROWS=14,TAU=Math.PI*2;
@@ -105,7 +105,8 @@ const cuteCache={};
 function cuteLetter(ch,sc,fill,shadow){
   const k=ch+'|'+sc+fill+shadow;if(cuteCache[k])return cuteCache[k];
   const b=Math.floor(sc/2),ox=2,oy=3*sc+2;
-  const [c,g]=mkCanvas(5*sc+b+7,10*sc+b+8);
+  // Destul de înalt și pentru virgula de sub Ș și Ț (altfel, la literele mari, se tăia).
+  const [c,g]=mkCanvas(5*sc+b+7,13*sc+b+8);
   const bold=(col,dx,dy)=>{for(let i=0;i<=b;i++)for(let j=0;j<=b;j++)txtRaw(g,ch,ox+dx+i,oy+dy+j,col,sc);};
   bold(shadow,2,3);
   for(const [rx,ry] of [[-1,0],[1,0],[0,-1],[0,1],[-1,-1],[1,-1],[-1,1],[1,1]])bold('#ffffff',rx,ry);
@@ -467,6 +468,12 @@ const FEATHER={A:spr(["..yo.oy...",".oroyoro.."].concat(FEATHER_BODY),FEATHER_PA
 const FEATHER_ICE_PAL={n:'#7cc4ea',m:'#c8eeff',N:'#3a86b8',l:'#ffffff',k:'#1a4a6a',o:'#bfe8ff',y:'#ffffff',r:'#5ab0e0'};
 const FEATHER_ICE={A:spr(["..yo.oy...",".oroyoro.."].concat(FEATHER_BODY),FEATHER_ICE_PAL),B:spr([".y..oy.o..","..oyoroyo."].concat(FEATHER_BODY),FEATHER_ICE_PAL)};
 const FEATHER_RANGE=128,FEATHER_MAX=2;
+// Scândura veche a platformelor care cad (nivelul LACUL): aceeași formă ca scândura '=' (luciu sus, lemn, dungă
+// închisă jos, două cuie), dar spălăcită, cu crăpături (k, cu o margine luminată l), cuie ruginite și colțuri ciobite.
+const WORN_PAL={t:'#cdb08a',b:'#9a7650',d:'#4a3018',k:'#2e1806',n:'#3a2410',l:'#e0c8a0'};
+const PLANK_WORN=[
+  mkSprite([".ttttttttt.ttttt","bbbbbbkbbbbbbbbb","bbnbbbbkbbbbbnbb","bbbbbbbklbbbkbbb","bbbbbbbbkbbbbkbb","dddddddddddddd.."],WORN_PAL,false),
+  mkSprite(["tttt.tttttttttt.","bbbbbbbbbbkbbbbb","bbnbbbbbbbbkbnbb","bbbkbbbbbbbkbbbb","bbbbkbbbbbbbkbbb",".ddddddddddddddd"],WORN_PAL,false)];
 const HEAD=mkSprite(["...rr...","..krrk..",".kWWWWk.","kWWWWkWy","kWWWWkyo","kWWpWrr.",".kWkWkr.","..kkkkR."],TK_PAL,false);
 
 // --- Explosion frames ---
@@ -499,7 +506,7 @@ const THEMES=[
   mid:'hills',midC:'#5cae48',midL:'#7ccc5c',midD:'#3e8a36',clouds:true,cloudC:'#ffffff',cloudS:'#cfe8f4',
   grass:'#5cc23a',grassL:'#8ae060',grassD:'#3a8a28',dirt:'#9a5a2a',dirtD:'#6e3c18',dirtL:'#b87440',
   water:{body:'#3a8ee8',deep:'#2662b8',top:'#a8e0ff',foam:'#ffffff',glint:'#ffffff'}},
- // Pădurea de brazi iarna (nivelul 3): munți înzăpeziți în spate, dealuri albe cu brazi, zăpadă pe jos și pe blocuri,
+ // Pădurea de brazi iarna (nivelul 4): munți înzăpeziți în spate, dealuri albe cu brazi, zăpadă pe jos și pe blocuri,
  // fulguire ușoară și lacuri înghețate. „grass” e aici zăpada de deasupra solului, „dirt” pământul înghețat.
  {name:'PĂDUREA DE BRAZI',snow:true,sky:['#94bee2','#acd0ec','#c4def2','#dae9f6'],sun:{x:318,y:40,r:11,c:'#fffdf2',c2:'#f4eccc'},
   far:'#a9bcd2',farL:'#bfcfe0',farHill:'#c8d7e6',farHillL:'#e4ecf4',
@@ -518,6 +525,9 @@ const THEMES=[
   grass:'#5cc23a',grassL:'#8ae060',grassD:'#3a8a28',dirt:'#9a5a2a',dirtD:'#6e3c18',dirtL:'#b87440',
   water:{body:'#3a8ee8',deep:'#2662b8',top:'#a8e0ff',foam:'#ffffff',glint:'#ffffff'}},
 ];
+// Lacul (nivelul 3): tot ferma ziua, cu alt nume. Fiind altă temă, fundalul iese aranjat altfel (alt rng).
+// lake = pe lac e viață: rațe, pești, libelule, broaște (vezi VIAȚA LACULUI).
+THEMES.push(Object.assign({},THEMES[0],{name:'LACUL',lake:true}));
 const tileCache={},bgCache={};
 function getTiles(ti){
   if(tileCache[ti])return tileCache[ti];
@@ -680,7 +690,7 @@ function getBG(ti){
   return bgCache[ti]={sky,far,mid,clouds,dyn,near,night:!!th.night};
 }
 
-// ================= PĂDUREA DE BRAZI DIN FUNDAL (nivelul 3, iarna) =================
+// ================= PĂDUREA DE BRAZI DIN FUNDAL (nivelul 4, iarna) =================
 // Un brad înzăpezit: etaje de ramuri (triunghiuri) din ce în ce mai mici spre vârf; partea de sus a fiecărui etaj
 // e acoperită de zăpadă (cu o linie de umbră sub ea), iar marginea din dreapta rămâne verde.
 // x = mijlocul, b = baza (y), hgt = înălțimea.
@@ -952,6 +962,12 @@ const sfx={
   hurry(){arp([74,75,74,75,74,75],0.07,0.09);},
   pause(){arp([74,69,74],0.05,0.08);},
   pop(){if(!AC)return;const t=AC.currentTime;noise(t,0.3,0.15,sfxG,2000);tone('square',300+Math.random()*400,t,0.25,0.05,sfxG,1200);},
+  // Scârțâit de lemn vechi: platforma care cade, când te urci pe ea.
+  creak(){if(!AC)return;const t=AC.currentTime;tone('sawtooth',190,t,0.24,0.06,sfxG,92);noise(t,0.18,0.14,sfxG,700,'lowpass');},
+  // Lacul: „mac-mac” de rață, „plici” de pește (sau de broască) care intră în apă, „oac-oac” de broască. Toate încet.
+  quack(){if(!AC)return;const t=AC.currentTime;tone('sawtooth',560,t,0.08,0.045,sfxG,420);tone('sawtooth',540,t+0.12,0.09,0.045,sfxG,400);},
+  plip(){if(!AC)return;tone('sine',700,AC.currentTime,0.07,0.05,sfxG,1500);},
+  croak(){if(!AC)return;const t=AC.currentTime;tone('square',120,t,0.09,0.04,sfxG,95);tone('square',110,t+0.13,0.11,0.04,sfxG,85);},
 };
 
 // --- Music sequencer ---
@@ -1065,7 +1081,7 @@ cv.addEventListener('pointermove',e=>{const i=G.state==='title'?menuHit(e):-1;if
 // ================= LEVELS =================
 function newMap(w){
   const grid=[];for(let y=0;y<ROWS;y++)grid.push(new Array(w).fill('.'));
-  const m={w,grid,coins:[],ents:[],cps:[],goalDef:null};
+  const m={w,grid,coins:[],ents:[],cps:[],goalDef:null,plats:[]};
   m.set=(x,y,c)=>{if(x>=0&&x<w&&y>=0&&y<ROWS)grid[y][x]=c;};
   m.f=(x,y,ww,hh,c)=>{for(let j=0;j<hh;j++)for(let i=0;i<ww;i++)m.set(x+i,y+j,c);};
   m.g=(a,b)=>m.f(a,12,b-a+1,2,'D');
@@ -1079,11 +1095,18 @@ function newMap(w){
   m.st=(x,h,dir)=>{for(let i=0;i<h;i++){const hh=dir>0?i+1:h-i;m.f(x+i,12-hh,1,hh,'X');}};
   m.cp=x=>m.cps.push(x);
   m.goal=(type,x)=>{m.goalDef={type,x};};
+  // Insulă care iese din apă: pământ de la rândul top până jos (cu iarbă deasupra, pusă de m.done).
+  m.isl=(a,b,top)=>m.f(a,top,b-a+1,ROWS-top,'D');
+  // Platformă care se mișcă (vezi PLATFORME): pornește din (x,y), lată de w tile-uri, și merge lin înainte și înapoi
+  // range tile-uri — ax 'x' = spre dreapta, ax 'y' = în jos — într-o perioadă de period cadre (phase = 0..1, decalaj).
+  m.mv=(x,y,w,ax,range,period=240,phase=0)=>m.plats.push({kind:'move',x,y,w,ax,range,period,phase});
+  // Platformă care cade: tremură după ce te urci pe ea, apoi cade în lac; după câteva secunde reapare.
+  m.fall=(x,y,w)=>m.plats.push({kind:'fall',x,y,w});
   m.done=()=>{for(let y=0;y<ROWS;y++)for(let x=0;x<w;x++)if(grid[y][x]==='D'&&(y===0||(grid[y-1][x]!=='D'&&grid[y-1][x]!=='G')))grid[y][x]='G';return m;};
   return m;
 }
 const LEVELS=[
- {theme:0,tip:'GRĂUNTELE AURIU DIN BLOCURILE M TE FACE MARE!',build(){const m=newMap(210);m.g(0,209);
+ {theme:0,tip:'Grăuntele auriu te face mare!',build(){const m=newMap(210);m.g(0,209);
   // Primul nivel e de învățat: până după punctul de salvare sunt doar ucenici (fără furcă, nu te urmăresc);
   // fermierii cu furcă apar abia spre final, la ultimele două întâlniri.
   m.c(6,10,3);m.r(12,8,'BMBHB');m.c(13,5,3);
@@ -1111,7 +1134,7 @@ const LEVELS=[
  // așa că traseul are locuri unde te poți strecura prin spatele lor (dâmburi, platforme deasupra ta, iazuri).
  // Ucenicii (fără felinar, nu te caută) sunt amestecați printre ei; fermierii cu felinar păstrează locurile de strecurat.
  // De două ori fermierul are ucenicul în spatele lui (106/112 și 174/186).
- {theme:3,song:'night',tip:'NOAPTEA, FERMIERII TE VĂD DOAR ÎN LUMINA FELINARULUI!',build(){const m=newMap(220);m.g(0,219);
+ {theme:3,song:'night',tip:'Nu intra în lumina felinarelor!',build(){const m=newMap(220);m.g(0,219);
   m.c(6,10,3);m.r(11,8,'BMBHB');m.c(12,5,3);
   m.e('boy',24);
   m.st(30,3,1);m.pit(33,36);m.c(33,8,4);m.st(37,3,-1);
@@ -1130,7 +1153,60 @@ const LEVELS=[
   m.c(190,10,6);
   m.goal('sign',204);
   return m.done();}},
- // Nivelul 3 — pădurea de brazi, iarna: zăpadă, fulguire ușoară și lacuri mari înghețate. Pe gheață aluneci puțin;
+ // Nivelul 3 — LACUL: ferma ziua, dar aproape tot nivelul e un lac mare, iar drumul e pe sus: scânduri, insule care
+ // ies din apă, platforme care se mișcă (m.mv) și platforme care cad (m.fall). Dacă pici în lac, pierzi o viață.
+ // Sol doar la început, la cele două puncte de salvare și la final. Pe insule și pe scânduri: ucenici, bombe și,
+ // din a doua parte, fermieri cu furcă; pe o platformă care se mișcă se plimbă un ucenic.
+ // Pe bucăți: întâi scânduri și insule (de învățat), apoi pe rând platforma care se mișcă pe orizontală, cea care urcă
+ // și coboară și șirul de platforme care cad; după fiecare punct de salvare, aceleași lucruri amestecate și mai grele.
+ {theme:4,tip:'Platformele crăpate cad sub tine!',build(){const m=newMap(350);m.g(0,349);
+  // Primul ecran e tot pe pământ (blocurile de la start și bănuți); lacul începe la marginea lui din dreapta.
+  m.c(5,10,3);m.r(9,8,'BMBHB');m.c(10,5,3);m.c(17,10,4);
+  m.pit(25,322);                                                                   // lacul (până la sol, la final)
+  // ——— Prima parte: scânduri și insule ———
+  m.r(26,10,'====');m.c(26,9,4);
+  // Bănuții: câte un șir deasupra drumului platformelor care se mișcă, câte doi deasupra fiecărei platforme care cade
+  // și câțiva mai sus, deasupra platformelor care urcă (îi iei doar dacă sari de pe ele când sunt sus).
+  m.r(32,9,'====');m.c(30,7,2);
+  m.isl(38,43,9);m.e('boy',41,8);m.c(39,7,3);
+  m.r(46,8,'===');m.c(46,7,3);
+  m.r(51,9,'====');
+  m.isl(57,63,9);m.e('bomb',61,8);m.r(59,5,'BMB');
+  // Platforma care se mișcă pe orizontală, apoi cea care urcă și coboară, până la o scândură sus, cu un ucenic.
+  m.mv(66,9,3,'x',6,240);m.c(70,7,3);
+  m.r(78,9,'====');
+  m.mv(85,5,3,'y',4,220);m.c(85,3,3);
+  m.r(91,5,'=====');m.e('boy',93,4);m.c(92,3,3);
+  // Primul șir de platforme care cad, coborând spre mal.
+  m.fall(99,6,2);m.fall(103,7,2);m.fall(107,8,2);m.fall(111,9,2);m.c(99,4,2);m.c(103,5,2);m.c(107,6,2);m.c(111,7,2);
+  m.isl(115,128,12);m.cp(120);m.c(117,10,3);m.r(122,8,'BHB');                       // punctul de salvare 1
+  // ——— A doua parte ———
+  m.r(131,9,'====');m.e('bomb',133,8);
+  m.mv(137,8,3,'x',8,300);m.c(140,6,4);
+  m.isl(150,157,8);m.e('man',154,7);
+  m.fall(160,7,2);m.fall(164,6,2);m.fall(168,5,2);m.c(160,5,2);m.c(164,4,2);m.c(168,3,2);
+  m.r(172,6,'=====');m.r(173,3,'BMB');
+  // Două platforme care urcă și coboară pe rând (una sus, cealaltă jos).
+  m.mv(179,6,3,'y',4,220,0);m.mv(185,6,3,'y',4,220,0.5);m.c(182,7,3);m.c(179,4,3);m.c(185,4,3);
+  m.r(191,8,'====');m.e('boy',192,7);
+  m.mv(198,9,5,'x',6,320);m.e('boy',200,8);m.c(204,7,4);                           // ucenicul de pe platforma care se mișcă
+  m.fall(212,8,2);m.fall(216,9,2);m.c(212,6,2);m.c(216,7,2);
+  m.isl(220,233,12);m.cp(225);m.c(222,10,4);m.e('boy',230);                        // punctul de salvare 2
+  // ——— A treia parte ———
+  m.r(236,9,'===');
+  m.mv(241,7,3,'x',7,260);m.c(244,5,4);
+  m.isl(253,262,8);m.e('man',256,7);m.e('bomb',260,7);
+  m.fall(265,7,2);m.fall(269,6,2);m.c(265,5,2);m.c(269,4,2);
+  m.mv(273,4,3,'y',5,240);m.c(273,2,3);
+  m.fall(279,5,2);m.fall(283,6,2);m.fall(287,7,2);m.c(279,3,2);m.c(283,4,2);m.c(287,5,2);
+  m.r(291,6,'=====');m.r(292,3,'BHB');m.e('boy',294,5);
+  m.mv(299,9,3,'x',10,360);m.c(303,7,5);
+  m.r(314,9,'===');m.fall(319,9,2);
+  // Malul de la final.
+  m.c(325,10,4);m.e('man',328);
+  m.goal('sign',334);
+  return m.done();}},
+ // Nivelul 4 — pădurea de brazi, iarna: zăpadă, fulguire ușoară și lacuri mari înghețate. Pe gheață aluneci puțin;
  // dacă stai ~2 s pe același loc, crapă și pici în apă (gaura îngheață la loc după ~5 s). Mobii nu intră pe gheață
  // (se întorc la mal), deci lacurile te feresc de ei — dar nu poți sta pe loc. Copcile (apă deschisă, cu țăruși
  // roșii pe margini) rămân deschise și trebuie sărite.
@@ -1138,7 +1214,7 @@ const LEVELS=[
  // E mai greu decât primele două: aproape numai fermieri cu furcă, bombe lângă maluri (explozia lor sparge gheața),
  // copci late de 3 tile-uri în aproape fiecare lac, fermieri care te așteaptă pe malul celălalt, mobi și pe platforme
  // și un singur bloc cu power-up pe drum (în afară de cel de la început).
- {theme:1,song:'winter',tip:'PE LAC GHEAȚA ALUNECĂ ȘI CRAPĂ DACĂ STAI PE LOC!',build(){const m=newMap(466);m.g(0,465);
+ {theme:1,song:'winter',tip:'Pe gheață nu sta pe loc: crapă!',build(){const m=newMap(466);m.g(0,465);
   m.c(6,10,3);m.r(11,8,'BMBHB');m.c(12,5,3);
   m.e('boy',20);m.e('bomb',23);
   // Lacul 1 (10 tile-uri): deja cu o copcă; bomba de pe mal te urmărește până la marginea gheții.
@@ -1190,7 +1266,7 @@ const LEVELS=[
   m.c(442,10,5);
   m.goal('sign',452);
   return m.done();}},
- {theme:2,tip:'MESOPOTAMIA E APROAPE! MAI AI PUȚIN!',build(){const m=newMap(250);m.g(0,249);
+ {theme:2,tip:'MESOPOTAMIA e aproape!',build(){const m=newMap(250);m.g(0,249);
   m.c(6,10,4);m.r(12,8,'MBHBM');
   m.e('man',20);m.e('man',24);
   m.sp(29,3);
@@ -1224,7 +1300,7 @@ function saveSettings(){try{localStorage.setItem('curcan_settings',JSON.stringif
 function applyAudio(){if(!AC)return;musicG.gain.value=G.music?(G.paused?0.06:0.32):0;sfxG.gain.value=G.sfx?0.7:0;}
 function saveHi(){if(G.score>G.hi){G.hi=G.score;try{localStorage.setItem('curcan_hi',G.hi);}catch(e){}}}
 let grid=null,cols=0,theme=THEMES[0],tiles=getTiles(0),bg=getBG(0),goal=null;
-let player=null,enemies=[],coins=[],items=[],parts=[],popups=[],booms=[],bumps=[],cps=[],feathers=[];
+let player=null,enemies=[],coins=[],items=[],parts=[],popups=[],booms=[],bumps=[],cps=[],feathers=[],plats=[];
 const cam={x:0};
 
 function solid(c){return c==='G'||c==='D'||c==='B'||c==='M'||c==='H'||c==='U'||c==='X'||c==='^'||c==='I';}
@@ -1236,13 +1312,19 @@ function moveX(e){
   if(e.hitWall)e.vx=0;
 }
 function moveY(e){
-  const pb=e.y+e.h;e.y+=e.vy;e.onGround=false;e.headHit=null;
-  const l=Math.floor(e.x/TS),r=Math.floor((e.x+e.w-0.01)/TS);
-  if(e.vy>0){const ty=Math.floor((e.y+e.h-0.01)/TS);
+  const pb=e.y+e.h,down=e.vy>0;e.y+=e.vy;e.onGround=false;e.headHit=null;e.plat=null;
+  const l=Math.floor(e.x/TS),r=Math.floor((e.x+e.w-0.01)/TS),bot=e.y+e.h;
+  if(down){const ty=Math.floor((e.y+e.h-0.01)/TS);
     for(let tx=l;tx<=r;tx++){const c=tileAt(tx,ty);if(solid(c)||(c==='='&&pb<=ty*TS+0.5)){e.y=ty*TS-e.h;e.vy=0;e.onGround=true;break;}}}
   else if(e.vy<0){const ty=Math.floor(e.y/TS);let hit=null;const mc=e.x+e.w/2;
     for(let tx=l;tx<=r;tx++)if(solid(tileAt(tx,ty))){if(!hit||Math.abs(tx*TS+8-mc)<Math.abs(hit[0]*TS+8-mc))hit=[tx,ty];}
     if(hit){e.y=(ty+1)*TS;e.vy=0;e.headHit=hit;}}
+  // Platformele care se mișcă / cad: ca scândurile '=' (se aterizează doar de sus). Dacă platforma tocmai a urcat
+  // peste picioare (în cadrul ăsta), tot contează. Dintre sol și platformă, câștigă ce e mai sus.
+  if(down)for(const p of plats){
+    if(!p.solid||e.x+e.w<=p.x||e.x>=p.x+p.w)continue;
+    if(pb<=p.y+Math.max(0,-p.dy)+0.5&&bot>=p.y&&(!e.onGround||p.y<e.y+e.h)){e.y=p.y-e.h;e.vy=0;e.onGround=true;e.plat=p;}
+  }
 }
 // Stă cu picioarele pe un tile cu țepi (atingerea din lateral nu contează) — și pentru curcan, și pentru mobi.
 function standsOnSpikes(e){
@@ -1258,9 +1340,77 @@ function spikeAhead(e,dir){
 }
 // E sol sigur în față? Țepii și gheața lacurilor nu contează ca sol: mobii se opresc înaintea lor, ca la marginea unei gropi.
 // (Doar dacă mobul e deja pe gheață — de exemplu împins acolo înghețat, apoi dezghețat — merge pe ea până la mal.)
-function groundAhead(e,dir){const ax=dir>0?e.x+e.w+1:e.x-1;const c=tileAt(Math.floor(ax/TS),Math.floor((e.y+e.h+2)/TS));return (solid(c)&&c!=='^'&&(c!=='I'||onIce(e)))||c==='=';}
+function groundAhead(e,dir){const ax=dir>0?e.x+e.w+1:e.x-1;const c=tileAt(Math.floor(ax/TS),Math.floor((e.y+e.h+2)/TS));return (solid(c)&&c!=='^'&&(c!=='I'||onIce(e)))||c==='='||!!platAt(ax,e.y+e.h+2);}
+// Platforma (care se mișcă / cade) din punctul (x,y), dacă e vreuna — ca mobii să se întoarcă la marginea ei.
+function platAt(x,y){for(const p of plats)if(p.solid&&x>=p.x&&x<p.x+p.w&&y>=p.y&&y<=p.y+p.h)return p;return null;}
 
-// ================= GHEAȚĂ (lacurile înghețate din nivelul 3) =================
+// ================= PLATFORME CARE SE MIȘCĂ ȘI CARE CAD (nivelul 3, LACUL) =================
+// Sunt obiecte, nu tile-uri: se stă pe ele ca pe scândurile '=' (prin ele se trece de jos și din lateral), iar cine
+// stă pe una (curcanul, mobii, power-up-urile; e.plat) e dus odată cu ea.
+// Cea care se mișcă merge lin înainte și înapoi (încetinește la capete), pe orizontală sau pe verticală.
+// Cea care cade: când se urcă curcanul pe ea, scârțâie și tremură PLAT_SHAKE cadre (~0,75 s), apoi cade în lac;
+// după PLAT_BACK cadre (~3 s) reapare la locul ei (dacă nu stă curcanul chiar acolo), ca drumul să nu se închidă.
+const PLAT_H=6,PLAT_SHAKE=45,PLAT_BACK=180;
+function makePlat(d){
+  const p={kind:d.kind,x:d.x*TS,y:d.y*TS,w:d.w*TS,h:PLAT_H,x0:d.x*TS,y0:d.y*TS,ax:d.ax,range:(d.range||0)*TS,
+    period:d.period||240,phase:d.phase||0,dx:0,dy:0,solid:true,st:0,t:0,vy:0,alpha:1,wet:false};
+  platMove(p);return p;
+}
+// Poziția platformei care se mișcă la cadrul de acum (G.frame pornește de la 0 la fiecare pornire de nivel).
+function platMove(p){
+  if(p.kind!=='move')return;
+  const k=0.5-0.5*Math.cos(TAU*(G.frame/p.period+p.phase));
+  if(p.ax==='y')p.y=p.y0+k*p.range;else p.x=p.x0+k*p.range;
+}
+function updatePlats(){
+  // Platforma care cade pornește când curcanul stă pe ea.
+  for(const p of plats)if(p.kind==='fall'&&p.st===0&&player.plat===p&&player.onGround){p.st=1;p.t=0;sfx.creak();}
+  for(const p of plats){
+    const ox=p.x,oy=p.y;
+    if(p.kind==='move')platMove(p);
+    else if(p.st===1){p.t++;
+      if(p.t%6===0)parts.push({x:p.x+2+Math.random()*(p.w-4),y:p.y+p.h,vx:(Math.random()-0.5)*0.4,vy:0.3,g:0.15,life:22,max:22,col:Math.random()<0.5?'#8f6438':'#c9a27a',s:1});
+      if(p.t>=PLAT_SHAKE){p.st=2;p.solid=false;p.vy=0;}}
+    else if(p.st===2){p.vy=Math.min(p.vy+0.3,6);p.y+=p.vy;
+      if(!p.wet&&p.y+p.h>WATER_Y){p.wet=true;if(tileAt(Math.floor((p.x+p.w/2)/TS),12)==='.')splash(p.x+p.w/2);}
+      if(p.y>H+4){p.st=3;p.t=0;}}
+    else if(p.st===3){
+      if(++p.t>=PLAT_BACK&&!overlap(player,{x:p.x0,y:p.y0-4,w:p.w,h:p.h+8})){p.st=4;p.t=0;p.x=p.x0;p.y=p.y0;p.solid=true;p.wet=false;p.alpha=0;}}
+    else if(p.st===4){p.alpha=Math.min(1,++p.t/20);if(p.alpha>=1)p.st=0;}
+    p.dx=p.x-ox;p.dy=p.y-oy;
+  }
+  // Cine stătea pe o platformă e dus odată cu ea (pe orizontală, cu oprire la pereți).
+  const ride=e=>{const p=e.plat;if(!p||!p.solid||(!p.dx&&!p.dy))return;
+    if(p.dx){const v=e.vx;e.vx=p.dx;moveX(e);e.vx=v;}
+    e.y+=p.dy;};
+  if(!player.dead)ride(player);
+  for(const e of enemies)if(!e.dead&&!e.sink)ride(e);
+  for(const it of items)ride(it);
+}
+// Platforma care se mișcă arată exact ca scândurile fixe (tile-ul '='); cea care cade e aceeași scândură, dar veche
+// și crăpată (PLANK_WORN), cu cele două variante alternate pe lungime.
+function drawPlank(x,y,w,kind){
+  for(let i=0;i<w;i+=16)ctx.drawImage(kind==='fall'?PLANK_WORN[(i>>4)%2]:tiles['='],x+i,y);
+}
+function drawPlats(cx){
+  for(const p of plats){
+    // Drumul platformei care se mișcă: puncte discrete, ca să se vadă de departe pe unde merge.
+    if(p.kind==='move'){
+      ctx.fillStyle='rgba(40,30,60,0.28)';
+      if(p.ax==='y'){const x=Math.round(p.x+p.w/2-cx);if(x>-4&&x<W+4)for(let y=p.y0+2;y<=p.y0+p.range+PLAT_H;y+=4)ctx.fillRect(x,y,1,1);}
+      else{const y=p.y0+3;for(let x=p.x0+2;x<p.x0+p.range+p.w-2;x+=4){const sx=x-cx;if(sx>-2&&sx<W+2)ctx.fillRect(sx,y,1,1);}}
+    }
+    if(p.st===3)continue;
+    let x=Math.round(p.x-cx),y=Math.round(p.y);
+    if(x>W+4||x+p.w<-4)continue;
+    if(p.st===1){x+=(p.t>>1)%2?1:-1;y+=(p.t>>2)%2;}   // tremură
+    if(p.alpha<1)ctx.globalAlpha=p.alpha;
+    drawPlank(x,y,p.w,p.kind);
+    ctx.globalAlpha=1;
+  }
+}
+
+// ================= GHEAȚĂ (lacurile înghețate din nivelul 4) =================
 // Fiecare tile de gheață strânge „crăpături” cât timp curcanul stă pe el și se vindecă încet când pleacă — așa
 // că mersul peste lac nu o crapă, dar dacă stai ~2 s pe același loc, crăpăturile cresc (cu trosnete) și gheața de
 // sub tine se sparge: devine apă și cazi. După ~5 s gaura îngheață la loc.
@@ -1305,11 +1455,39 @@ function updateIce(){
 function makeEnemy(type,tx,ty){return type==='man'||type==='boy'
   ?{type:'man',boy:type==='boy',x:tx*TS+3,y:(ty+1)*TS-18,w:10,h:18,vx:0,vy:0,dir:-1,active:false,dead:0,deadT:0,anim:0,chasing:false,alert:0,atk:0,cd:0,onGround:false}
   :{type:'bomb',x:tx*TS+2,y:(ty+1)*TS-12,w:12,h:12,vx:0,vy:0,dir:-1,active:false,lit:0,sit:false,slideDir:0,slideT:0,kickT:0,anim:0,onGround:false};}
-function newGame(){G.carryBig=false;G.carryFire=false;G.carryIce=false;G.lives=3;G.score=0;G.coins=0;G.level=0;G.cp=null;G.state='intro';G.stateT=0;stopSong();}
-function startLevel(){
+function newGame(){G.carryBig=false;G.carryFire=false;G.carryIce=false;G.lives=3;G.score=0;G.coins=0;G.level=0;G.cp=null;G.tip=null;toIntro(true);stopSong();}
+// Sfaturile de pe ecranul de dinaintea nivelului, alese la întâmplare (niciodată același de două ori la rând).
+// Prima dată când intri într-un nivel, sfatul e despre nivelul ăla (tip-ul lui, plus cele pentru noapte / iarnă);
+// după ce pierzi o viață, poate fi și unul general. „fire” = despre boaba roșie, care iarna nu apare (acolo e afina).
+// Sfaturile sunt scurte și simple: o singură idee, pe un singur rând (cel mult ~40 de caractere).
+const TIPS={
+  all:['Ține apăsat SPACE ca să sari mai sus.','Ține apăsat X ca să fugi.','50 de bănuți îți dau o viață în plus.',
+    'Sari pe bombă, apoi împinge-o!','Bombele explodează! Nu sta lângă ele.','Ai grijă la atacul fermierilor cu furca.',
+    'Ucenicii nu te urmăresc.','Curcanul nu știe să înoate!','Timpul rămas se face puncte bonus.','Ferește-te de țepi!'],
+  fire:['Boaba roșie îți dă pene de foc.','Apasă scurt X ca să arunci pene.'],
+  night:['Strecoară-te prin spatele fermierilor.','Ucenicii n-au felinar.'],
+  snow:['Pe gheață aluneci.','Sari peste copcile cu steguleț roșu.','Afina înghețată îți dă pene de gheață.',
+    'Dușmanii înghețați se pot împinge.','Fermierii nu calcă pe gheață.','Exploziile sparg gheața.'],
+  level:{0:['Lovește blocurile M cu capul.'],2:['Unele platforme se mișcă: așteaptă-le!'],
+    3:['Pădurea e lungă: are două steaguri.'],4:['Intră pe ușa restaurantului!']},
+};
+function pickTip(first){
+  const def=LEVELS[G.level],th=THEMES[def.theme];
+  const own=[def.tip,...(TIPS.level[G.level]||[]),...(th.night?TIPS.night:[]),...(th.snow?TIPS.snow:[])].filter(Boolean);
+  const all=own.concat(TIPS.all,th.snow?[]:TIPS.fire);
+  const pool=(first||Math.random()<0.4?own:all).filter(t=>t!==G.tip);
+  return pool.length?pool[Math.random()*pool.length|0]:def.tip;
+}
+// Ecranul de dinaintea nivelului; first = intri prima dată în nivel (nu după ce ai pierdut o viață).
+function toIntro(first){G.state='intro';G.stateT=0;G.tip=pickTip(first);}
+// quiet = doar pregătește nivelul, fără muzică (modul de test îl folosește ca să facă pozele nivelurilor pentru panou).
+function startLevel(quiet){
   const def=LEVELS[G.level],m=def.build();
   grid=m.grid;cols=m.w;theme=THEMES[def.theme];tiles=getTiles(def.theme);bg=getBG(def.theme);goal=m.goalDef;
   enemies=m.ents.map(d=>makeEnemy(d.type,d.x,d.y));
+  G.frame=0;plats=m.plats.map(makePlat);
+  // Mobii puși pe o platformă care se mișcă stau pe ea de la început (și sunt duși cu ea chiar înainte să se „trezească”).
+  for(const e of enemies){const p=plats.find(p=>Math.abs(p.y-(e.y+e.h))<1&&e.x+e.w>p.x&&e.x<p.x+p.w);if(p)e.plat=p;}
   coins=m.coins.map(([x,y])=>({x:x*TS+8,y:y*TS+8,taken:false}));
   items=[];parts=[];popups=[];booms=[];bumps=[];feathers=[];
   iceCrack=new Float32Array(cols);iceHole=new Int16Array(cols);iceTouch=new Int32Array(cols);
@@ -1323,8 +1501,11 @@ function startLevel(){
   G.growT=0;
   G.time=300;G.frame=0;G.paused=false;G.tally=0;
   cam.x=clamp(player.x-W*0.4,0,cols*TS-W);
-  G.state='play';playSong(def.song||'main');
+  lakeLife=initLakeLife();
+  G.state='play';if(quiet)return;
+  playSong(def.song||'main');
   applyAudio();
+  if(TEST)testMap();
 }
 
 // ================= FX HELPERS =================
@@ -1339,6 +1520,7 @@ function splash(x){
   const w=theme.water;
   for(let i=0;i<12;i++)parts.push({x:x+(Math.random()-0.5)*8,y:WATER_Y-1,vx:(Math.random()-0.5)*2.2,vy:-1.5-Math.random()*2.5,g:0.22,life:28,max:28,col:i%3?w.top:w.foam,s:2});
   sfx.splash();
+  scareDucks(x);   // pe lac, rațele din apropiere se sperie
 }
 // Bulă care urcă din adânc și dispare exact la suprafață.
 function bubble(x,y){
@@ -1443,6 +1625,154 @@ function drawPond(cx,s,e){
       ctx.fillRect(x,WATER_Y-hgt/2,1,hgt/2+4);ctx.fillRect(x+sway,WATER_Y-hgt,1,hgt/2);
       if(i%2===0){ctx.fillStyle='#7a4a20';ctx.fillRect(x+sway,WATER_Y-hgt-1,2,4);}  // spicul de papură
     }
+  }
+}
+// ================= VIAȚA LACULUI (nivelul 3, LACUL) =================
+// Doar decor, fără efect asupra jocului:
+// - rațe albe cu boboci galbeni care înoată încet de la un mal la altul (bobocii se țin după mamă); din când în când
+//   rața se scufundă cu coada în sus; dacă pleoscăie ceva lângă ele sau trece curcanul jos, pe lângă ele, fug măcăind;
+// - pești care sar din apă (cu cercuri și stropi), umbre de pești sub apă și cercuri care apar pe apă;
+// - libelule care zboară deasupra apei;
+// - broaște pe nuferi (aceiași nuferi ca în drawPond): orăcăie, iar când te apropii sar în apă și revin mai târziu.
+const DUCK_PAL={k:'#4a4a5a',W:'#ffffff',g:'#cfd6e2',e:'#14121c',o:'#ff9a1a'};
+const DUCK=spr(["........kkk...",".......kWWWk..",".......kWWeWoo",".......kWWWWoo","........kWWk..",
+  "kk.....kWWWk..","kWkkkkkWWWWWk.","kWWWWWWWWWgWk.",".kWWWWWWWgggk.","..kkkkkkkkkk.."],DUCK_PAL);
+const DUCK_DIVE=spr(["kk..........","kWk.........","kWWk........",".kWWkkk.....","..kWWWWkk...","...kWWWWWk..",
+  "....kWWgWWk.",".....kkkkkk."],DUCK_PAL);
+const DUCK_WING=spr(["..kk..",".kWWk.","kWWWWk"],DUCK_PAL);   // aripa ridicată, când fuge
+const DUCKLING=spr(["....kk..","...kYYk.","...kYeYo","k..kYYk.","kYkYYYYk",".kYYYYk.","..kkkk.."],
+  {k:'#7a6420',Y:'#ffe14a',e:'#14121c',o:'#ff9a1a'});
+const FISH=spr(["...kkk..","k.kOOOek","kkOOOOOk","k..kkkk."],{k:'#7a2a0a',O:'#ff8a2a',e:'#14121c'});
+const FROG=mkSprite([".kk...kk.","kwek.kwek","kGGGGGGGk","kGLLLLLGk","kGGkkkGGk","kk.....kk"],
+  {k:'#1e4a1a',G:'#5ab83a',L:'#b8e070',w:'#ffffff',e:'#14121c'},false);
+let lakeLife=null;
+const lakeTop=wx=>WATER_Y+Math.round(Math.sin(wx*0.3+G.t*0.07)*1.2);   // suprafața apei, cu valuri (ca în drawWater)
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const lakeSeen=x=>x>cam.x-16&&x<cam.x+W+16;
+// În celelalte niveluri, apele de cel puțin POND_MIN tile-uri (iazuri, lacurile înghețate) au și ele umbre de pești,
+// iar la fermă câte un locuitor: ziua o rață, noaptea o broască pe un nufăr. Iarna și în deșert nu sunt nuferi, deci
+// doar umbrele (iarna, pe sub gheață). Peștii care sar, libelulele și cercurile întâmplătoare sunt doar pe LAC (full).
+const POND_MIN=7;
+function initLakeLife(){
+  const full=!!theme.lake,wet=c=>c==='.'||c==='I';
+  const L={full,spans:[],ducks:[],shadows:[],flies:[],fish:[],ripples:[],frogs:[],fishT:60,quackT:600,rippleT:40};
+  for(let x=0;x<cols;x++){if(!wet(grid[12][x]))continue;let e=x;while(e+1<cols&&wet(grid[12][e+1]))e++;
+    if(full||e-x+1>=POND_MIN)L.spans.push({a:x*TS,b:(e+1)*TS,n:e-x+1});x=e;}
+  if(!L.spans.length)return null;
+  const frogOn=(s,wx,px)=>L.frogs.push({s,wx,px,st:0,t:0,croak:0,croakT:rnd(60,300),x:0,y:0,vx:0,vy:0});
+  for(const s of L.spans){
+    for(let i=0;i<(full?Math.floor(s.n/8):Math.max(1,Math.floor(s.n/6)));i++)
+      L.shadows.push({s,x:rnd(s.a+8,s.b-8),y:rnd(WATER_Y+9,H-6),dir:Math.random()<0.5?1:-1,sp:rnd(0.15,0.35)});
+    if(full)for(let i=0;i<Math.floor(s.n/14);i++){const hx=rnd(s.a+16,s.b-16);L.flies.push({s,hx,hy:rnd(145,182),x:hx,y:170,ph:Math.random()*TAU,t:rnd(60,200),dir:1});}
+    else if(theme.farm){
+      if(theme.night){                                              // broasca, pe nufărul cel mai apropiat de mijloc
+        let best=null;const mid=(s.a+s.b)/2;
+        for(let wx=s.a+10;wx<s.b-12;wx+=19){const h=vhash(wx,7);if(h%3&&(!best||Math.abs(wx-mid)<Math.abs(best-mid)))best=wx;}
+        if(best!==null)frogOn(s,best,best+(vhash(best,7)>>>4)%6);
+      }else{const h=vhash(s.a,41);L.ducks.push({s,x:(s.a+s.b)/2,dir:h%2?1:-1,kid:[],dive:0,diveT:200+h%400,flee:0});}
+    }
+  }
+  if(!full)return L;
+  // 3 familii de rațe (mama și 2-3 boboci), câte una pe cele mai lungi trei ape — câte una în fiecare parte a nivelului.
+  for(const s of [...L.spans].sort((a,b)=>b.n-a.n).slice(0,3)){
+    const h=vhash(s.a,41),x=(s.a+s.b)/2,dir=h%2?1:-1,kid=[];
+    for(let j=0;j<2+h%2;j++)kid.push({x:x-dir*(j+1)*11,dir});
+    L.ducks.push({s,x,dir,kid,dive:0,diveT:200+h%400,flee:0});
+  }
+  // 4 broaște, pe nuferi aleși la distanțe cam egale de-a lungul lacului (nuferii sunt cei din drawPond).
+  const pads=[];
+  for(const s of L.spans)for(let wx=s.a+10;wx<s.b-12;wx+=19){const h=vhash(wx,7);if(h%3)pads.push({s,wx,px:wx+(h>>>4)%6});}
+  for(let i=0;i<4&&pads.length;i++){const pd=pads[Math.floor((i+0.5)/4*pads.length)];frogOn(pd.s,pd.wx,pd.px);}
+  return L;
+}
+function lakeRipple(x){lakeLife.ripples.push({x,t:0});if(lakeLife.ripples.length>24)lakeLife.ripples.shift();}
+function lakeDrops(x,n){for(let i=0;i<n;i++)parts.push({x:x+(Math.random()-0.5)*4,y:WATER_Y-1,vx:(Math.random()-0.5)*1.2,vy:-0.8-Math.random()*1.2,g:0.15,life:18,max:18,col:theme.water.foam,s:1});}
+// Ceva a pleoscăit în x (splash) sau trece curcanul pe lângă: rațele din apropiere fug (măcăie una singură).
+function scareDucks(x){
+  if(!lakeLife)return;let q=false;
+  for(const d of lakeLife.ducks)if(Math.abs(d.x-x)<64&&d.flee<=0){d.flee=90;d.dive=0;d.dir=Math.sign(d.x-x)||1;if(lakeSeen(d.x))q=true;}
+  if(q)sfx.quack();
+}
+function updateLakeLife(){
+  const L=lakeLife,p=player,px=p?p.x+p.w/2:-9999,near=p&&!p.dead&&p.y+p.h>WATER_Y-40;
+  for(const d of L.ducks){const s=d.s;
+    if(near&&Math.abs(px-d.x)<30)scareDucks(px);
+    if(d.dive>0)d.dive--;
+    else{
+      if(d.flee>0){d.flee--;if(G.t%3===0)parts.push({x:d.x-d.dir*7,y:WATER_Y-1,vx:-d.dir*0.4,vy:-0.6-Math.random()*0.6,g:0.12,life:14,max:14,col:theme.water.foam,s:1});}
+      else if(--d.diveT<=0){d.dive=70;d.diveT=rnd(400,900);lakeRipple(d.x);}
+      d.x+=d.dir*(d.flee>0?1.1:0.18);
+      if(d.x<s.a+14){d.x=s.a+14;d.dir=1;}else if(d.x>s.b-14){d.x=s.b-14;d.dir=-1;}
+    }
+    // Bobocii: fiecare se ține la ~10 px de cel din fața lui (primul, de mamă); când mama se întoarce, trece pe lângă
+    // ei și apoi o iau după ea.
+    let lead=d;
+    for(const k of d.kid){const dx=lead.x-k.x;
+      if(Math.abs(dx)>10){k.x+=Math.sign(dx)*Math.min(d.flee>0?1.2:0.3,Math.abs(dx)-10);k.dir=Math.sign(dx);}
+      k.x=clamp(k.x,s.a+8,s.b-8);lead=k;}
+  }
+  if(--L.quackT<=0){L.quackT=rnd(600,1300);if(L.ducks.some(d=>lakeSeen(d.x)))sfx.quack();}
+  for(const s of L.shadows){s.x+=s.dir*s.sp;if(s.x<s.s.a+8||s.x>s.s.b-8||Math.random()<0.002)s.dir*=-1;}
+  for(const f of L.flies){
+    if(--f.t<=0){f.hx=clamp(f.hx+rnd(-70,70),f.s.a+16,f.s.b-16);f.hy=rnd(145,182);f.t=rnd(80,240);}
+    const tx=f.hx+Math.sin(G.t*0.03+f.ph)*10,ty=f.hy+Math.sin(G.t*0.07+f.ph)*4,nx=f.x+(tx-f.x)*0.06;
+    if(Math.abs(nx-f.x)>0.05)f.dir=Math.sign(nx-f.x);f.x=nx;f.y+=(ty-f.y)*0.06;
+  }
+  // Un pește sare din când în când, doar pe apa de pe ecran, destul de departe de mal ca să cadă tot în apă (doar pe LAC).
+  if(L.full&&--L.fishT<=0){L.fishT=rnd(70,180);
+    const vis=L.spans.filter(s=>s.n>=8&&s.b-56>cam.x&&s.a+56<cam.x+W);
+    if(vis.length){const s=vis[Math.random()*vis.length|0],a=Math.max(s.a+56,cam.x+10),b=Math.min(s.b-56,cam.x+W-10);
+      if(b>a){const x=rnd(a,b),dir=Math.random()<0.5?1:-1;L.fish.push({x,y:WATER_Y,vx:dir*rnd(0.5,0.9),vy:-rnd(2.8,3.6),dir});lakeRipple(x);lakeDrops(x,3);}}}
+  for(const f of L.fish){f.vy+=0.14;f.x+=f.vx;f.y+=f.vy;
+    if(f.vy>0&&f.y>WATER_Y){f.gone=true;lakeRipple(f.x);lakeDrops(f.x,4);if(lakeSeen(f.x))sfx.plip();}}
+  L.fish=L.fish.filter(f=>!f.gone);
+  if(L.full&&--L.rippleT<=0){L.rippleT=rnd(50,120);
+    const vis=L.spans.filter(s=>s.b-12>cam.x&&s.a+12<cam.x+W);
+    if(vis.length){const s=vis[Math.random()*vis.length|0];lakeRipple(rnd(Math.max(s.a+12,cam.x),Math.min(s.b-12,cam.x+W)));}}
+  for(const r of L.ripples)r.t++;
+  L.ripples=L.ripples.filter(r=>r.t<40);
+  for(const f of L.frogs){const fx=f.px+4;
+    if(f.st===0){                                                   // stă pe nufăr și orăcăie din când în când
+      if(f.croak>0)f.croak--;
+      else if(--f.croakT<=0){f.croak=36;f.croakT=rnd(180,420);if(lakeSeen(fx)&&Math.random()<0.4)sfx.croak();}
+      if(p&&!p.dead&&Math.abs(px-fx)<44&&p.y+p.h>WATER_Y-90){      // te-ai apropiat: sare în apă (spre larg)
+        let dir=px<fx?1:-1;if(fx-f.s.a<48)dir=1;else if(f.s.b-fx<48)dir=-1;
+        f.st=1;f.x=f.px-1;f.y=lakeTop(f.wx)-7;f.vx=dir*rnd(0.8,1.2);f.vy=-2.4;}
+    }else if(f.st===1){f.vy+=0.18;f.x+=f.vx;f.y+=f.vy;
+      if(f.vy>0&&f.y+3>WATER_Y){f.st=2;f.t=rnd(360,600);lakeRipple(f.x+4);lakeDrops(f.x+4,5);if(lakeSeen(f.x))sfx.plip();}}
+    else if(--f.t<=0&&Math.abs(px-fx)>90){f.st=0;lakeRipple(fx);}   // revine pe nufăr după câteva secunde
+  }
+}
+// Se desenează după apă (drawWater): ce e pe suprafață stă „în” apă (rândurile de jos ale rațelor nu se văd).
+function drawLakeLife(cx){
+  const L=lakeLife,w=theme.water,on=x=>x>cx-24&&x<cx+W+24;
+  ctx.fillStyle='rgba(14,34,84,0.3)';                               // umbrele peștilor, sub apă
+  for(const s of L.shadows)if(on(s.x)){const x=Math.round(s.x-cx),y=Math.round(s.y);ctx.fillRect(x-3,y,7,2);ctx.fillRect(s.dir>0?x-5:x+4,y,2,1);}
+  for(const r of L.ripples)if(on(r.x)){                              // cercurile de pe apă: două liniuțe care se depărtează
+    const k=r.t/40,rad=Math.round(2+k*9),x=Math.round(r.x-cx),y=WATER_Y+1;
+    ctx.globalAlpha=1-k;ctx.fillStyle=w.foam;ctx.fillRect(x-rad-2,y,3,1);ctx.fillRect(x+rad,y,3,1);if(r.t<10)ctx.fillRect(x-1,y-1,2,1);ctx.globalAlpha=1;}
+  for(const f of L.frogs){
+    if(f.st===0&&on(f.px)){const x=Math.round(f.px-cx)-1,y=lakeTop(f.wx)-7;ctx.drawImage(FROG,x,y);
+      if(f.croak>0&&(f.croak>>3)%2===0)pcirc(ctx,x+4,y+4,2,'#e8f8c0');}       // gușa umflată, când orăcăie
+    else if(f.st===1&&on(f.x))ctx.drawImage(FROG,Math.round(f.x-cx),Math.round(f.y));
+  }
+  // Rațele și bobocii: rândurile de jos sunt în apă (nu se desenează), cu o dungă luminoasă pe apă, lângă ei.
+  const swim=(img,x,crop)=>{const top=lakeTop(x+cx),ih=img.height-crop;
+    ctx.drawImage(img,0,0,img.width,ih,x,top-ih,img.width,ih);
+    ctx.fillStyle=w.top;ctx.fillRect(x+1,top,img.width-2,1);ctx.fillStyle='rgba(255,255,255,0.3)';ctx.fillRect(x+2,top+1,img.width-4,1);};
+  for(const d of L.ducks){
+    for(const k of d.kid)if(on(k.x))swim(DUCKLING[k.dir>0?'r':'l'],Math.round(k.x-cx)-4,1);
+    if(!on(d.x))continue;
+    if(d.dive>0){swim(DUCK_DIVE[d.dir>0?'r':'l'],Math.round(d.x-cx)-6,1);continue;}
+    const x=Math.round(d.x-cx)-7;swim(DUCK[d.dir>0?'r':'l'],x,2);
+    if(d.flee>0&&(G.t>>2)%2)ctx.drawImage(DUCK_WING[d.dir>0?'r':'l'],d.dir>0?x+1:x+7,lakeTop(x+cx)-5);   // bate din aripi
+  }
+  for(const f of L.fish)if(on(f.x))ctx.drawImage(FISH[f.dir>0?'r':'l'],Math.round(f.x-cx)-4,Math.round(f.y)-2);
+  for(const f of L.flies){if(!on(f.x))continue;                      // libelula: corp albastru, cap închis, aripi care vibrează
+    const x=Math.round(f.x-cx),y=Math.round(f.y);
+    ctx.fillStyle='#3a9ae8';ctx.fillRect(x-3,y,7,1);
+    ctx.fillStyle='#1a3a8a';ctx.fillRect(f.dir>0?x+2:x-3,y-1,2,2);
+    ctx.globalAlpha=0.75;ctx.fillStyle='#eaf6ff';const wy=(G.t>>1)%2?y-2:y-1;ctx.fillRect(x-3,wy,3,1);ctx.fillRect(x,wy,3,1);ctx.globalAlpha=1;
   }
 }
 // Decor discret pe sol, în fața jocului: smocuri de iarbă, flori și câte o tufă mică (cam o treime din tile-uri).
@@ -1646,7 +1976,7 @@ function drown(){
   const vy=player.vy;splash(player.x+player.w/2);die();
   player.drown=true;player.vy=Math.min(Math.max(vy,0.5),2.5);
 }
-function levelClear(final){G.carryBig=player.big;G.carryFire=player.fire;G.carryIce=player.ice;feathers=[];G.state='clear';G.final=final;G.stateT=0;G.tally=0;stopSong();playSong('clear');player.vx=0;}
+function levelClear(final){G.carryBig=player.big;G.carryFire=player.fire;G.carryIce=player.ice;feathers=[];G.state='clear';G.final=final;G.stateT=0;G.tally=0;G.clearTime=G.time;stopSong();playSong('clear');player.vx=0;}
 
 // ================= UPDATE =================
 function updatePlayer(){
@@ -1800,6 +2130,7 @@ function updateFx(){
   for(const p of popups){p.y-=0.5;p.t--;}popups=popups.filter(p=>p.t>0);
   for(const b of booms)b.t++;booms=booms.filter(b=>b.t<24);
   for(const b of bumps)b.t++;bumps=bumps.filter(b=>b.t<8);
+  if(lakeLife)updateLakeLife();
   if(G.shake>0)G.shake--;
 }
 function updateCam(){
@@ -1813,6 +2144,7 @@ function updatePlay(){
   if(!TEST&&G.frame%60===0){G.time--;
     if(G.time===100){sfx.hurry();popup('GRĂBEȘTE-TE!',player.x+5,player.y-12,'#ff6060');}
     if(G.time<=0){G.time=0;die();return;}}
+  updatePlats();
   updatePlayer();
   if(G.state!=='play'){updateFx();return;}
   for(const e of enemies){
@@ -1873,7 +2205,7 @@ function updateDying(){
   }
   if(G.stateT>=160){if(TEST){startLevel();return;}G.lives--;
     if(G.lives<=0){G.state='gameover';G.stateT=0;playSong('gameover');saveHi();}
-    else{G.state='intro';G.stateT=0;}}
+    else toIntro(false);}
 }
 function updateClear(){
   G.stateT++;
@@ -1885,7 +2217,7 @@ function updateClear(){
     if(G.time>0){const d=Math.min(G.time,3);G.time-=d;G.score+=d*50;if(G.stateT%4===0)sfx.blip();}
     else if(++G.tally>90){
       if(G.final){G.state='win';G.stateT=0;saveHi();playSong('win');}
-      else{G.level++;G.cp=null;G.state='intro';G.stateT=0;}
+      else{G.level++;G.cp=null;toIntro(true);}
     }
   }
 }
@@ -1894,7 +2226,9 @@ function updateWin(){
   if(G.stateT%28===1){const x=cam.x+40+Math.random()*(W-80),y=30+Math.random()*70;const cols=['#ff4a5a','#ffd23f','#5ad0ff','#7fff7f','#ff8ae0','#ffffff'];const c=cols[Math.random()*cols.length|0];
     for(let i=0;i<34;i++){const a=i/34*TAU,s=1.2+Math.random()*1.4;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,g:0.035,life:55,max:55,col:i%3?c:'#fff',s:2});}sfx.pop();}
   updateFx();
-  if(G.stateT>120&&startPressed()){G.state='title';stopSong();playSong('title');}
+  if(G.stateT>120&&startPressed()){
+    if(TEST){G.cp=null;startLevel();return;}   // în modul de test nu există meniu: reiei nivelul
+    G.state='title';stopSong();playSong('title');}
 }
 function toggleMusic(){G.music=!G.music;saveSettings();applyAudio();}
 
@@ -1953,19 +2287,23 @@ function menuKey(code){
 function update(){
   G.t++;
   if(pressed.KeyM)toggleMusic();
+  if(TEST&&pressed.KeyR)TEST_CMDS.reset();
   switch(G.state){
     case 'title':cam.x+=0.6;if(AC&&!seq.song)playSong('title');break;
-    case 'intro':G.stateT++;if(G.stateT>150||(G.stateT>40&&startPressed()))startLevel();break;
+    // Ecranul de dinaintea nivelului stă până apeși ENTER / SPACE (sau atingi ecranul); primele ~0,7 s nu se poate
+    // sări, ca să nu-l treci din greșeală dacă tocmai apăsai taste.
+    case 'intro':G.stateT++;if(G.stateT>40&&startPressed())startLevel();break;
     case 'play':
       if(pressed.KeyP||pressed.Escape){G.paused=!G.paused;sfx.pause();applyAudio();}
-      if(!G.paused)updatePlay();break;
+      // G.stepOnce (doar din modul de test): pe pauză, jocul avansează un singur cadru.
+      if(!G.paused||G.stepOnce){G.stepOnce=false;updatePlay();}break;
     case 'dying':updateDying();updateFx();break;
     case 'clear':updateClear();updateFx();break;
     case 'win':updateWin();break;
     case 'gameover':G.stateT++;if(G.stateT>90&&startPressed()){G.state='title';stopSong();playSong('title');}break;
   }
   for(const k in pressed)delete pressed[k];
-  if(TEST&&G.t%15===0)testStatus();
+  if(TEST&&G.t%6===0)testStatus();
 }
 
 // ================= RENDER =================
@@ -2034,7 +2372,7 @@ function drawSign(cx){
   const x=goal.x*TS-cx;
   ctx.fillStyle='#5a3510';ctx.fillRect(x+33,150,6,42);ctx.fillStyle='#8a5a2a';ctx.fillRect(x+34,150,2,42);
   ctx.fillStyle='#4a2a10';ctx.fillRect(x-2,128,76,30);ctx.fillStyle='#c89050';ctx.fillRect(x,130,72,26);ctx.fillStyle='#e0b070';ctx.fillRect(x,130,72,2);
-  txt('MESOPOTAMIA',x+36,134,'#5a1a0a',1,'c',null);txt(['→ 3 KM','→ 2 KM','→ 500 M'][G.level]||'→ 500 M',x+36,145,'#a02a0a',1,'c',null);
+  txt('MESOPOTAMIA',x+36,134,'#5a1a0a',1,'c',null);txt(['→ 4 KM','→ 3 KM','→ 2 KM','→ 500 M'][G.level]||'→ 500 M',x+36,145,'#a02a0a',1,'c',null);
 }
 function drawRestaurant(cx){
   const x=goal.x*TS-cx,y=192-RH;
@@ -2174,7 +2512,7 @@ function drawHUD(){
   ctx.drawImage(HEAD,6,3);txt('X'+G.lives,16,4,'#fff');
   ctx.drawImage(COIN,40,2);txt('X'+pad(G.coins,2),54,4,'#ffd23f');
   txt('SCOR '+pad(G.score,6),W/2,4,'#fff',1,'c');
-  txt(TEST?'TEST':'NIVEL '+(G.level+1),262,4,'#9fe8ff');
+  txt(TEST?(LEVELS[G.level].arena?'ARENĂ':'TEST '+(G.level+1)):'NIVEL '+(G.level+1),262,4,'#9fe8ff');
   txt('TIMP '+pad(G.time,3),W-5,4,(G.time<=100&&(G.t>>4)%2)?'#ff5050':'#fff',1,'r');
 }
 function drawWorld(){
@@ -2204,6 +2542,7 @@ function drawWorld(){
   // Doar cel care încă iese din bloc rămâne aici, ca să apară din spatele blocului.
   for(const it of items)if(!night||it.rise>0)drawItem(it);
   drawTiles(cx);
+  drawPlats(cx);
   if(theme.snow)drawLakeBase(cx);
   if(!night)drawCoins();
   // Noaptea, bomba aprinsă luminează: nu primește umbra, se desenează după ea, cu strălucire (vezi mai jos).
@@ -2214,6 +2553,7 @@ function drawWorld(){
   if(theme.farm)drawGroundDecor(cx,theme,tx=>grid[12][tx]==='G'&&grid[11][tx]==='.'&&tileAt(tx-1,12)!=='.'&&tileAt(tx+1,12)!=='.');
   else if(theme.snow)drawSnowDecor(cx,tx=>grid[12]&&grid[12][tx]==='G'&&grid[11][tx]==='.'&&!'.I'.includes(tileAt(tx-1,12))&&!'.I'.includes(tileAt(tx+1,12)));
   drawWater(cx);
+  if(lakeLife)drawLakeLife(cx);
   if(night){
     // Umbra de noapte: amestecă doar pixelii desenați cu un albastru închis (mai întunecat, dar se vede tot).
     ctx.globalCompositeOperation='source-atop';ctx.fillStyle='rgba(12,18,56,0.4)';ctx.fillRect(0,0,W,H);
@@ -2363,14 +2703,90 @@ function drawMusicOff(){
   for(let i=-1;i<=7;i++){ctx.fillStyle='#1c1730';ctx.fillRect(ix+i+1,ty+i,1,1);ctx.fillStyle='#ff4a5a';ctx.fillRect(ix+i,ty+i,1,1);}
   txt('MUZICĂ',x+16,ty,'#d8e4f0',1,'l',null);txt('OFF',x+16+42,ty,'#ff6a72',1,'l',null);
 }
+// Finalul unui nivel, în stilul meniului: titlul cu literele „drăguțe” ale titlului jocului (roșu, contur alb, se
+// leagănă), cu câteva sclipiri în jur, iar dedesubt o casetă cu timpul rămas (scade) și bonusul (crește, 50 de puncte
+// pe secundă). Totul coboară puțin și apare lin în primele ~14 cadre.
+const CLOCK_ICON=["..###..",".#...#.","#..#..#","#..##.#","#.....#",".#...#.","..###.."];
+const STAR_ICON=["...#...","..###..","#######",".#####.","..###..",".##.##.",".#...#."];
+function drawClearCard(){
+  const a=Math.min(1,(G.stateT-60)/14),e=1-(1-a)**3,dy=Math.round((1-e)*-18);
+  txtCute(G.final?'AI AJUNS!':'NIVEL TERMINAT!',W/2,42+dy,2,'#e8323e','#000000');
+  // Sclipiri (o cruciuliță care crește și scade), pe lângă capetele titlului.
+  const half=G.final?78:122;
+  for(const [sx,sy,ph] of [[-half-4,40,0],[half,52,16],[-half+10,60,30],[half-12,34,8]]){
+    const t=(G.t+ph)%48;if(t>=24)continue;
+    const r=t<6||t>=18?1:2,x=W/2+sx,y=sy+dy;
+    ctx.fillStyle='#fff3b0';ctx.fillRect(x-r,y,r*2+1,1);ctx.fillRect(x,y-r,1,r*2+1);ctx.fillStyle='#ffffff';ctx.fillRect(x,y,1,1);
+  }
+  const w=164,h=36,x=W/2-w/2,y=70+dy,bonus=Math.max(0,(G.clearTime||0)-G.time)*50;
+  ctx.globalAlpha=e;
+  uiBox(x,y,w,h);
+  icon(CLOCK_ICON,x+8,y+8,'#9fe8ff');txt('TIMP RĂMAS',x+19,y+8,'#d8e4f0',1,'l',null);txt(pad(G.time,3),x+w-8,y+8,'#ffffff',1,'r',null);
+  ctx.fillStyle='rgba(255,255,255,0.12)';ctx.fillRect(x+8,y+18,w-16,1);
+  icon(STAR_ICON,x+8,y+22,'#ffd23f');txt('BONUS',x+19,y+22,'#d8e4f0',1,'l',null);txt('+'+bonus,x+w-8,y+22,'#ffd23f',1,'r',null);
+  ctx.globalAlpha=1;
+}
+// Ecranul de dinaintea nivelului. În spate, decorul nivelului care curge (fundal și sol), cu curcanul care aleargă pe
+// sol în forma cu care intră în nivel. Sus, „NIVELUL n” într-o pastilă și numele nivelului cu literele titlului.
+// Sub ele, drumul spre MESOPOTAMIA: nivelurile trecute sunt aurii, cel de acum roșu, cu capul curcanului deasupra.
+// Apoi un sfat ales la întâmplare (vezi pickTip) și butonul de pornire (nivelul pornește doar când apeși). Jos, viețile
+// și scorul. Curcanul aleargă în stânga, ca să nu stea sub buton.
+const DOT_ICON=[".###.","#####","#####","#####",".###."];   // bulina din nodurile drumului
+const BULB_ICON=["..###..",".#####.","#######","#######",".#####.","..###..",".......","..###..","..###.."];
+function wrapWords(s,max){const out=[];let line='';
+  for(const w of String(s).split(' ')){if(line&&(line+' '+w).length>max){out.push(line);line=w;}else line=line?line+' '+w:w;}
+  if(line)out.push(line);return out;}
 function drawIntro(){
-  ctx.fillStyle='#0d0b14';ctx.fillRect(0,0,W,H);
-  const def=LEVELS[G.level];
-  txt('NIVELUL '+(G.level+1),W/2,52,'#ffffff',3,'c','#3a2a6a');
-  txt(THEMES[def.theme].name,W/2,86,'#ffd23f',2,'c','#7a2a0a');
-  ctx.drawImage(TK[TK_RUN[Math.floor(G.t/6)%4]].r,W/2-32,106);txt('X '+G.lives,W/2-6,117,'#fff',1,'l');
-  txt(def.tip,W/2,150,'#9fe8ff',1,'c',null);
-  txt('SCOR '+pad(G.score,6),W/2,180,'#aaa',1,'c',null);
+  const def=LEVELS[G.level],th=THEMES[def.theme],B=getBG(def.theme),T=getTiles(def.theme),s=G.t*1.2;
+  const a=Math.min(1,G.stateT/14),e=1-(1-a)**3,dy=Math.round((1-e)*-14);
+  // Decorul nivelului, care curge spre stânga (curcanul aleargă spre dreapta), puțin întunecat ca să iasă în față
+  // casetele; solul rămâne luminos.
+  const par=(img,f)=>{const w=img.width,ox=Math.floor(-((s*f)%w));ctx.drawImage(img,ox,0);ctx.drawImage(img,ox+w,0);};
+  ctx.drawImage(B.sky,0,0);if(B.clouds)par(B.clouds,0.15);par(B.far,0.25);par(B.mid,0.5);if(B.near)par(B.near,0.75);
+  ctx.fillStyle='rgba(13,11,20,0.3)';ctx.fillRect(0,0,W,192);
+  const fc=Math.floor(s),off=-(fc%16);
+  for(let x=off;x<W;x+=16){const tx=(fc+x)/16;
+    ctx.drawImage(T.Gv?pickVar(T.Gv,tx,12):T.G,x,192);ctx.drawImage(T.Dv?pickVar(T.Dv,tx,13):T.D,x,208);}
+  if(th.night){ctx.fillStyle='rgba(12,18,56,0.4)';ctx.fillRect(0,192,W,32);}
+  // Curcanul: mic, mare, de foc sau de gheață, cum intră în nivel.
+  const S=G.carryBig?(G.carryFire?TKF:G.carryIce?TKI:TK):TKS,img=S[TK_RUN[Math.floor(G.t/5)%4]].r;
+  ctx.drawImage(img,100-(img.width>>1),192-img.height+(Math.floor(G.t/5)%2?-1:0));
+  if(th.snow)drawSnowfall();
+  // „NIVELUL n” și numele nivelului.
+  const lbl='NIVELUL '+(G.level+1),pw=[...lbl].length*6+13;
+  uiBox(Math.round(W/2-pw/2),12+dy,pw,15);txt(lbl,W/2,16+dy,'#ffffff',1,'c',null);
+  txtCute(th.name,W/2,40+dy,3,'#e8323e','#000000');
+  // Drumul spre MESOPOTAMIA: un nod pentru fiecare nivel, plus restaurantul la capăt.
+  const lv=LEVELS.filter(d=>!d.arena),N=lv.length,gap=40,x0=W/2-N*gap/2,ny=90+dy;
+  for(let i=0;i<N;i++){const xa=x0+i*gap+7,xb=x0+(i+1)*gap-7;
+    if(i<G.level){ctx.fillStyle='#ffd23f';ctx.fillRect(xa,ny+6,xb-xa,2);}
+    else{ctx.fillStyle='rgba(255,255,255,0.45)';for(let x=xa+1;x<xb-1;x+=4)ctx.fillRect(x,ny+6,2,2);}}
+  for(let i=0;i<=N;i++){const cx=x0+i*gap,x=cx-6;
+    if(i===N){uiBox(x,ny,13,13,'#7a1a1a','#ffd23f','#9a2a2a','#4a0a0a');txt('M',cx-2,ny+3,'#ffd23f',1,'l',null);}
+    else if(i<G.level){uiBox(x,ny,13,13,'#ffd23f','#fff3b0','#ffe680','#b88a10');icon(DOT_ICON,x+4,ny+4,'#7a4a00');}
+    else if(i===G.level){uiBox(x,ny,13,13,'#e8323e','#ffffff','#ff6a72','#a01822');icon(DOT_ICON,x+4,ny+4,'#ffffff');
+      ctx.drawImage(HEAD,cx-4,ny-11+Math.round(Math.sin(G.t*0.15)*1.5));}
+    else{uiBox(x,ny,13,13);icon(DOT_ICON,x+4,ny+4,'#8a84a8');}
+  }
+  // Sfatul.
+  // Rândurile sunt la 12 px, ca diacriticele de deasupra (Ă, Î, Â) să nu atingă rândul de sus.
+  const lines=wrapWords(G.tip||def.tip,44),bw=296,bh=18+lines.length*12,bx=W/2-bw/2,by=116+dy;
+  uiBox(bx,by,bw,bh);
+  icon(BULB_ICON,bx+8,by+6,'#ffd23f');txt('SFAT',bx+20,by+7,'#ffd23f',1,'l',null);
+  lines.forEach((l,i)=>txt(l,bx+20,by+18+i*12,'#e8f4ff',1,'l',null));
+  // Butonul de pornire, ca butonul ales din meniu (roșu, cu săgeata care se mișcă), după ce se poate apăsa;
+  // înainte, mov închis, fără săgeată.
+  const touchUI=document.getElementById('touch').classList.contains('on');
+  const go=touchUI?'ATINGE - PORNEȘTE':'ENTER - PORNEȘTE',gw=[...go].length*6+15,gx=Math.round(W/2-gw/2),gy=by+bh+6,ready=G.stateT>40;
+  if(ready){uiBox(gx,gy,gw,15,'#e8323e','#ffffff','#ff6a72','#a01822');txt(go,W/2,gy+4,'#ffffff',1,'c','#7a0a10');
+    txt('→',gx-11+((G.t>>4)%2),gy+4,'#ffffff',1,'l','#000');}
+  else{uiBox(gx,gy,gw,15);txt(go,W/2,gy+4,'#8a84a8',1,'c',null);}
+  // Viețile și scorul, într-o insignă în colțul din stânga jos (în dreapta jos stă „MUZICĂ OFF”, când apare).
+  const iy=H-19,iw=124;
+  uiBox(4,iy,iw,15);ctx.drawImage(HEAD,9,iy+3);txt('X '+G.lives,20,iy+4,'#ffffff',1,'l',null);
+  ctx.fillStyle='rgba(255,255,255,0.2)';ctx.fillRect(44,iy+3,1,9);
+  txt('SCOR',50,iy+4,'#ffd23f',1,'l',null);txt(pad(G.score,6),4+iw-6,iy+4,'#ffffff',1,'r',null);
+  if(e<1){ctx.fillStyle=`rgba(13,11,20,${1-e})`;ctx.fillRect(0,0,W,H);}
 }
 function render(){
   ctx.imageSmoothingEnabled=false;
@@ -2386,14 +2802,16 @@ function render(){
       break;
     default:
       drawWorld();drawHUD();
-      if(G.state==='clear'&&G.stateT>60){panel(110,60,180,52);txt(G.final?'AI AJUNS!':'NIVEL TERMINAT!',W/2,70,'#ffd23f',2,'c','#7a2a0a');txt('BONUS TIMP: '+pad(G.time,3)+' X 50',W/2,94,'#fff',1,'c',null);}
+      if(G.state==='clear'&&G.stateT>60)drawClearCard();
       if(G.state==='win'){panel(60,16,280,38);
         txt('BRAVO, CURCANULE! AI AJUNS LA MESOPOTAMIA!',W/2,21,'#ffffff',1,'c',null);
         txt('POFTĂ BUNĂ!',W/2,36,'#ffd23f',2,'c','#7a2a0a');
         ctx.fillStyle='rgba(16,8,32,0.8)';ctx.fillRect(0,195,W,29);
         txt('SCOR FINAL '+pad(G.score,6)+'   '+(G.score>=G.hi?'RECORD NOU!':'RECORD '+pad(G.hi,6)),W/2,199,'#9fe8ff',1,'c',null);
         if(G.stateT>120&&(G.t>>5)%2===0)txt('ENTER - JOACĂ DIN NOU',W/2,211,'#7fff7f',1,'c',null);}
-      if(G.state==='play'&&G.paused){panel(130,80,140,50);txt('PAUZĂ',W/2,90,'#ffd23f',2,'c','#7a2a0a');txt('P - CONTINUĂ',W/2,112,'#fff',1,'c',null);}
+      // În modul de test, pauza e doar o etichetă sus, ca să se vadă tot ecranul când avansezi cadru cu cadru.
+      if(G.state==='play'&&G.paused){if(TEST)txt('PAUZĂ',W/2,20,'#ffd23f',1,'c','#000');
+        else{panel(130,80,140,50);txt('PAUZĂ',W/2,90,'#ffd23f',2,'c','#7a2a0a');txt('P - CONTINUĂ',W/2,112,'#fff',1,'c',null);}}
   }
   if(!G.music)drawMusicOff();
   if(G.state!=='title'&&cv.style.cursor)cv.style.cursor='';
@@ -2404,9 +2822,12 @@ function render(){
 }
 
 // ================= MOD DE TEST (index.html?test, folosit de test.html) =================
-// Arenă cu pereți la capete (ca bombele împinse să ricoșeze), blocuri cu power-up, platformă,
-// trepte și țepi. Fără cronometru, vieți infinite (la moarte reapari pe loc).
-const TEST_LEVEL={theme:0,tip:'',build(){const m=newMap(64);m.g(0,63);
+// Laboratorul: joci arena de test sau oricare dintre cele 4 niveluri (de la început sau de la un punct de salvare),
+// muți curcanul oriunde din harta de sub joc, îi schimbi forma, aduci mobi și pornești unelte (invincibil,
+// hitbox-uri, viteză, pauză și avans cadru cu cadru). Fără cronometru, vieți infinite (la moarte reapari pe loc).
+// Arena: pereți la capete (ca bombele împinse să ricoșeze), blocuri cu power-up, platformă, trepte și țepi.
+// Se poate juca în oricare dintre cele 4 decoruri (theme), fiecare cu muzica lui.
+const TEST_LEVEL={theme:0,tip:'',arena:true,build(){const m=newMap(64);m.g(0,63);
   m.f(0,0,1,12,'X');m.f(63,0,1,12,'X');
   m.r(6,8,'BHBMB');m.c(7,5,3);m.r(14,8,'H');
   m.r(22,8,'======');m.c(23,7,4);
@@ -2417,21 +2838,70 @@ const TEST_LEVEL={theme:0,tip:'',build(){const m=newMap(64);m.g(0,63);
   m.st(50,3,1);
   m.sp(56,2);
   return m.done();}};
+const ARENA_SONG={0:undefined,1:'winter',2:undefined,3:'night'};
+// Arena e ultima în LEVELS (adăugată doar în modul de test); nivelurile adevărate sunt 0 .. ARENA-1.
+const ARENA=TEST?LEVELS.push(TEST_LEVEL)-1:-1;
+// Pornește nivelul lv de la început (cp=0) sau de la punctul de salvare cp (1, 2), cu curcanul în forma de acum.
+function testLoad(lv,cp){
+  const alive=player&&!player.dead;
+  G.carryBig=alive&&player.big;G.carryFire=alive&&player.fire;G.carryIce=alive&&player.ice;
+  G.level=lv;
+  const x=cp>0?LEVELS[lv].build().cps[cp-1]:undefined;
+  G.cp=x===undefined?null:{level:lv,x};
+  startLevel();
+}
+// Rândul pe care se poate sta în coloana x: cel mai de sus sol, bloc sau platformă, dacă deasupra e loc de curcan.
+// -1 = acolo nu se poate sta (groapă, zid până sus, țepi, gaură în gheață).
+function standRow(x){
+  for(let y=0;y<ROWS;y++){const t=tileAt(x,y);
+    if(solid(t)||t==='=')return y<2||t==='^'||(t==='I'&&iceHole[x]>0)?-1:y;}
+  return -1;
+}
+// Mută curcanul pe coloana tx (click pe harta din panou); dacă acolo nu se poate sta, pe cea mai apropiată coloană bună.
+function testTeleport(tx){
+  if(G.state!=='play'||player.dead||!isFinite(tx))return;
+  tx=clamp(Math.floor(tx),1,cols-2);
+  for(let d=0;d<40;d++)for(const x of d?[tx+d,tx-d]:[tx]){
+    if(x<1||x>cols-2)continue;
+    const y=standRow(x);if(y<0)continue;
+    const p=player;p.x=x*TS+(TS-p.w)/2;p.y=y*TS-p.h;p.vx=0;p.vy=0;p.onGround=false;
+    feathers=[];cam.x=clamp(p.x+p.w/2-W*0.42,0,cols*TS-W);
+    dust(p.x+p.w/2,p.y+p.h,6);
+    return;
+  }
+}
+// Forma curcanului, aleasă din panou: mic, mare, de foc sau de gheață (cu animația de transformare din joc).
+function testForm(f){
+  if(G.state!=='play'||player.dead)return;
+  const p=player,x=p.x+p.w/2,y=p.y;
+  if(f==='small'){p.fire=false;p.ice=false;if(p.big){setBig(false);G.morph='size';G.growT=48;sfx.shrink();}}
+  else if(f==='big'){if(!p.big)powerUp(x,y);else if(p.fire||p.ice){G.morph=p.fire?'fire':'ice';p.fire=false;p.ice=false;G.growT=48;sfx.shrink();}}
+  else if(f==='fire')powerFire(x,y);
+  else if(f==='ice')powerIce(x,y);
+}
 // Pune un mob nou pe sol, la ~6 tile-uri în fața curcanului, cu fața spre el.
 function testSpawn(type){
   if(G.state!=='play'||player.dead)return null;
   const tx=clamp(Math.floor((player.x+player.w/2+player.face*96)/TS),1,cols-2);
   let ty=Math.max(0,Math.floor(player.y/TS));
-  while(ty<ROWS&&!solid(tileAt(tx,ty)))ty++;
+  while(ty<ROWS&&!solid(tileAt(tx,ty))&&tileAt(tx,ty)!=='=')ty++;   // și pe scânduri
   if(ty>=ROWS)return null;
   const e=makeEnemy(type,tx,ty-1);e.active=true;e.dir=-player.face;enemies.push(e);
   return e;
 }
 const TEST_CMDS={
-  grain(){if(G.state==='play'&&!player.dead)powerUp(player.x+player.w/2,player.y);},
-  berry(){if(G.state==='play'&&!player.dead)powerFire(player.x+player.w/2,player.y);},
-  iceberry(){if(G.state==='play'&&!player.dead)powerIce(player.x+player.w/2,player.y);},
-  small(){if(G.state!=='play'||player.dead)return;player.fire=false;player.ice=false;if(player.big){setBig(false);G.morph='size';G.growT=48;sfx.shrink();}},
+  // Panoul s-a încărcat: îi trimitem nivelurile, pozele, iconițele și harta nivelului de acum.
+  hello(){testHello();testMap();},
+  // Un nivel adevărat (level 0-3) sau arena într-un decor (arena = indexul din THEMES), de la început.
+  level(d){
+    if(d.arena!==undefined){const t=d.arena|0;if(!THEMES[t])return;TEST_LEVEL.theme=t;TEST_LEVEL.song=ARENA_SONG[t];testLoad(ARENA,0);}
+    else testLoad(clamp(d.level|0,0,ARENA-1),0);},
+  // Nivelul de acum, de la început (cp=0) sau de la un punct de salvare (cp=1, 2).
+  from(d){testLoad(G.level,d.cp|0);},
+  // Repornește de unde ai reapărea dacă ai muri (ultimul punct de salvare atins), cu aceeași formă (tasta R).
+  reset(){const alive=!player.dead;G.carryBig=alive&&player.big;G.carryFire=alive&&player.fire;G.carryIce=alive&&player.ice;startLevel();},
+  tp(d){testTeleport(+d.x);},
+  form(d){testForm(d.form);},
   boy(){testSpawn('boy');},
   man(){testSpawn('man');},
   bomb(){testSpawn('bomb');},
@@ -2439,22 +2909,56 @@ const TEST_CMDS={
   clear(){enemies=[];},
   god(){G.god=!G.god;},
   hitbox(){G.showHB=!G.showHB;},
-  slow(){G.slow=!G.slow;},
-  // Arena ziua / noaptea (fermierii cu felinar, umbra de noapte, muzica de noapte).
-  night(){const n=TEST_LEVEL.theme!==3;TEST_LEVEL.theme=n?3:0;TEST_LEVEL.song=n?'night':undefined;TEST_CMDS.reset();},
-  // Arena iarna: zăpadă, lac înghețat (alunecă, crapă dacă stai pe loc), muzica de iarnă.
-  winter(){const n=TEST_LEVEL.theme!==1;TEST_LEVEL.theme=n?1:0;TEST_LEVEL.song=n?'winter':undefined;TEST_CMDS.reset();},
-  reset(){const alive=!player.dead;G.carryBig=alive&&player.big;G.carryFire=alive&&player.fire;G.carryIce=alive&&player.ice;startLevel();},
+  speed(d){G.speed=[1,0.5,0.25].includes(d.v)?d.v:1;},
+  pause(){if(G.state!=='play')return;G.paused=!G.paused;sfx.pause();applyAudio();},
+  // Un singur cadru: dacă jocul merge, întâi îl pune pe pauză.
+  step(){if(G.state!=='play')return;if(!G.paused){G.paused=true;sfx.pause();applyAudio();}else G.stepOnce=true;},
 };
 if(TEST)addEventListener('message',e=>{
   // Doar comenzi de la pagina care ne-a deschis (test.html), din același loc.
   if(e.source!==window.parent||!(location.protocol==='file:'||e.origin===location.origin))return;
-  const f=e.data&&TEST_CMDS[e.data.cmd];if(f&&player)f();
+  const d=e.data;if(!d||!Object.prototype.hasOwnProperty.call(TEST_CMDS,d.cmd)||!player)return;
+  TEST_CMDS[d.cmd](d);
 });
-// Trimite starea către test.html, ca panoul să arate ce e pornit.
+const toParent=msg=>{if(window.parent!==window)window.parent.postMessage(msg,'*');};
+// Pozele pentru cardurile de nivel din panou: partea de jos a primului ecran (sol, blocuri, curcanul), desenată chiar
+// cu desenul jocului. Se fac o dată, la pornire: fiecare nivel, plus arena în fiecare decor.
+let TEST_THUMBS=null;
+function testThumbs(){
+  const [c,g]=mkCanvas(256,128);
+  const shot=()=>{ctx.imageSmoothingEnabled=false;drawWorld();g.clearRect(0,0,256,128);g.drawImage(cv,0,96,256,128,0,0,256,128);return c.toDataURL();};
+  const out={levels:[],arena:{}},t0=TEST_LEVEL.theme;
+  G.cp=null;G.carryBig=false;G.carryFire=false;G.carryIce=false;
+  for(let i=0;i<ARENA;i++){G.level=i;startLevel(true);out.levels.push(shot());}
+  for(const t of [0,3,1,2]){TEST_LEVEL.theme=t;G.level=ARENA;startLevel(true);out.arena[t]=shot();}
+  TEST_LEVEL.theme=t0;TEST_THUMBS=out;
+}
+// O dată, la cererea panoului: nivelurile (nume, decor, câte puncte de salvare), pozele și iconițele (sprite-urile
+// din joc), ca butoanele din panou să arate exact ca jocul.
+function testHello(){
+  const u=c=>c.toDataURL();
+  const levels=LEVELS.slice(0,ARENA).map(d=>({name:THEMES[d.theme].name,theme:d.theme,cps:d.build().cps.length}));
+  toParent({hello:{version:GAME_VERSION,levels,arenaTheme:TEST_LEVEL.theme,thumbs:TEST_THUMBS,
+    icons:{tks:u(TKS.A.r),tk:u(TK.A.r),tkf:u(TKF.A.r),tki:u(TKI.A.r),boy:u(BOY.A.l),man:u(MAN.A.l),bomb:u(BOMB.A.l),sit:u(BOMB.S.l),head:u(HEAD)}}});
+}
+// Harta nivelului pentru panou, la fiecare pornire de nivel: rândurile de tile-uri, punctele de salvare, ținta și
+// culorile decorului. Panoul o desenează mică, sub joc; un click pe ea mută curcanul acolo (comanda tp).
+function testMap(){
+  const def=LEVELS[G.level],th=theme;
+  toParent({map:{level:G.level,arena:!!def.arena,theme:def.theme,name:th.name,cols,rows:grid.map(r=>r.join('')),
+    cps:cps.map(c=>c.tx),goal,colors:{sky:th.sky,grass:th.grass,dirt:th.dirt,water:th.water.body,night:!!th.night},
+    plats:plats.map(p=>({kind:p.kind,x:p.x0/TS,y:p.y0/TS,w:p.w/TS,ax:p.ax,range:p.range/TS}))}});
+}
+// Starea, de 10 ori pe secundă: ce e pornit (pentru butoanele din panou) și unde sunt curcanul, camera și mobii
+// (în tile-uri, pentru hartă). cp = punctul de unde reapari (0 = început).
 function testStatus(){
-  if(window.parent===window)return;
-  window.parent.postMessage({status:{big:!!(player&&player.big),fire:!!(player&&player.fire),ice:!!(player&&player.ice),god:!!G.god,hitbox:!!G.showHB,slow:!!G.slow,night:!!theme.night,winter:!!theme.snow,enemies:enemies.length}},'*');
+  if(!player)return;
+  const p=player,r1=v=>Math.round(v*10)/10;
+  toParent({status:{level:G.level,state:G.state,form:!p.big?'small':p.fire?'fire':p.ice?'ice':'big',
+    god:!!G.god,hitbox:!!G.showHB,speed:G.speed||1,paused:!!G.paused,
+    px:r1((p.x+p.w/2)/TS),py:r1((p.y+p.h)/TS),cam:r1(cam.x/TS),view:W/TS,
+    cp:G.cp&&G.cp.level===G.level?cps.findIndex(c=>c.tx===G.cp.x)+1:0,cpOn:cps.map(c=>c.on),
+    mobs:enemies.filter(e=>!e.dead&&!e.remove).map(e=>[r1((e.x+e.w/2)/TS),r1((e.y+e.h)/TS),e.frozen?'f':e.type==='bomb'?'b':e.boy?'u':'m'])}});
 }
 // Contururile hitbox-urilor: verde = curcan, roșu = fermier, alb = ucenic, portocaliu = bombă, mov = furca (cât lovește),
 // galben = zona solidă a bombei în fund (dacă e mai mare decât hitbox-ul), albastru = power-up, portocaliu deschis = pene.
@@ -2468,17 +2972,18 @@ function drawHitboxes(cx){
     if(e.type==='bomb'&&e.sit&&BOMB_PUSH_PAD)r({x:e.x-BOMB_PUSH_PAD,y:e.y,w:e.w+BOMB_PUSH_PAD*2,h:e.h},'#ffff40');}
   for(const it of items)r(it,'#40c0ff');
   for(const f of feathers)r(f,'#ffc080');
+  for(const p of plats)if(p.solid)r(p,'#40ffd0');
 }
 
 // ================= LOOP =================
 let last=performance.now(),acc=0;
 const STEP=1000/60;
 function frame(now){
-  acc+=Math.min(100,now-last)*(G.slow?0.25:1);last=now;
+  acc+=Math.min(100,now-last)*(G.speed||1);last=now;
   while(acc>=STEP){update();acc-=STEP;}
   render();requestAnimationFrame(frame);
 }
-if(TEST){LEVELS.push(TEST_LEVEL);G.level=LEVELS.length-1;startLevel();}
+if(TEST){testThumbs();G.level=ARENA;startLevel();}
 else playSong('title');
 requestAnimationFrame(frame);
 </script>

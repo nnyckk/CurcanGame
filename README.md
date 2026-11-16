@@ -30,7 +30,9 @@ Recordul apare în colțul din stânga jos al meniului principal. Cât timp muzi
 
 ## Ce găsești în joc
 
-- **4 niveluri:** Ferma (zi), Noaptea la fermă, Pădurea de brazi (iarna), Deșertul (noapte). Ultimul se termină la restaurantul MESOPOTAMIA.
+- **5 niveluri:** Ferma (zi), Noaptea la fermă, Lacul, Pădurea de brazi (iarna), Deșertul (noapte). Ultimul se termină la restaurantul MESOPOTAMIA.
+- **Lacul:** ferma ziua, dar aproape tot nivelul e un lac mare, iar drumul e pe sus: scânduri, insule care ies din apă, platforme care se mișcă (stânga-dreapta sau sus-jos) și platforme vechi, crăpate, care cad în lac la scurt timp după ce te urci pe ele (după câteva secunde reapar). Dacă pici în lac, pierzi o viață. Are două puncte de salvare, pe mici bucăți de mal. Pe lac e viață: rațe albe cu boboci (se scufundă cu coada în sus și fug măcăind dacă pleoscăie ceva lângă ele), pești care sar din apă, libelule, broaște pe nuferi care orăcăie și sar în apă când te apropii, umbre de pești sub apă și cercuri pe apă.
+- **Ecranul dinaintea fiecărui nivel:** decorul nivelului, drumul spre MESOPOTAMIA (unde ai ajuns) și un sfat ales la întâmplare. Nivelul pornește când apeși ENTER sau SPACE.
 - **Pădurea de brazi:** e un nivel de două ori mai lung, cu un lac foarte mare spre final, peste care sunt platforme sus, păzite de mobi. E iarnă, cu munți înzăpeziți în spate, brazi, zăpadă pe jos și pe blocuri și fulguire ușoară. Muzica e mai liniștită, ca niște clopoței. Lacurile sunt mari și înghețate și se poate merge pe ele, dar:
   - pe gheață aluneci puțin când te oprești sau întorci;
   - gheața e doar un strat subțire la suprafață: dacă stai ~2 secunde pe același loc, trosnește, crapă și cazi prin ea în lac; gaura îngheață la loc după câteva secunde;
@@ -51,12 +53,22 @@ Recordul apare în colțul din stânga jos al meniului principal. Cât timp muzi
   - **Ucenicul** (cămașă verde, cu găleată) n-are furcă: se plimbă încet înainte și înapoi, nu te urmărește și te rănește doar dacă intri în el. 100 de puncte.
   - **Fermierul cu furcă** (cămașă roșie) te urmărește și, când ajunge lângă tine, te împunge (trage întâi furca înapoi — sari peste ea). 200 de puncte.
   - În primul nivel sunt la început doar ucenici; fermierii cu furcă apar abia spre final. În nivelul 2 sunt amestecați (ucenicii n-au felinar și nu te caută).
+- **Apele mai mari** (de cel puțin 7 tile-uri) au umbre de pești sub apă (iarna, pe sub gheață). La fermă au și câte un locuitor: ziua o rață, noaptea o broască pe un nufăr.
 - **Gropi cu apă:** curcanul încă nu știe să înoate. Dacă pică în apă, pleoscăie, se scufundă și pierde o viață. Bombele căzute în apă se sting fără să explodeze, iar dacă le-ai împins tu acolo, primești 100 de puncte.
-- **Puncte de salvare** la jumătatea fiecărui nivel (pădurea de brazi, de două ori mai lungă, are două), cronometru și record salvat în browser.
+- **Puncte de salvare** la jumătatea fiecărui nivel (lacul și pădurea de brazi, mai lungi, au câte două), cronometru și record salvat în browser.
 
 ## Testare
 
-Deschide `test.html` (sau apasă MOD TEST în meniu): jocul pornește într-o arenă de test (fără cronometru, cu vieți infinite), iar în dreapta ai un panou cu butoane. Poți da power-up-uri, poți aduce fermieri și bombe în fața curcanului și poți porni invincibilitatea, slow motion-ul și afișarea hitbox-urilor. Arena se poate trece și pe noapte (felinare) sau pe iarnă (cu un lac înghețat). Același mod se poate deschide și direct, cu `index.html?test`. Din panou te întorci la meniu cu „← Înapoi la meniu”.
+Deschide `test.html` (sau apasă MOD TEST în meniu). E un laborator: fără cronometru, cu vieți infinite (la moarte reapari pe loc). Jocul pornește în arena de test, iar în dreapta ai un panou:
+
+- **Nivel:** carduri cu poza primului ecran al fiecărui nivel; click pe unul și îl joci. Arena de test se poate juca în oricare dintre cele 4 decoruri (Zi, Noapte, Iarnă, Deșert). Dacă termini un nivel, treci la următorul, ca în joc.
+- **Pornește de la:** începutul nivelului sau unul dintre punctele de salvare. „Repornește de aici” (sau tasta **R**) reia nivelul de unde ai reapărea dacă ai muri.
+- **Harta de sub joc:** tot nivelul în mic, cu ce se vede acum pe ecran, punctele de salvare, ținta, mobii și curcanul. Dacă dai click sau tragi pe hartă, curcanul se mută acolo.
+- **Curcanul:** îl faci mic, mare, de foc sau de gheață.
+- **Mobi:** ucenic, fermier, bombă sau bombă în fund, care apar în fața curcanului; îi poți și șterge pe toți.
+- **Unelte:** invincibil, hitbox-uri (cu legenda culorilor), viteză 1× / ½× / ¼×, pauză și avans cu un singur cadru.
+
+Butoanele folosesc chiar sprite-urile din joc. Același mod se poate deschide și direct, cu `index.html?test` (doar jocul, fără panou). Din panou te întorci la meniu cu „← Meniu”.
 
 ## Tehnic
 
