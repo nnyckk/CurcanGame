@@ -92,7 +92,7 @@
   .lvl[aria-pressed="true"] .now{display:block}
   .arena{margin-top:10px}
   .cap{display:block;margin:0 0 5px;font-size:11.5px;color:var(--dim)}
-  .themes{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+  .themes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
   .chip{display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 2px;
     background:var(--card);border:1px solid var(--line);border-radius:8px;font-size:11.5px;color:var(--muted)}
   .chip:hover{border-color:var(--line2);color:var(--text)}
@@ -162,7 +162,8 @@
         <button class="chip" data-arena="0" aria-pressed="false"><i data-px="sun"></i>Zi</button>
         <button class="chip" data-arena="3" aria-pressed="false"><i data-px="moon"></i>Noapte</button>
         <button class="chip" data-arena="1" aria-pressed="false"><i data-px="flake"></i>Iarnă</button>
-        <button class="chip" data-arena="2" aria-pressed="false"><i data-px="palm"></i>Deșert</button>
+        <button class="chip" data-arena="5" aria-pressed="false"><i data-px="nightsnow"></i>Iarnă noapte</button>
+        <button class="chip" data-arena="2" aria-pressed="false" title="Deșertul nu mai e în joc; decorul e păstrat pentru viitor"><i data-px="palm"></i>Deșert</button>
       </div>
     </div>
   </section>
@@ -245,7 +246,7 @@ const focusGame=()=>{try{frame.focus();frame.contentWindow.focus();}catch(e){}};
 const press=(b,on)=>{const v=String(!!on);if(b.getAttribute('aria-pressed')!==v)b.setAttribute('aria-pressed',v);};
 // „NOAPTEA LA FERMĂ” → „Noaptea la fermă”
 const nice=s=>{s=s.toLowerCase();return s.charAt(0).toUpperCase()+s.slice(1);};
-const ARENA_NAMES={0:'Zi',3:'Noapte',1:'Iarnă',2:'Deșert'};
+const ARENA_NAMES={0:'Zi',3:'Noapte',1:'Iarnă',5:'Iarnă noapte',2:'Deșert'};
 
 // ---- Iconițe pixel, în stilul jocului: 7×7, „#” = pixel aprins (în culoarea textului) ----
 const PX={
@@ -261,6 +262,7 @@ const PX={
   moon:['...###.','..##...','.##....','.##....','.##....','..##...','...###.'],
   flake:['#..#..#','.#.#.#.','..###..','#######','..###..','.#.#.#.','#..#..#'],
   palm:['.##.##.','#..#..#','...#...','...#...','...#...','...#...','.#####.'],
+  nightsnow:['.##....','##...#.','#...###','#....#.','##.....','.##.#..','...###.'],
   aim: ['...#...','.#####.','.#...#.','##.#.##','.#...#.','.#####.','...#...'],
 };
 function pix(name){
@@ -362,7 +364,7 @@ frame.addEventListener('load',()=>{send('hello');focusGame();});
 // Peste ea: fereastra camerei, punctele de salvare, ținta, mobii și curcanul. Click / tras = mută curcanul.
 const mapCv=$('#map'),mg=mapCv.getContext('2d');
 const TILE_COL={B:'#c98a4b',M:'#f2b630',H:'#f2b630',U:'#9a6030',X:'#8a8fa0','=':'#b5793a','^':'#d8dce6',I:'#dff4ff'};
-const MOB_COL={m:'#ff4a4a',u:'#f4f4f4',b:'#ffa024',f:'#9fe8ff'};
+const MOB_COL={m:'#ff4a4a',u:'#f4f4f4',b:'#ffa024',f:'#9fe8ff',B:'#ff2020'};   // B = boss-ul
 const MTOP=10;                       // spațiul de sus (px), pentru stegulețe
 let terrain=null,hoverX=null;
 function sizeMap(){
@@ -419,7 +421,8 @@ function drawMap(){
   if(MAP.goal){const x=pole(MAP.goal.x+(MAP.goal.type==='sign'?2.2:6)),q=2*dpr;
     for(let i=0;i<3;i++)for(let j=0;j<2;j++){mg.fillStyle=(i+j)%2?'#111':'#fff';mg.fillRect(x+dpr+i*q,dpr+j*q,q,q);}}
   if(s){
-    for(const [mx,my,k] of s.mobs){mg.fillStyle=MOB_COL[k]||'#fff';mg.beginPath();mg.arc(X(mx),Y(my)-rh*0.6,1.8*dpr,0,Math.PI*2);mg.fill();}
+    for(const [mx,my,k] of s.mobs){const big=k==='B';mg.fillStyle=MOB_COL[k]||'#fff';mg.beginPath();
+      mg.arc(X(mx),Y(my)-rh*(big?1.2:0.6),(big?3.4:1.8)*dpr,0,Math.PI*2);mg.fill();if(big){mg.strokeStyle='#000';mg.lineWidth=dpr;mg.stroke();}}
     // Curcanul: punct galben cu contur, plus o săgeată sus, ca să se vadă și pe nivelurile lungi
     const px=X(s.px),py=Y(s.py)-rh*0.8;
     mg.fillStyle='#ffd23f';mg.strokeStyle='#000';mg.lineWidth=1.5*dpr;
