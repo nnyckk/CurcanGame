@@ -24,7 +24,8 @@ Pe telefon apar butoane pe ecran (▲ apare doar cât stai în fața unei uși).
 Pe ecranul de titlu sunt trei butoane:
 
 - **JOACĂ** pornește jocul.
-- **SETĂRI**: muzică (DA/NU), efecte sonore (DA/NU), ecran complet (dacă browserul îl permite) și **CONTROALE** (lista tastelor). Muzica și efectele se țin minte în browser. ESC sau ÎNAPOI te duce o pagină înapoi.
+- **SETĂRI**: muzică (DA/NU), efecte sonore (DA/NU), ecran complet (dacă browserul îl permite), **CURCAN DE AUR** (DA/NU, apare doar după ce ai găsit toate penele de aur) și **CONTROALE** (lista tastelor). Setările se țin minte în browser. ESC sau ÎNAPOI te duce o pagină înapoi.
+- Jos, lângă record, insigna **PENE** arată câte pene de aur ai găsit din câte sunt în joc. E și un buton (o alegi cu ↓ după MOD TEST, cu mouse-ul sau cu degetul): deschide pagina **PENE DE AUR**, care explică ce ai de făcut. Îți spune pe scurt că în fiecare nivel se ascund 3 pene de aur, că o pană contează doar dacă ajungi cu ea la final și „ADUNĂ-LE PE TOATE. MERITĂ.” (fără să spună ce primești). După ce le ai pe toate, îți spune că surpriza te așteaptă în SETĂRI. Jos arată câte pene ai găsit în fiecare nivel.
 - **MOD TEST** deschide `test.html` (vezi mai jos).
 
 Recordul apare în colțul din stânga jos al meniului principal. Cât timp muzica e oprită, în colțul din dreapta jos apare „MUZICĂ OFF”.
@@ -58,6 +59,14 @@ Recordul apare în colțul din stânga jos al meniului principal. Cât timp muzi
   - explozia unei bombe sparge gheața pe care o atinge (și ea îngheață la loc după câteva secunde).
 - **Noaptea la fermă:** ferestrele caselor sunt luminate, prin iarbă zboară licurici, pe cer sunt lună și stele, iar muzica e mai lentă și mai joasă. Fermierii au felinar și te văd doar dacă intri în lumina din fața lor; te poți strecura prin spatele lor. Dacă scapi din lumină, te mai caută puțin, apoi rămân nedumeriți („?”).
 - **Bănuți cu M:** la 50 de bănuți primești o viață în plus.
+- **Pene de aur:** în fiecare dintre cele 5 niveluri normale sunt ascunse 3 pene de aur (15 cu totul; nivelul bonus n-are), în locuri greu de ajuns, câte una din fiecare fel:
+  - **la vedere, dar greu de luat:** sus de tot, peste o groapă sau peste apă (îți trebuie o săritură plină, la locul potrivit), pe un dâmb păzit de un fermier cu felinar sau deasupra unor blocuri înalte;
+  - **într-o cărămidă:** arată ca toate celelalte, dar o spargi doar dacă ești mare (sau cu o explozie);
+  - **ascunsă de tot:** într-un bloc invizibil, care apare dacă dai cu capul în el de dedesubt. Din când în când, acolo unde e ascunsă o pană sclipește o steluță. În ultimul nivel, una e în stiva de fân din dreapta poienii boss-ului și iese abia când stiva se prăbușește.
+  - Pana dă 1000 de puncte și se aude un clinchet. Sus, lângă bănuți, sunt 3 locașuri: aurii pentru penele luate acum, transparente pentru cele găsite altă dată.
+  - O pană contează doar dacă **termini nivelul**. Dacă pierzi o viață, pierzi penele luate după ultimul punct de salvare atins (cele de dinainte rămân la tine); la JOC TERMINAT le pierzi pe toate cele nesalvate. Penele găsite rămân salvate în browser; când rejoci nivelul, apar transparente (le poți lua iar, dar nu mai contează).
+  - La finalul nivelului, cartonașul arată penele (cele găsite prima dată clipesc), iar pe drumul spre MESOPOTAMIA, sub fiecare nivel, sunt 3 buline mici, aurii pentru penele găsite.
+  - Cu toate cele 15 pene deblochezi **curcanul de aur**: tot din aur, ca o statuetă (cap, creastă, cioc, coadă cu dungi, aripi, corp și picioare, cu contur maro închis), cu o sclipire care trece peste el din când în când; noaptea luminează încet: el însuși rămâne luminos (umbra nopții abia îl atinge), iar în jurul lui e o lumină caldă, aurie, care crește și scade lin; și căpșorul de la vieți devine auriu (doar aspectul). Cu costum de foc sau de gheață își păstrează penajul auriu; doar costumul e roșu, respectiv albastru ca gheața. Pornește singur când îl deblochezi și îl poți opri din SETĂRI.
 - **Grăuntele auriu:** iese din unele blocuri M și face curcanul mare. Mare, poate sparge cărămizi, iar dacă e lovit, redevine mic.
 - **Boaba roșie strălucitoare:** iese din aceleași blocuri când curcanul e deja mare (dacă între timp te-ai făcut mic și o iei, te face direct curcan de foc). Curcanul primește un costum roșu și aruncă pene de foc (maximum 2 deodată), care zboară cam 8 tile-uri. Penele dau jos fermierii și aprind fitilul bombelor. Dacă e lovit, curcanul pierde costumul roșu, dar rămâne mare.
 - **Afina înghețată (doar iarna):** în pădurea de brazi iese din blocuri în locul boabei roșii. Curcanul primește un costum albastru deschis și aruncă pene de gheață (tot cu X), care îngheață fermierii, ucenicii și bombele (bombelor li se stinge fitilul).
@@ -78,12 +87,12 @@ Recordul apare în colțul din stânga jos al meniului principal. Cât timp muzi
 
 Deschide `test.html` (sau apasă MOD TEST în meniu). E un laborator: fără cronometru, cu vieți infinite (la moarte reapari pe loc). Jocul pornește în arena de test, iar în dreapta ai un panou:
 
-- **Nivel:** carduri cu poza primului ecran al fiecărui nivel; click pe unul și îl joci. Arena de test se poate juca în oricare dintre cele 5 decoruri (Zi, Noapte, Iarnă, Iarnă noapte și Deșert, păstrat pentru viitor). Dacă termini un nivel, treci la următorul, ca în joc.
+- **Nivel:** carduri mici, cu numărul, un pătrățel în culorile decorului (cer și iarbă) și numele fiecărui nivel; click pe unul și îl joci. Arena de test se poate juca în oricare dintre cele 5 decoruri (Zi, Noapte, Iarnă, Iarnă noapte și Deșert, păstrat pentru viitor). Dacă termini un nivel, treci la următorul, ca în joc.
 - **Pornește de la:** începutul nivelului sau unul dintre punctele de salvare. „Repornește de aici” (sau tasta **R**) reia nivelul de unde ai reapărea dacă ai muri.
-- **Harta de sub joc:** tot nivelul în mic, cu ce se vede acum pe ecran, punctele de salvare, ținta, mobii și curcanul. Dacă dai click sau tragi pe hartă, curcanul se mută acolo.
-- **Curcanul:** îl faci mic, mare, de foc sau de gheață.
+- **Harta de sub joc:** tot nivelul în mic, cu ce se vede acum pe ecran, punctele de salvare, ținta, penele de aur (romburi aurii: pline = luate acum, doar contur = găsite altă dată), mobii și curcanul. Dacă dai click sau tragi pe hartă, curcanul se mută acolo.
+- **Curcanul:** îl faci mic, mare, de foc sau de gheață. Butonul **Curcan de aur** (pornit de la început) arată curcanul de aur și fără pene, doar în modul de test; în joc apare abia după ce găsești toate penele.
 - **Mobi:** ucenic, fermier, bombă sau bombă în fund, care apar în fața curcanului; îi poți și șterge pe toți.
-- **Unelte:** invincibil, hitbox-uri (cu legenda culorilor), viteză 1× / ½× / ¼×, pauză și avans cu un singur cadru.
+- **Unelte:** invincibil, hitbox-uri (cu legenda culorilor), viteză 1× / ½× / ¼×, pauză și avans cu un singur cadru. Butoanele aprinse (alese) sunt galbene, cu o lumină în jur. În modul de test, penele de aur se salvează separat, deci nu se amestecă cu jocul adevărat.
 
 Butoanele folosesc chiar sprite-urile din joc. Același mod se poate deschide și direct, cu `index.html?test` (doar jocul, fără panou). Din panou te întorci la meniu cu „← Meniu”.
 

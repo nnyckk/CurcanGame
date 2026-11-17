@@ -9,6 +9,8 @@
     --bg:#0d0b14;--panel:#15111e;--card:#1d1829;--card2:#262037;--line:#2e2840;--line2:#433a5c;
     --text:#ece8f4;--muted:#9a94ad;--dim:#6f6886;--accent:#ffd23f;--accent-ink:#2a1d00;--accent-bg:#2c2510;
     --on:#1f3a26;--on-line:#4fb35f;--on-text:#d9ffe0;--danger:#ff6a6a;
+    /* Butoanele apăsate / alese sunt „aprinse”: galben cu o lumină în jur, ca să se vadă de departe. */
+    --glow:0 0 0 1px var(--accent),0 0 14px rgba(255,210,63,.5);--lit-bg:#5a4610;--lit-text:#fff3b0;
   }
   *{box-sizing:border-box}
   html,body{margin:0}
@@ -60,7 +62,9 @@
   .btn:hover:not(:disabled){background:var(--card2);border-color:var(--line2)}
   .btn:active:not(:disabled){transform:translateY(1px)}
   .btn kbd{margin-left:auto}
-  .btn.tog[aria-pressed="true"]{background:var(--on);border-color:var(--on-line);color:var(--on-text)}
+  .btn.tog[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600;box-shadow:var(--glow)}
+  .btn.tog[aria-pressed="true"]:hover:not(:disabled){background:#ffe070;border-color:#ffe070}
+  .btn.tog[aria-pressed="true"] kbd{background:rgba(0,0,0,.15);border-color:rgba(0,0,0,.35);color:var(--accent-ink)}
   .btn.danger .px{color:var(--danger)}
   .count{margin-left:auto;min-width:22px;padding:0 6px;border-radius:9px;background:var(--line);font-size:11px;text-align:center}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
@@ -71,32 +75,28 @@
   .seg button{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 4px;border:0;border-radius:6px;
     background:none;color:var(--muted);font-size:12px;white-space:nowrap}
   .seg button:hover:not(:disabled){color:var(--text);background:var(--card2)}
-  .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600}
+  .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600;box-shadow:0 0 10px rgba(255,210,63,.55)}
   .row{display:flex;align-items:center;gap:10px}
   .row .lbl{flex:none;width:52px;color:var(--muted);font-size:12px}
   .row .seg{flex:1}
 
-  /* Cardurile de nivel: poza primului ecran (desenată de joc) + numele */
-  .levels{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-  .lvl{display:flex;flex-direction:column;padding:0;background:var(--card);border:1px solid var(--line);border-radius:8px;
-    overflow:hidden;text-align:left;transition:border-color .12s,box-shadow .12s}
-  .lvl:hover{border-color:var(--line2)}
-  .thumb{position:relative;display:block;aspect-ratio:2/1;background:#000}
-  .thumb img{display:block;width:100%;height:100%;object-fit:cover}
-  .lvl .name{flex:1;display:flex;align-items:center;gap:6px;padding:5px 7px;font-size:12px;min-height:28px}
+  /* Cardurile de nivel, mici: numărul, un pătrățel în culorile decorului (cer + iarbă) și numele */
+  .levels{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .lvl{display:flex;align-items:center;gap:6px;padding:5px 7px;background:var(--card);border:1px solid var(--line);border-radius:8px;
+    text-align:left;font-size:12px;min-width:0;transition:border-color .12s,box-shadow .12s,background .12s}
+  .lvl:hover{border-color:var(--line2);background:var(--card2)}
+  .lvl .name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .num{flex:none;display:inline-grid;place-items:center;min-width:18px;height:18px;padding:0 4px;border-radius:4px;background:var(--line);font-weight:700;font-size:11px}
-  .now{display:none;position:absolute;top:4px;right:4px;padding:1px 5px;border-radius:3px;background:var(--accent);color:var(--accent-ink);
-    font-size:9.5px;font-weight:800;letter-spacing:.06em}
-  .lvl[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+  .sw{flex:none;width:16px;height:14px;border-radius:3px;border:1px solid rgba(255,255,255,.18);background:#000}
+  .lvl[aria-pressed="true"]{background:var(--lit-bg);border-color:var(--accent);color:var(--lit-text);font-weight:600;box-shadow:var(--glow)}
   .lvl[aria-pressed="true"] .num{background:var(--accent);color:var(--accent-ink)}
-  .lvl[aria-pressed="true"] .now{display:block}
   .arena{margin-top:10px}
   .cap{display:block;margin:0 0 5px;font-size:11.5px;color:var(--dim)}
   .themes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
   .chip{display:flex;align-items:center;justify-content:center;gap:5px;padding:6px 2px;
     background:var(--card);border:1px solid var(--line);border-radius:8px;font-size:11.5px;color:var(--muted)}
   .chip:hover{border-color:var(--line2);color:var(--text)}
-  .chip[aria-pressed="true"]{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+  .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600;box-shadow:var(--glow)}
   .loading{grid-column:1/-1;color:var(--dim);font-size:12px;padding:8px 0}
 
   /* Butoanele cu sprite-uri (curcanul, mobii): personajul stă pe o linie de „sol” */
@@ -107,7 +107,7 @@
   .tile:active{transform:translateY(1px)}
   .stage{display:flex;align-items:flex-end;justify-content:center;width:100%;height:50px;padding-bottom:2px;border-bottom:2px solid var(--line2)}
   .stage img{image-rendering:pixelated;display:block}
-  .tile[aria-pressed="true"]{background:var(--accent-bg);border-color:var(--accent);color:var(--accent)}
+  .tile[aria-pressed="true"]{background:var(--lit-bg);border-color:var(--accent);color:var(--lit-text);font-weight:600;box-shadow:var(--glow)}
   .tile[aria-pressed="true"] .stage{border-color:var(--accent)}
   .legend{display:flex;flex-wrap:wrap;gap:4px 10px;font-size:12px;color:var(--muted);margin:2px 0 0}
   .legend[hidden]{display:none}
@@ -152,8 +152,7 @@
     <div class="levels" id="levels">
       <div class="loading">Se încarcă nivelurile…</div>
       <button class="lvl" id="arenaCard" data-arena="0" aria-pressed="false" title="Arena de test: un ecran cu de toate, pentru încercat mecanici">
-        <span class="thumb"><img id="arenaThumb" alt=""><span class="now">ACUM</span></span>
-        <span class="name"><span class="num">A</span>Arena de test</span>
+        <span class="num">A</span><span class="sw" id="arenaSw"></span><span class="name">Arena de test</span>
       </button>
     </div>
     <div class="arena">
@@ -184,11 +183,14 @@
 
   <section>
     <h2>Curcanul</h2>
-    <div class="tiles4" role="group" aria-label="Forma curcanului">
-      <button class="tile" data-form="small" aria-pressed="false" title="Mic (cum pornește)"><span class="stage"><img data-icon="tks" alt=""></span>Mic</button>
-      <button class="tile" data-form="big" aria-pressed="false" title="Mare (grăuntele auriu)"><span class="stage"><img data-icon="tk" alt=""></span>Mare</button>
-      <button class="tile" data-form="fire" aria-pressed="false" title="De foc (boaba roșie): aruncă pene de foc cu X"><span class="stage"><img data-icon="tkf" alt=""></span>Foc</button>
-      <button class="tile" data-form="ice" aria-pressed="false" title="De gheață (afina înghețată): aruncă pene de gheață cu X"><span class="stage"><img data-icon="tki" alt=""></span>Gheață</button>
+    <div class="stack">
+      <div class="tiles4" role="group" aria-label="Forma curcanului">
+        <button class="tile" data-form="small" aria-pressed="false" title="Mic (cum pornește)"><span class="stage"><img data-icon="tks" alt=""></span>Mic</button>
+        <button class="tile" data-form="big" aria-pressed="false" title="Mare (grăuntele auriu)"><span class="stage"><img data-icon="tk" alt=""></span>Mare</button>
+        <button class="tile" data-form="fire" aria-pressed="false" title="De foc (boaba roșie): aruncă pene de foc cu X"><span class="stage"><img data-icon="tkf" alt=""></span>Foc</button>
+        <button class="tile" data-form="ice" aria-pressed="false" title="De gheață (afina înghețată): aruncă pene de gheață cu X"><span class="stage"><img data-icon="tki" alt=""></span>Gheață</button>
+      </div>
+      <button class="btn tog" data-cmd="goldskin" data-toggle="goldskin" aria-pressed="true" title="Curcanul de aur, și fără pene (doar în modul de test; în joc apare abia cu toate penele de aur)"><i data-px="pana"></i>Curcan de aur</button>
     </div>
   </section>
 
@@ -255,6 +257,7 @@ const PX={
   redo:['.###.#.','#...##.','#..###.','#......','#.....#','.#...#.','..###..'],
   x:   ['#.....#','##...##','.##.##.','..###..','.##.##.','##...##','#.....#'],
   star:['...#...','...#...','#######','.#####.','..###..','.##.##.','.#...#.'],
+  pana:['...#...','..###..','.#####.','.#####.','..###..','...#...','...#...'],
   box: ['##.#.##','#.....#','.......','#.....#','.......','#.....#','##.#.##'],
   pause:['.......','.##.##.','.##.##.','.##.##.','.##.##.','.##.##.','.......'],
   step:['.......','##.#...','##.##..','##.###.','##.##..','##.#...','.......'],
@@ -294,7 +297,12 @@ addEventListener('message',e=>{
   if(e.data.map)onMap(e.data.map);
   if(e.data.status)onStatus(e.data.status);
 });
-// O dată: cardurile de nivel (cu pozele făcute de joc) și iconițele (sprite-urile din joc).
+// Pătrățelul unui decor: cerul (în dungi, de sus în jos) și o fâșie de iarbă jos.
+function paintSw(el,t){
+  const th=HELLO&&HELLO.themes&&HELLO.themes[t];if(!el||!th)return;
+  el.style.background=`linear-gradient(${th.sky.join(',')})`;el.style.boxShadow=`inset 0 -4px 0 ${th.grass}`;
+}
+// O dată: cardurile de nivel și iconițele (sprite-urile din joc).
 function onHello(h){
   HELLO=h;
   $('#ver').textContent='v'+h.version;
@@ -305,9 +313,9 @@ function onHello(h){
     const b=document.createElement('button');
     b.className='lvl';b.dataset.level=i;b.setAttribute('aria-pressed','false');
     b.title=(l.bonus?'Nivel bonus':`Nivelul ${l.num||i+1}`)+`: ${nice(l.name)}`+(l.cps?` · ${l.cps} ${l.cps>1?'puncte':'punct'} de salvare`:'');
-    b.innerHTML=`<span class="thumb"><img alt=""><span class="now">ACUM</span></span><span class="name"><span class="num">${l.num||i+1}</span><span></span></span>`;
-    b.querySelector('.name span:last-child').textContent=nice(l.name);
-    if(h.thumbs)b.querySelector('img').src=h.thumbs.levels[i];
+    b.innerHTML=`<span class="num">${l.num||i+1}</span><span class="sw"></span><span class="name"></span>`;
+    b.querySelector('.name').textContent=nice(l.name);
+    paintSw(b.querySelector('.sw'),l.theme);
     box.insertBefore(b,arenaCard);
   });
   $$('img[data-icon]').forEach(img=>{
@@ -321,7 +329,7 @@ function onHello(h){
 }
 function setArenaTheme(t){
   arenaTheme=t;$('#arenaCard').dataset.arena=t;
-  if(HELLO&&HELLO.thumbs)$('#arenaThumb').src=HELLO.thumbs.arena[t];
+  paintSw($('#arenaSw'),t);
 }
 // La fiecare pornire de nivel: ce card e ales, de unde poți porni și harta.
 function onMap(m){
@@ -363,7 +371,7 @@ frame.addEventListener('load',()=>{send('hello');focusGame();});
 // Desenată din tile-urile trimise de joc: fiecare coloană a nivelului e o fâșie, fiecare rând câteva pixeli.
 // Peste ea: fereastra camerei, punctele de salvare, ținta, mobii și curcanul. Click / tras = mută curcanul.
 const mapCv=$('#map'),mg=mapCv.getContext('2d');
-const TILE_COL={B:'#c98a4b',M:'#f2b630',H:'#f2b630',A:'#8ccfee',F:'#e6d9c0',S:'#f2b630',E:'#9a6030',K:'#2a1a12',U:'#9a6030',X:'#8a8fa0','=':'#b5793a','^':'#d8dce6',I:'#dff4ff'};
+const TILE_COL={B:'#c98a4b',P:'#c98a4b',M:'#f2b630',H:'#f2b630',A:'#8ccfee',F:'#e6d9c0',S:'#f2b630',E:'#9a6030',K:'#2a1a12',U:'#9a6030',X:'#8a8fa0','=':'#b5793a','^':'#d8dce6',I:'#dff4ff'};
 const MOB_COL={m:'#ff4a4a',u:'#f4f4f4',b:'#ffa024',f:'#9fe8ff',B:'#ff2020'};   // B = boss-ul
 const MTOP=10;                       // spațiul de sus (px), pentru stegulețe
 let terrain=null,hoverX=null;
@@ -381,7 +389,7 @@ function buildTerrain(){
     const x0=Math.floor(tx*sx),w=Math.max(1,Math.floor((tx+1)*sx)-x0),pit=R[12][tx]==='.',lake=R[12][tx]==='I';
     for(let ty=0;ty<14;ty++){
       const ch=R[ty][tx],y0=Math.round(top+ty*rh),y1=Math.round(top+(ty+1)*rh);
-      if(ch==='.'){
+      if(ch==='.'||ch==='V'){   // V = blocul invizibil cu o pană de aur (pana se vede ca romb, mai jos)
         if(ty===12&&pit){t.fillStyle=c.water;const ys=Math.round(top+(12+5/16)*rh);t.fillRect(x0,ys,w,y1-ys);}
         else if(ty===13&&(pit||lake)){t.fillStyle=c.water;t.fillRect(x0,y0,w,y1-y0);}
         continue;}
@@ -420,6 +428,11 @@ function drawMap(){
   MAP.cps.forEach((cp,i)=>{const on=s&&s.cpOn[i],x=pole(cp+0.5);mg.fillStyle=on?'#ffcf40':'#8a8a9a';mg.fillRect(x+dpr,dpr,6*dpr,4*dpr);});
   if(MAP.goal){const x=pole(MAP.goal.x+(MAP.goal.type==='sign'?2.2:6)),q=2*dpr;
     for(let i=0;i<3;i++)for(let j=0;j<2;j++){mg.fillStyle=(i+j)%2?'#111':'#fff';mg.fillRect(x+dpr+i*q,dpr+j*q,q,q);}}
+  // Penele de aur: romburi aurii (pline = luate acum, contur = găsite altă dată, pal = negăsite încă).
+  (MAP.golds||[]).forEach((g,i)=>{const st=s&&s.gold?s.gold[i]:0,x=X(g.x+0.5),y=Y(g.y+0.5),r=3*dpr;
+    mg.beginPath();mg.moveTo(x,y-r);mg.lineTo(x+r,y);mg.lineTo(x,y+r);mg.lineTo(x-r,y);mg.closePath();
+    mg.fillStyle=st===2?'#ffd23f':st===1?'rgba(255,210,63,.35)':'rgba(255,210,63,.6)';mg.fill();
+    mg.strokeStyle=st===2?'#fff':st===1?'#ffd23f':'#7a4a08';mg.lineWidth=dpr;mg.stroke();});
   if(s){
     for(const [mx,my,k] of s.mobs){const big=k==='B';mg.fillStyle=MOB_COL[k]||'#fff';mg.beginPath();
       mg.arc(X(mx),Y(my)-rh*(big?1.2:0.6),(big?3.4:1.8)*dpr,0,Math.PI*2);mg.fill();if(big){mg.strokeStyle='#000';mg.lineWidth=dpr;mg.stroke();}}
