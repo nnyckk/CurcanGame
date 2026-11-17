@@ -106,8 +106,46 @@ Butoanele folosesc chiar sprite-urile din joc. Același mod se poate deschide ș
 
 ## Tehnic
 
-Totul e într-un singur fișier, `index.html`, fără biblioteci externe:
+Jocul nu are biblioteci externe și nu are nevoie de server: `index.html` încarcă fișierele din `js/` cu `<script>` obișnuite, deci merge și deschis direct din folder (dublu-click).
 
 - grafica e desenată din cod (sprite-uri pixel-art definite ca text),
 - muzica și efectele sonore sunt generate cu Web Audio API (chiptune pe gama Hijaz),
 - fontul pixel 5×7 are și diacritice românești.
+
+### Unde găsești ce
+
+```
+index.html                 pagina și lista de scripturi (ordinea lor contează)
+css/style.css              stilurile paginii
+js/
+  baza/                    setup (ecranul, utilitare), fontul pixel, sprite-uri din text, input
+  sunet/                   efectele sonore și muzica
+  personaje/
+    curcan/                desenele, mișcarea, penele, viața, animațiile, desenarea
+    fermier/  ucenic/      desenele, felinarul, comportamentul
+    bomba/                 desenele, comportamentul
+    mos-curcan/            desenul, replicile din cafenea, sfaturile dintre niveluri
+    dusmani.js             crearea și desenarea dușmanilor
+    inghetare.js           dușmanii înghețați de pana de gheață
+  boss/
+    fermierul-sef/         desenele, comportamentul, desenarea, replicile
+  nivele/
+    nivele.js              cum se construiește o hartă (newMap) și lista LEVELS
+    1-ferma/  2-noapte/  3-lac/  bonus-cafenea/  4-padure/  5-iarna/
+                           harta fiecărui nivel + ce ține doar de el (platformele lacului, cafeneaua)
+    desert-scos/           deșertul, scos din joc, păstrat pentru mai târziu
+  lume/                    teme și tile-uri, fundaluri, decor, restaurantul, noaptea,
+                           iarna/ (zăpadă, gheață, brazi), apa/ (gropi, lacuri, rațe și pești)
+  obiecte/                 bănuți și blocuri, power-up-uri, pene de aur, semnul de final și salvările
+  animatii/                explozii, particule și texte plutitoare
+  joc/                     starea jocului, fizica, pornirea nivelului, update, meniul, dialogul
+  desen/                   ordinea desenării: fundal, lume, HUD, ecrane, render
+  test/                    modul de test (folosit de test.html)
+  main.js                  bucla principală (ultimul script)
+```
+
+**Ordinea scripturilor din `index.html` contează:** fiecare fișier poate folosi, când se încarcă, doar ce au definit fișierele de deasupra lui. Funcțiile se pot apela între ele oricum, pentru că jocul pornește abia după ce s-au încărcat toate.
+
+**Nivel nou:** un folder nou în `js/nivele/`, cu `harta.js` (`LEVELS.push({id:..., theme:..., build(){...}});`), și un `<script>` pentru el în `index.html`, lângă celelalte hărți. Ordinea scripturilor dă ordinea nivelurilor. Ce e doar al nivelului (mecanici noi) stă în același folder.
+
+**Personaj sau boss nou:** un folder în `js/personaje/` sau `js/boss/`, cu `sprite.js` (desenele), `logica.js` (comportamentul) și `desen.js` (desenarea), după modelul celorlalte.
