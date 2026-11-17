@@ -35,7 +35,7 @@
 <script>
 'use strict';
 // ================= SETUP =================
-const GAME_VERSION='0.9.7.1';
+const GAME_VERSION='0.9.8';
 // Modul de test (index.html?test): arenă de test, comenzi din test.html. Pentru jucători nu se schimbă nimic.
 const TEST=/[?&]test\b/.test(location.search);
 const W=400,H=224,TS=16,ROWS=14,TAU=Math.PI*2;
@@ -1722,7 +1722,7 @@ function bossSummon(){
     if(q===0)popup('!',side<0?b.a0-TS/2:b.a1+TS/2,12*TS-56,'#ff8a5a');
     if(!near)side=-side;
   }
-  sfx.alert();popup('LA MINE!',b.x+b.w/2,b.y-16,'#ff8a5a');
+  sfx.alert();   // fără vorbe deasupra lui: vorbește doar în caseta de dialog, prima dată când îl vezi
 }
 // Mobul chemat de boss care n-a intrat încă de tot în poiană (e după una dintre stivele de fân): nu-l atingi, nu te
 // atinge, iar penele trec pe lângă el.
@@ -1760,6 +1760,8 @@ function updateBoss(){
     case 'intro':                                                    // cad baloții de fân în spatele tău, apoi răcnește
       b.logY=Math.min(12*TS-44,-60+b.t*13);
       if(b.t===16){G.shake=10;sfx.thud();}
+      // Prima dată când îl vezi, îți spune ceva (după ce s-au oprit baloții și curcanul a pus piciorul jos).
+      if(b.t===32&&!G.bossMet&&!p.dead){if(!p.onGround)b.t--;else{G.bossMet=true;openTalk(BOSS_HELLO,'boss');}}
       if(b.t===40){sfx.roar();G.shake=14;popup('!',bcx,b.y-14,'#ff4040');playSong('boss');}      if(b.t>=80){b.st='walk';b.t=0;}
       break;
     case 'walk':{
@@ -1973,6 +1975,12 @@ function bossFace(R,ex,ice){
   P(10,8,2,2,'e');P(15,8,2,2,'e');P(11,9,1,1,'k');P(16,9,1,1,'k');
   if(ex==='roar'){P(12,12,4,2,'o');P(12,12,4,1,'e');}else{P(12,12,4,1,'e');}
 }
+// O mânecă în carouri (roșu cu alb, pixel cu pixel, ca brațul din spate din desen), cu contur închis; R = cum desenează
+// drawBoss (sau bustul din caseta de dialog), în coordonatele desenului.
+function bossSleeve(R,dx,dy,w,h,red,white){
+  R(dx-1,dy-1,w+2,h+2,'#1a1020');
+  for(let j=0;j<h;j++)for(let i=0;i<w;i++)R(dx+i,dy+j,1,1,(dx+i+dy+j)%2?red:white);
+}
 function drawBoss(cx){
   const b=boss;if(!b)return;
   for(const f of b.forks)drawFork(f.x-cx,f.y,f.a);                  // furcile aruncate (în zbor sau înfipte)
@@ -1993,7 +2001,8 @@ function drawBoss(cx){
   const R=(dx,dy,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(face>0?sx+dx:sx+28-dx-w,by+dy,w,h);};
   const RO=(dx,dy,w,h,c)=>{R(dx-1,dy-1,w+2,h+2,'#1a1020');R(dx,dy,w,h,c);};
   const cc=c=>ice?mixHex(c,'#a8e0ff',0.55):c;
-  const SLV=cc('#c8302a'),SKIN=cc('#f0b088'),SH=cc('#7a5230'),MT=cc('#c8ccd8'),MD=cc('#6a6e7a');   // mâneca în carouri (roșie)
+  const SLV=cc('#c8302a'),SLW=cc('#ece6d8'),SKIN=cc('#f0b088'),SH=cc('#7a5230'),MT=cc('#c8ccd8'),MD=cc('#6a6e7a');
+  const SL=(dx,dy,w,h)=>bossSleeve(R,dx,dy,w,h,SLV,SLW);   // mâneca în carouri, ca la brațul din spate
   // Fața.
   const ex=b.st==='tired'?'tired':(b.st==='dazed'?'dazed':(b.st==='hurt'?'hurt':
     (['leapWarn','leap','strike','chargePrep','charge'].includes(b.st)||(b.st==='volley'&&b.vk>=b.vwt)?'roar':'angry')));
@@ -2001,15 +2010,16 @@ function drawBoss(cx){
   // Brațul din față și furca (scurtă, cât corpul lui), după ce face.
   const tines=(x0,y0,horiz)=>{if(horiz){R(x0,y0-3,1,7,MD);for(const o of [-3,0,3])R(x0+1,y0+o,5,1,MT);}
     else{R(x0-3,y0,7,1,MD);for(const o of [-3,0,3])R(x0+o,y0-5,1,5,MT);}};
-  const back=sh=>{R(4+sh,16,22,2,SH);tines(26+sh,17,true);RO(15+sh,15,5,3,SLV);RO(13+sh,15,3,3,SKIN);};   // trasă înapoi
+  // Brațul din față e cât cel din spate (din desen): mânecă în carouri groasă de 2 px și mâna de 2 × 2, cu contur.
+  const back=sh=>{R(4+sh,16,22,2,SH);tines(26+sh,17,true);SL(15+sh,16,5,2);RO(13+sh,16,2,2,SKIN);};   // trasă înapoi
   if(b.st==='volley'){
     if(b.vk<b.vwt)back(b.vk>b.vwt-8?((b.t>>1)%2?1:-1):0);           // tremură înainte s-o arunce
-    else{RO(21,15,6,3,SLV);RO(27,15,3,3,SKIN);}                     // tocmai a aruncat-o: mâna întinsă, goală
+    else{SL(21,15,6,2);RO(27,15,2,2,SKIN);}                         // tocmai a aruncat-o: mâna întinsă, goală
   }else if(b.st==='strike'){
     if(b.t<=14)back(b.t>6?((b.t>>1)%2?1:-1):0);
-    else{R(10,17,20+b.ext,2,SH);tines(30+b.ext,18,true);RO(20,15,6,3,SLV);RO(25,16,3,3,SKIN);}   // împunge
-  }else if(b.st==='charge'||b.st==='chargePrep'){R(10,21,18,2,SH);tines(28,22,true);RO(18,16,4,5,SLV);RO(19,20,3,3,SKIN);}
-  else{R(23,2,2,27,SH);tines(24,1,false);RO(20,15,3,6,SLV);RO(21,21,3,3,SKIN);}       // ținută drept în sus, lângă bor
+    else{R(10,17,20+b.ext,2,SH);tines(30+b.ext,18,true);SL(20,16,5,2);RO(25,17,2,2,SKIN);}   // împunge
+  }else if(b.st==='charge'||b.st==='chargePrep'){R(10,21,18,2,SH);tines(28,22,true);SL(19,16,2,5);RO(19,21,2,2,SKIN);}
+  else{R(22,2,2,27,SH);tines(23,1,false);SL(20,15,2,6);RO(21,21,2,2,SKIN);}           // ținută drept în sus, lângă bor
   if(b.raise)ctx.drawImage(BOMB.FA[face>0?'r':'l'],sx+6,by-16);                       // bomba ridicată deasupra capului
   // Cubul de gheață, peste tot.
   if(ice){ctx.globalAlpha=0.4;ctx.fillStyle='#bfe8ff';ctx.fillRect(sx+2,by-2,24,BOSS_H+2);ctx.globalAlpha=1;
@@ -2055,7 +2065,8 @@ function drawLampPost(x,y,red,d){
 // Când pierde o viață (b.lostT, vezi bossHit), bara tremură, segmentul clipește alb, apoi se golește de la dreapta la
 // stânga. Sub bară, cât e de aproape de cubul de gheață (câte pene de gheață l-au nimerit din 10).
 function drawBossBar(){
-  const b=boss;if(!b||b.st==='wait'||b.st==='gone'||(b.st==='dead'&&b.t>70))return;
+  // Apare abia când răcnește (după ce a vorbit, dacă vorbește); cât vorbește, nu se vede.
+  const b=boss;if(!b||b.st==='wait'||(b.st==='intro'&&b.t<40)||G.talk||b.st==='gone'||(b.st==='dead'&&b.t>70))return;
   const frost=b.st==='frozen'?BOSS_ICE_HITS:b.ice,lost=b.lostT||0,sh=lost>24?((lost>>1)%2?1:-1):0;
   const w=180,x=W/2-w/2+sh,y=24,P=(px,py,pw,ph,c)=>{ctx.fillStyle=c;ctx.fillRect(px,py,pw,ph);};
   uiBox(x,y,w,frost?31:26);
@@ -2148,31 +2159,44 @@ const OLD=spr([
   "..........lll.lll........ss."],OLD_PAL);
 const OLD_W=28,OLD_H=31;
 const CAFE_HELLO=['BINE AI VENIT LA MESOCAFÉ, FIULE!','OBOSIT DE ATÂTA FUGĂ?','ODIHNEȘTE-TE PUȚIN DIN AVENTURA TA.',
-  'ÎNCEARCĂ-ȚI NOROCUL LA BLOCUL MARE!'];
+  'LA BLOCUL MARE AI O SINGURĂ ÎNCERCARE: LOVEȘTE-L FIX CÂND ARATĂ CE VREI!'];
 const CAFE_REACT=['PANĂ DE FOC! O SĂ-ȚI ÎNCĂLZEASCĂ IARNA!','AFINĂ ÎNGHEȚATĂ! RĂCOROASĂ CA UN FRAPPE!',
   'DOUĂ VIEȚI! AZI E ZIUA TA NOROCOASĂ!','NIMIC... NU-I BAI, CAFEAUA E DIN PARTEA CASEI!'];
 const CAFE_BYE='DRUM BUN SPRE MESOPOTAMIA!';
-// Dacă tot dai cu capul în blocul-slot gol: la a 5-a, a 7-a și a 15-a lovitură bătrânelul se supără tot mai tare că-i
-// strici cafeneaua; după aceea, la fiecare 5 lovituri (20, 25, 30...), mai zice câte ceva, pe rând. De la a 5-a pică
-// praf din tavan, de la a 7-a se zgâlțâie și camera.
-const CAFE_BONK={5:'HEI, FIULE! BLOCUL E GOL, NU MAI DA CU CAPUL ÎN EL!',7:'MAI ÎNCET, CĂ-MI STRICI CAFENEAUA! ABIA AM ZUGRĂVIT-O!',
-  15:'GATA, ȚI-O TREC PE NOTĂ: O CAFEA ȘI UN TAVAN NOU!'};
+// Dacă tot dai cu capul în blocul-slot gol: la a 5-a lovitură, la a 10-a, apoi din 7 în 7 (17, 24, 31...) bătrânelul
+// zice câte ceva, pe rând, tot mai supărat că-i strici cafeneaua. Camera se
+// zgâlțâie de la prima lovitură (mai tare de la a 7-a), iar după primele 5 pică și praf din tavan.
+const CAFE_BONK=['HEI, FIULE! BLOCUL E GOL, NU MAI DA CU CAPUL ÎN EL!','MAI ÎNCET, CĂ-MI STRICI CAFENEAUA! ABIA AM ZUGRĂVIT-O!',
+  'GATA, ȚI-O TREC PE NOTĂ: O CAFEA ȘI UN TAVAN NOU!'];
 const CAFE_BONK_MORE=['CE CAP TARE AI... SEMENI CU MAICĂ-TA.','LASĂ BLOCUL ÎN PACE ȘI BEA-ȚI CAFEAUA!',
   'AUZI CUM SCÂRȚÂIE GRINDA? NU MAI SĂRI!','CURCANII DE AZI... PE VREMEA MEA BĂTEAM DIN ARIPI!'];
 function cafeBonk(){
   const c=cafe;if(!c||!inCafe())return;
   const n=++c.bonks;
-  if(n>=5)for(let i=0;i<5;i++)parts.push({x:(c.sx+Math.random()*2)*TS,y:CAFE_CEIL*TS+1,vx:(Math.random()-0.5)*0.4,vy:0.3+Math.random()*0.5,g:0.06,life:45,max:45,col:i%2?'#c8b89a':'#8a7a64',s:1});
-  if(n>=7)G.shake=Math.max(G.shake,5);
-  const line=CAFE_BONK[n]||(n>15&&(n-15)%5===0?CAFE_BONK_MORE[((n-15)/5-1)%CAFE_BONK_MORE.length]:null);
-  if(line)openTalk([line]);
+  // Camera se zgâlțâie de la prima lovitură (mai tare de la a 7-a); după primele 5, praful se cerne din locuri la
+  // întâmplare de peste tot din tavan, pe rând (vezi cafeDust în updateCafe).
+  G.shake=Math.max(G.shake,n>=7?6:4);
+  if(n>5)for(let i=0;i<12;i++)c.dust.push({x:c.a*TS+CAFE_L+4+Math.random()*(CAFE_R-CAFE_L-8),t:Math.floor(Math.random()*60)});
+  // Replica a câta (j): la a 5-a lovitură, la a 10-a, apoi din 7 în 7 (17, 24, 31...); întâi cele 3 din CAFE_BONK,
+  // apoi cele din CAFE_BONK_MORE, pe rând, de la capăt.
+  const j=n===5?0:n>=10&&(n-10)%7===0?1+(n-10)/7:-1;
+  if(j>=0)openTalk([j<CAFE_BONK.length?CAFE_BONK[j]:CAFE_BONK_MORE[(j-CAFE_BONK.length)%CAFE_BONK_MORE.length]]);
 }
 function makeCafe(d){
   const used=!!G.slotUsed&&G.slotUsed.level===G.level;
-  const c={x:d.x,a:d.a,sx:d.a+CAFE_SLOT,sy:CAFE_SLOT_Y,i:used?G.slotUsed.res:0,spin:0,next:0,k:0,res:used?G.slotUsed.res:-1,
-    done:used,bump:-1,met:false,react:-1,reactT:0,bonks:0,npcX:d.a*TS+276-OLD_W/2};   // bătrânelul: în fața tejghelei
+  const c={x:d.x,a:d.a,sx:d.a+CAFE_SLOT,sy:CAFE_SLOT_Y,i:used?G.slotUsed.res:0,lastI:0,iT:0,lock:0,res:used?G.slotUsed.res:-1,
+    done:used,bump:-1,met:false,react:-1,reactT:0,bonks:0,dust:[],npcX:d.a*TS+276-OLD_W/2};   // bătrânelul: în fața tejghelei
   if(used)setSlotTiles(c,'E');
   return c;
+}
+// Câte un pumn de praf (2–5 fire, de mărimi și durate diferite) din fiecare loc din tavan, când îi vine rândul. Firele
+// cad încet și se sting repede, la 10–25 px sub tavan (nu ajung jos).
+function cafeDust(c){
+  for(const d of c.dust){if(--d.t>0)continue;
+    for(let i=0,k=2+Math.floor(Math.random()*4);i<k;i++){const life=14+Math.floor(Math.random()*13);
+      parts.push({x:d.x+(Math.random()-0.5)*6,y:CAFE_CEIL*TS+1-Math.random()*2,vx:(Math.random()-0.5)*0.3,vy:0.1+Math.random()*0.3,g:0.04,
+        life,max:life,col:['#8a7a64','#c8b89a','#a89880'][Math.floor(Math.random()*3)],s:Math.random()<0.15?2:1});}}
+  c.dust=c.dust.filter(d=>d.t>0);
 }
 function setSlotTiles(c,ch){for(let j=0;j<2;j++)for(let i=0;i<2;i++)grid[c.sy+j][c.sx+i]=ch;}
 const inCafe=()=>!!cafe&&!!G.inCafe;
@@ -2193,11 +2217,14 @@ function cafeTeleport(){
   else{G.inCafe=false;p.x=c.x*TS+48-p.w/2;cam.x=clamp(p.x+p.w/2-W*0.42,0,camMax());playSong(LEVELS[G.level].song||'main');}
   p.y=(G.inCafe?CAFE_FLOOR:12)*TS-p.h;p.vx=0;p.vy=0;p.face=1;feathers=[];
 }
-// Lovit cu capul: alege la întâmplare unde se oprește și mai face 8-11 pași, tot mai rar, până ajunge acolo.
-// Șansele: X (nimic) 10%; boaba de foc, afina și 2UP câte 30%.
+// Blocul-slot e un mini-joc de îndemânare, nu noroc: arată pe rând boaba de foc, afina, 2UP și X (câte SLOT_STEP
+// cadre fiecare), iar ce arată când dai cu capul în el, aia primești. SLOT_GRACE = dacă tocmai s-a schimbat (în
+// ultimele câteva cadre, cât urcă curcanul din săritură), primești ce era înainte, adică ce ai văzut când ai sărit.
+// După lovitură, simbolul ales clipește SLOT_LOCK cadre, apoi primești premiul.
+const SLOT_STEP=10,SLOT_GRACE=4,SLOT_LOCK=40;
 function slotHit(){
-  const c=cafe;if(!c||c.done||c.spin>0)return;
-  const r=Math.random();c.res=r<0.1?SLOT_NONE:r<0.4?SLOT_FIRE:r<0.7?SLOT_ICE:SLOT_2UP;c.spin=8+((c.res-c.i)%4+4)%4;c.next=3;c.k=0;c.bump=0;sfx.bump();
+  const c=cafe;if(!c||c.done||c.lock>0)return;
+  c.res=G.t-c.iT<SLOT_GRACE?c.lastI:c.i;c.i=c.res;c.lock=SLOT_LOCK;c.bump=0;sfx.bump();sfx.tick();
 }
 function slotPrize(){
   const c=cafe,r=c.res,x=(c.sx+1)*TS,y=c.sy*TS;
@@ -2212,9 +2239,10 @@ const oldFace=()=>player.x+player.w/2<cafe.npcX+OLD_W/2?-1:1;
 function updateCafe(){
   const c=cafe,p=player;
   if(c.bump>=0&&++c.bump>=BUMPY.length)c.bump=-1;
-  if(!c.done&&c.spin===0)c.i=Math.floor(G.t/7)%4;
-  if(c.spin>0&&--c.next<=0){c.i=(c.i+1)%4;c.k++;c.next=Math.round(3+c.k*1.3);sfx.tick();if(--c.spin===0)slotPrize();}
-  if(!inCafe())return;
+  if(!c.done&&c.lock===0){const ni=Math.floor(G.t/SLOT_STEP)%4;if(ni!==c.i){c.lastI=c.i;c.i=ni;c.iT=G.t;}}
+  if(c.lock>0){if(c.lock%8===0)sfx.tick();if(--c.lock===0)slotPrize();}
+  if(!inCafe()){c.dust.length=0;return;}
+  cafeDust(c);
   p.x=clamp(p.x,c.a*TS+CAFE_L+2,c.a*TS+CAFE_R-2-p.w);
   // Prima dată când intri, bătrânelul te salută; după slot, îți spune ce ți-a ieșit (vezi DIALOGUL).
   if(!G.talk&&G.doorT===0){
@@ -2224,8 +2252,8 @@ function updateCafe(){
   // Fumul din pipă (aburul cafelelor de pe măsuțe e desenat în cameră, vezi drawCafeRoom).
   if(G.t%34===0){const f=oldFace();parts.push({x:c.npcX+(f>0?24:4),y:CAFE_FLOOR*TS-OLD_H+7,vx:f*0.12,vy:-0.35,g:-0.003,life:70,max:70,col:'#dcdce4',s:2});}
 }
-// Ce îți spune dacă îl mai întrebi (stai lângă el și apeși ↑): să-ți încerci norocul, sau, după slot, „drum bun”.
-const cafeLine=()=>cafe.done?CAFE_BYE:'ÎNCEARCĂ-ȚI NOROCUL LA BLOCUL MARE!';
+// Ce îți spune dacă îl mai întrebi (stai lângă el și apeși ↑): cum merge blocul-slot, sau, după slot, „drum bun”.
+const cafeLine=()=>cafe.done?CAFE_BYE:'DĂ CU CAPUL ÎN BLOC FIX CÂND ARATĂ CE-ȚI DOREȘTI!';
 // Ce poți face acum cu ↑: 'in' / 'out' = ușile (vezi cafeDoor), 'talk' = vorbești cu bătrânelul (stai lângă el).
 function cafeAction(){
   const d=cafeDoor();if(d)return d;
@@ -2236,15 +2264,40 @@ function cafeAction(){
 // Ce spune apare jos, într-o casetă (lower third), cu fața lui în stânga și numele deasupra textului. Literele apar
 // pe rând, cu un „bla-bla” încet; SPACE / ENTER / ↑ (pe telefon: atingi ecranul sau SARI) arată tot rândul, apoi trece
 // la următorul, iar după ultimul închide caseta. Cât e deschisă, jocul stă (curcanul nu se mișcă, timpul nu curge).
-const TALK_NAME='MOȘ CURCAN',TALK_WRAP=44;
+const TALK_WRAP=44,TALK_LIFT=28;
+// Cine vorbește: numele de pe etichetă și bustul din ramă (22 × 20, desenat cu colțul din stânga sus în x, y).
+// Același design de casetă pentru toți; se schimbă doar numele și portretul.
+const TALK_WHO={
+  old:{name:'MOȘ CURCAN',bust:(x,y)=>ctx.drawImage(OLD.r,6,0,22,20,x,y,22,20)},
+  boss:{name:'FERMIERUL-ȘEF',bust:(x,y)=>ctx.drawImage(bossBust(),3,0,22,20,x,y,22,20)},
+};
+// Bustul Fermierului-Șef pentru caseta de dialog: desenul lui, încruntat, cu furca ținută drept în sus (ca în drawBoss),
+// făcut o singură dată. Tăietura (coloanele 3-24, rândurile 0-19) prinde pălăria, fața, barba și pieptul.
+let BOSS_BUST=null;
+function bossBust(){
+  if(BOSS_BUST)return BOSS_BUST;
+  const [c,g]=mkCanvas(28,31);g.drawImage(BOSS.A.r,0,0);
+  const R=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(x,y,w,h);},RO=(x,y,w,h,col)=>{R(x-1,y-1,w+2,h+2,'#1a1020');R(x,y,w,h,col);};
+  bossFace(R,'angry',false);
+  R(22,2,2,27,'#7a5230');R(20,1,7,1,'#6a6e7a');for(const o of [-3,0,3])R(23+o,-4,1,5,'#c8ccd8');
+  bossSleeve(R,20,15,2,6,'#c8302a','#ece6d8');RO(21,21,2,2,'#f0b088');
+  return BOSS_BUST=c;
+}
+// Ce îți spune Fermierul-Șef când îl vezi prima dată (după ce cad baloții de fân în spatele tău, înainte să răcnească).
+// O singură dată pe joc: dacă pierzi o viață și te întorci, nu mai vorbește (vezi G.bossMet).
+const BOSS_HELLO=['STAI PE LOC, CURCANULE! DE AICI NU MAI SCAPI!',
+  'TE-AM FUGĂRIT PRIN TOATĂ FERMA, PRIN PĂDURE ȘI PRIN ZĂPADĂ!',
+  'VREI LA RESTAURANT? AJUNGI, NU-ȚI FACE GRIJI... PE MENIU!'];
 // Litere mici (3 × 5, M și N mai late), doar pentru numele de pe eticheta casetei de dialog; Ș are virgulă dedesubt.
-const TINY={A:[".#.","#.#","###","#.#","#.#"],C:[".##","#..","#..","#..",".##"],M:["#...#","##.##","#.#.#","#...#","#...#"],
+const TINY={A:[".#.","#.#","###","#.#","#.#"],C:[".##","#..","#..","#..",".##"],E:["###","#..","##.","#..","###"],
+  F:["###","#..","##.","#..","#.."],I:["#","#","#","#","#"],L:["#..","#..","#..","#..","###"],M:["#...#","##.##","#.#.#","#...#","#...#"],
   N:["#..#","##.#","#.##","#..#","#..#"],O:[".#.","#.#","#.#","#.#",".#."],R:["##.","#.#","##.","#.#","#.#"],
-  S:[".##","#..",".#.","..#","##."],U:["#.#","#.#","#.#","#.#","###"],'Ș':[".##","#..",".#.","..#","##.","...",".#."],' ':["..",".."]};
+  S:[".##","#..",".#.","..#","##."],U:["#.#","#.#","#.#","#.#","###"],'Ș':[".##","#..",".#.","..#","##.","...",".#."],
+  '-':["..","..","##","..",".."],' ':["..",".."]};
 const tinyW=s=>[...s].reduce((w,ch)=>w+(TINY[ch]||TINY[' '])[0].length+1,0)-1;
 function tinyTxt(s,x,y,col){ctx.fillStyle=col;
   for(const ch of s){const g=TINY[ch]||TINY[' '];g.forEach((r,j)=>{for(let i=0;i<r.length;i++)if(r[i]==='#')ctx.fillRect(x+i,y+j,1,1);});x+=g[0].length+1;}}
-function openTalk(lines){G.talk={lines,i:0,n:0};if(player)player.vx=0;}
+function openTalk(lines,who='old'){G.talk={lines,i:0,n:0,who:TALK_WHO[who]};if(player)player.vx=0;}
 function updateTalk(){
   const T=G.talk,len=[...T.lines[T.i]].length,prev=Math.floor(T.n);
   if(T.n<len){T.n=Math.min(len,T.n+0.5);const n=Math.floor(T.n);if(n!==prev&&n%2===0)sfx.talk();}
@@ -2261,11 +2314,11 @@ function drawTalk(){
   const w=320,h=40,x=(W-w)/2,y=H-h-4,line=T.lines[T.i],len=[...line].length,typing=T.n<len;
   uiBox(x,y,w,h);
   // Numele, cu litere mici (3 × 5), într-o etichetă mică lipită deasupra casetei, chiar deasupra portretului.
-  const tw=tinyW(TALK_NAME)+8;uiBox(x+6,y-10,tw,11);tinyTxt(TALK_NAME,x+10,y-7,'#ffd23f');
-  // Bustul lui (pălăria, capul, ochelarii, ciocul, pipa, gulerul și vesta: coloanele 6-27, rândurile 0-19 din desen),
-  // la mărimea lui, cât rama de alamă (tăietura cade chiar pe ramă), la mijlocul casetei pe înălțime.
+  const who=T.who||TALK_WHO.old,tw=tinyW(who.name)+8;uiBox(x+6,y-10,tw,11);tinyTxt(who.name,x+10,y-7,'#ffd23f');
+  // Bustul celui care vorbește (la Moș Curcan: pălăria, capul, ochelarii, ciocul, pipa, gulerul și vesta), la mărimea
+  // lui, cât rama de alamă (tăietura cade chiar pe ramă), la mijlocul casetei pe înălțime.
   ctx.fillStyle='#c8962c';ctx.fillRect(x+8,y+9,24,22);ctx.fillStyle='#e8c060';ctx.fillRect(x+8,y+9,24,1);
-  ctx.fillStyle='#4a2228';ctx.fillRect(x+9,y+10,22,20);ctx.drawImage(OLD.r,6,0,22,20,x+9,y+10,22,20);
+  ctx.fillStyle='#4a2228';ctx.fillRect(x+9,y+10,22,20);who.bust(x+9,y+10);
   // Textul, în dreapta portretului, la mijlocul casetei; literele apar pe rând (rândurile se rup o dată, pe tot
   // textul, ca să nu sară cuvintele).
   const rows=wrapWords(line,TALK_WRAP),ty=y+Math.round((h-(rows.length*12-5))/2);let left=Math.floor(T.n);
@@ -2402,11 +2455,15 @@ function drawSlotBlock(x,y,used){
   if(used){P(0,0,32,32,'#4a2a10');P(1,1,30,30,'#9a6030');P(1,1,30,2,'#b07840');P(1,29,30,2,'#7a4a20');}
   else{P(0,0,32,32,'#7a3e0a');P(1,1,30,30,['#f2b630','#f7c850','#ffd970'][[0,1,2,1][(G.t>>3)%4]]);
     P(1,1,30,2,'#fff0b0');P(1,1,2,30,'#fff0b0');P(1,29,30,2,'#b8701a');P(29,1,2,30,'#b8701a');
-    const sp=c&&c.spin>0?G.t>>1:G.t>>3;
+    const sp=c&&c.lock>0?G.t>>1:G.t>>3;   // după lovitură, becurile aleargă repede
     [[4,1],[10,1],[16,1],[22,1],[27,1],[27,9],[27,15],[27,21],[27,28],[22,28],[16,28],[10,28],[4,28],[1,21],[1,15],[1,9]]
       .forEach(([bx,by],i)=>P(bx,by,2,2,(i+sp)%2?'#fff3b0':'#ff5a3a'));}
   P(5,5,22,22,'#120a04');P(6,6,20,20,used?'#3a2410':'#2a1a10');P(6,25,20,1,used?'#5a3a1a':'#4a2e14');
-  ctx.globalAlpha=used?0.5:1;drawSlotIcon(c?c.i:0,x+16,y+16);ctx.globalAlpha=1;
+  // După lovitură, simbolul nimerit clipește (pe un fundal care se aprinde) până primești premiul.
+  // În primele 8 cadre stă aprins, ca să vezi bine ce ai nimerit.
+  const lk=c&&c.lock>0?c.lock:0,on=!lk||lk>SLOT_LOCK-8||(lk>>2)%2;
+  if(lk&&on)P(6,6,20,20,'#5a4020');
+  ctx.globalAlpha=used?0.5:1;if(on)drawSlotIcon(c?c.i:0,x+16,y+16);ctx.globalAlpha=1;
 }
 // Ce arată blocul-slot: boaba roșie, afina înghețată (de două ori mai mari), „2UP” sub un cap de curcan, sau un X roșu.
 function drawSlotIcon(r,cx,cy){
@@ -2477,7 +2534,7 @@ function updateIce(){
 function makeEnemy(type,tx,ty){return type==='man'||type==='boy'
   ?{type:'man',boy:type==='boy',x:tx*TS+3,y:(ty+1)*TS-18,w:10,h:18,vx:0,vy:0,dir:-1,active:false,dead:0,deadT:0,anim:0,chasing:false,alert:0,atk:0,cd:0,onGround:false}
   :{type:'bomb',x:tx*TS+2,y:(ty+1)*TS-12,w:12,h:12,vx:0,vy:0,dir:-1,active:false,lit:0,sit:false,slideDir:0,slideT:0,kickT:0,anim:0,onGround:false};}
-function newGame(){G.carryBig=false;G.carryFire=false;G.carryIce=false;G.lives=3;G.score=0;G.coins=0;G.level=0;G.cp=null;G.slotUsed=null;G.tip=null;toIntro(true);stopSong();}
+function newGame(){G.carryBig=false;G.carryFire=false;G.carryIce=false;G.lives=3;G.score=0;G.coins=0;G.level=0;G.cp=null;G.slotUsed=null;G.bossMet=false;G.tip=null;toIntro(true);stopSong();}
 // Sfaturile de pe ecranul de dinaintea nivelului, alese la întâmplare (niciodată același de două ori la rând).
 // Prima dată când intri într-un nivel, sfatul e despre nivelul ăla (tip-ul lui, plus cele pentru noapte / iarnă);
 // după ce pierzi o viață, poate fi și unul general. „fire” = despre boaba roșie, care iarna nu apare (acolo e afina).
@@ -2511,7 +2568,7 @@ function startLevel(quiet){
   const def=LEVELS[G.level],m=def.build();
   grid=m.grid;cols=m.w;theme=THEMES[def.theme];tiles=getTiles(def.theme);bg=getBG(def.theme);goal=m.goalDef;
   enemies=m.ents.map(d=>makeEnemy(d.type,d.x,d.y));
-  G.frame=0;plats=m.plats.map(makePlat);boss=m.bossDef?makeBoss(m.bossDef):null;cafe=m.cafeDef?makeCafe(m.cafeDef):null;G.doorT=0;G.inCafe=false;G.talk=null;
+  G.frame=0;plats=m.plats.map(makePlat);boss=m.bossDef?makeBoss(m.bossDef):null;cafe=m.cafeDef?makeCafe(m.cafeDef):null;G.doorT=0;G.inCafe=false;G.talk=null;G.lift=0;
   // Mobii puși pe o platformă care se mișcă stau pe ea de la început (și sunt duși cu ea chiar înainte să se „trezească”).
   for(const e of enemies){const p=plats.find(p=>Math.abs(p.y-(e.y+e.h))<1&&e.x+e.w>p.x&&e.x<p.x+p.w);if(p)e.plat=p;}
   coins=m.coins.map(([x,y])=>({x:x*TS+8,y:y*TS+8,taken:false}));
@@ -3201,11 +3258,15 @@ function updateCam(){
   cam.x+=(target-cam.x)*0.18;
 }
 function updatePlay(){
+  // Afară, cât vorbește cineva (Fermierul-Șef), lumea urcă lin cu TALK_LIFT px, ca să se vadă curcanul și cel care
+  // vorbește deasupra casetei de dialog; după aceea coboară la loc. (În cafenea camera e deja urcată, vezi CAFE_VY.)
+  G.lift=(G.lift||0)+((G.talk&&!inCafe()?TALK_LIFT:0)-(G.lift||0))*0.25;if(G.lift<0.5&&!G.talk)G.lift=0;
   // Animația de creștere/micșorare îngheață jocul pentru o clipă, ca la platformerele clasice.
   if(G.growT>0){G.growT--;return;}
   // Intrarea / ieșirea din cafenea: ecranul se întunecă, iar la jumătate curcanul trece dincolo de ușă.
   if(G.doorT>0){if(--G.doorT===DOOR_T/2)cafeTeleport();updateFx();return;}
-  // Cât vorbește bătrânelul, jocul stă: doar caseta de dialog, fumul și blocul-slot merg mai departe.
+  // Cât vorbește cineva (bătrânelul din cafenea, Fermierul-Șef), jocul stă: doar caseta de dialog, fumul, praful și
+  // blocul-slot merg mai departe.
   if(G.talk){updateTalk();if(cafe)updateCafe();updateFx();return;}
   G.frame++;
   if(!TEST&&!inCafe()&&G.frame%60===0){G.time--;   // în cafenea timpul stă pe loc
@@ -3623,7 +3684,8 @@ function drawWorld(){
   const cx=Math.round(cam.x)+sh;
   // În cafenea, camera dinăuntru ține loc de cer și fundal, iar toată lumea e urcată cu CAFE_VY, ca să stea camera la
   // mijlocul ecranului (tile-urile, și deci săriturile, rămân aceleași).
-  const vy=inCafe()?CAFE_VY:0;ctx.save();ctx.translate(0,vy);
+  // Afară, cât vorbește cineva, lumea urcă puțin (G.lift, vezi updatePlay), ca personajele să stea deasupra casetei.
+  const lift=inCafe()?0:Math.round(G.lift||0),vy=inCafe()?CAFE_VY:-lift;ctx.save();ctx.translate(0,vy);
   if(inCafe())drawCafeRoom(cx);else drawBG();
   // Noaptea: lumea de joc (sol, blocuri, personaje, apă) se desenează pe un canvas separat, ca să primească
   // umbra albastră doar ea — fundalul are deja culori de noapte, iar luminile se pun după, nealterate.
@@ -3698,6 +3760,8 @@ function drawWorld(){
   if(cafe)drawCafeHints(cx);
   if(TEST&&G.showHB)drawHitboxes(cx);
   ctx.restore();
+  // Lumea urcată: golul rămas jos se umple cu ultimul rând de sol (pământ, sau apă la iaz), copiat în jos.
+  for(let y=H-lift;y<H;y+=TS){const h=Math.min(TS,H-y);ctx.drawImage(cv,0,H-lift-TS,W,h,0,y,W,h);}
   drawTalk();   // caseta de dialog (lower third), fixă pe ecran
   // Intrarea / ieșirea din cafenea: ecranul se întunecă și se luminează la loc (HUD-ul rămâne).
   if(G.doorT>0){ctx.fillStyle=`rgba(13,11,20,${1-Math.abs(G.doorT-DOOR_T/2)/(DOOR_T/2)})`;ctx.fillRect(0,0,W,H);}
@@ -3968,7 +4032,7 @@ const ARENA=TEST?LEVELS.push(TEST_LEVEL)-1:-1;
 function testLoad(lv,cp){
   const alive=player&&!player.dead;
   G.carryBig=alive&&player.big;G.carryFire=alive&&player.fire;G.carryIce=alive&&player.ice;
-  G.level=lv;G.slotUsed=null;
+  G.level=lv;G.slotUsed=null;G.bossMet=false;
   const x=cp>0?LEVELS[lv].build().cps[cp-1]:undefined;
   G.cp=x===undefined?null:{level:lv,x};
   startLevel();
