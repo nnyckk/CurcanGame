@@ -35,7 +35,7 @@
 <script>
 'use strict';
 // ================= SETUP =================
-const GAME_VERSION='0.9.7';
+const GAME_VERSION='0.9.7.1';
 // Modul de test (index.html?test): arenă de test, comenzi din test.html. Pentru jucători nu se schimbă nimic.
 const TEST=/[?&]test\b/.test(location.search);
 const W=400,H=224,TS=16,ROWS=14,TAU=Math.PI*2;
@@ -507,13 +507,13 @@ const PALM=(()=>{const [c,g]=mkCanvas(36,50);
 // Placa de gheață a lacurilor: 7 rânduri (alb sus, apoi tot mai albastru), de la nivelul solului în jos.
 const ICE_SLAB=7,ICE_ROWS=['#ffffff','#e6f6fe','#e6f6fe','#c4e6f6','#c4e6f6','#c4e6f6','#a6d2ea'];
 const THEMES=[
- {name:'FERMA',farm:true,sky:['#4fb4f0','#6cc6f6','#8ed6fa','#b4e6fc'],sun:{x:330,y:42,r:14,c:'#fff6b0',c2:'#ffe070'},far:'#9ac4dc',farL:'#b4d6e8',
+ {name:'AVENTURA ÎNCEPE',farm:true,sky:['#4fb4f0','#6cc6f6','#8ed6fa','#b4e6fc'],sun:{x:330,y:42,r:14,c:'#fff6b0',c2:'#ffe070'},far:'#9ac4dc',farL:'#b4d6e8',
   mid:'hills',midC:'#5cae48',midL:'#7ccc5c',midD:'#3e8a36',clouds:true,cloudC:'#ffffff',cloudS:'#cfe8f4',
   grass:'#5cc23a',grassL:'#8ae060',grassD:'#3a8a28',dirt:'#9a5a2a',dirtD:'#6e3c18',dirtL:'#b87440',
   water:{body:'#3a8ee8',deep:'#2662b8',top:'#a8e0ff',foam:'#ffffff',glint:'#ffffff'}},
  // Pădurea de brazi iarna (nivelul 4): munți înzăpeziți în spate, dealuri albe cu brazi, zăpadă pe jos și pe blocuri,
  // fulguire ușoară și lacuri înghețate. „grass” e aici zăpada de deasupra solului, „dirt” pământul înghețat.
- {name:'PĂDUREA DE BRAZI',snow:true,sky:['#94bee2','#acd0ec','#c4def2','#dae9f6'],sun:{x:318,y:40,r:11,c:'#fffdf2',c2:'#f4eccc'},
+ {name:'ALUNECUȘ',snow:true,sky:['#94bee2','#acd0ec','#c4def2','#dae9f6'],sun:{x:318,y:40,r:11,c:'#fffdf2',c2:'#f4eccc'},
   far:'#a9bcd2',farL:'#bfcfe0',farHill:'#c8d7e6',farHillL:'#e4ecf4',
   mid:'forest',midC:'#dbe7f1',midL:'#f6f9fc',midD:'#bccdde',clouds:true,cloudN:3,cloudC:'#ffffff',cloudS:'#cfdbe8',
   grass:'#f2f6fa',grassL:'#ffffff',grassD:'#c6d6e6',dirt:'#5e4a40',dirtD:'#3e3028',dirtL:'#7a6658',
@@ -524,7 +524,7 @@ const THEMES=[
   water:{body:'#1c2c64',deep:'#0e1640',top:'#6a8ad0',foam:'#c8d8ff',glint:'#f0f4ff'}},
  // Ferma noaptea (nivelul 2). Fundalul are culori de noapte; solul, apa și personajele folosesc culorile de zi,
  // iar umbra albastră de noapte se pune peste ele la desenare (night:true), ca toată lumea să arate la fel.
- {name:'NOAPTEA LA FERMĂ',farm:true,night:true,sky:['#070a1c','#0c1230','#141c44','#1e2a58'],moon:{x:300,y:38,r:10},stars:true,
+ {name:'ORA DE CULCARE',farm:true,night:true,sky:['#070a1c','#0c1230','#141c44','#1e2a58'],moon:{x:300,y:38,r:10},stars:true,
   far:'#1c2448',farL:'#2c3864',mid:'hills',midC:'#1c3a30',midL:'#2a5444',midD:'#12281f',
   clouds:true,cloudN:3,cloudC:'#2e3862',cloudS:'#1e2648',
   grass:'#5cc23a',grassL:'#8ae060',grassD:'#3a8a28',dirt:'#9a5a2a',dirtD:'#6e3c18',dirtL:'#b87440',
@@ -532,14 +532,14 @@ const THEMES=[
 ];
 // Lacul (nivelul 3): tot ferma ziua, cu alt nume. Fiind altă temă, fundalul iese aranjat altfel (alt rng).
 // lake = pe lac e viață: rațe, pești, libelule, broaște (vezi VIAȚA LACULUI).
-THEMES.push(Object.assign({},THEMES[0],{name:'LACUL',lake:true}));
+THEMES.push(Object.assign({},THEMES[0],{name:'MARELE ALBASTRU',lake:true}));
 // Noaptea de iarnă (nivelul 5): pădurea de brazi noaptea. Cerul are culori de noapte, lună și stele; munții, brazii și
 // norii din fundal se desenează ca ziua și apoi se întunecă (vezi getBG); solul, gheața și personajele primesc umbra
 // de noapte la desenare (night:true), ca la ferma noaptea — deci și felinarele fermierilor.
-THEMES.push(Object.assign({},THEMES[1],{name:'NOAPTE DE IARNĂ',night:true,sun:null,moon:{x:92,y:42,r:10},stars:true,
+THEMES.push(Object.assign({},THEMES[1],{name:'MINUS GRADE',night:true,sun:null,moon:{x:92,y:42,r:10},stars:true,
   sky:['#070a1c','#0b1230','#121c44','#1c2a58']}));
 // Popasul la MesoCafe (nivelul bonus, la începutul iernii): pădurea de brazi ziua, cu alt nume (alt rng la fundal).
-THEMES.push(Object.assign({},THEMES[1],{name:'POPAS LA MESOCAFÉ'}));
+THEMES.push(Object.assign({},THEMES[1],{name:'BONUS'}));
 const tileCache={},bgCache={};
 function getTiles(ti){
   if(tileCache[ti])return tileCache[ti];
