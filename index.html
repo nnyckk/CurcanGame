@@ -35,7 +35,7 @@
 <script>
 'use strict';
 // ================= SETUP =================
-const GAME_VERSION='0.9.8.3';
+const GAME_VERSION='0.9.8.4';
 // Modul de test (index.html?test): arenă de test, comenzi din test.html. Pentru jucători nu se schimbă nimic.
 const TEST=/[?&]test\b/.test(location.search);
 const W=400,H=224,TS=16,ROWS=14,TAU=Math.PI*2;
@@ -1244,7 +1244,7 @@ const LEVELS=[
  // id = numele sub care se salvează penele de aur găsite (nu se schimbă, chiar dacă se schimbă ordinea nivelurilor).
  // Penele de aur (m.pana, vezi PENELE DE AUR), câte 3 pe nivel: una ascunsă într-un bloc invizibil (sau în fân, la
  // boss), una la vedere dar greu de luat și una într-o cărămidă (trebuie să fii mare).
- {id:'ferma',theme:0,tip:'Grăuntele auriu te face mare!',build(){const m=newMap(210);m.g(0,209);
+ {id:'ferma',theme:0,tip:'GRĂUNTELE AURIU TE FACE MARE, FIULE!',build(){const m=newMap(210);m.g(0,209);
   // Primul nivel e de învățat: până după punctul de salvare sunt doar ucenici (fără furcă, nu te urmăresc);
   // fermierii cu furcă apar abia spre final, la ultimele două întâlniri.
   m.c(6,10,3);m.r(12,8,'BMBHB');m.c(13,5,3);
@@ -1275,7 +1275,7 @@ const LEVELS=[
  // așa că traseul are locuri unde te poți strecura prin spatele lor (dâmburi, platforme deasupra ta, iazuri).
  // Ucenicii (fără felinar, nu te caută) sunt amestecați printre ei; fermierii cu felinar păstrează locurile de strecurat.
  // De două ori fermierul are ucenicul în spatele lui (106/112 și 174/186).
- {id:'noapte',theme:3,song:'night',tip:'Nu intra în lumina felinarelor!',build(){const m=newMap(220);m.g(0,219);
+ {id:'noapte',theme:3,song:'night',tip:'NOAPTEA, FERMIERII VĂD DOAR CE LE LUMINEAZĂ FELINARUL.',build(){const m=newMap(220);m.g(0,219);
   m.c(6,10,3);m.r(11,8,'BMBHB');m.c(12,5,3);
   m.e('boy',24);
   m.st(30,3,1);m.pit(33,36);m.c(33,8,4);m.st(37,3,-1);
@@ -1303,7 +1303,7 @@ const LEVELS=[
  // din a doua parte, fermieri cu furcă; pe o platformă care se mișcă se plimbă un ucenic.
  // Pe bucăți: întâi scânduri și insule (de învățat), apoi pe rând platforma care se mișcă pe orizontală, cea care urcă
  // și coboară și șirul de platforme care cad; după fiecare punct de salvare, aceleași lucruri amestecate și mai grele.
- {id:'lac',theme:4,tip:'Platformele crăpate cad sub tine!',build(){const m=newMap(350);m.g(0,349);
+ {id:'lac',theme:4,tip:'SCÂNDURILE CRĂPATE NU TE ȚIN MULT. NU STA PE ELE!',build(){const m=newMap(350);m.g(0,349);
   // Primul ecran e tot pe pământ (blocurile de la start și bănuți); lacul începe la marginea lui din dreapta.
   m.c(5,10,3);m.r(9,8,'BMBHB');m.c(10,5,3);m.c(17,10,4);
   m.pit(25,322);                                                                   // lacul (până la sol, la final)
@@ -1358,7 +1358,7 @@ const LEVELS=[
  // ucenici, două iazuri mici înghețate, bănuți și blocuri cu bănuți. La mijloc e căsuța MesoCafé: în fața ușii apeși ↑
  // și intri în cafenea (vezi CAFENEAUA), unde te așteaptă un curcan bătrânel și blocul-slot. Pe drumul spre
  // MESOPOTAMIA are o steluță în loc de bulină, iar numerotarea nivelurilor îl sare.
- {id:'bonus',theme:6,song:'winter',bonus:true,tip:'Apasă ↑ la ușa cafenelei ca să intri.',build(){const m=newMap(168);m.g(0,142);   // sol până lângă camera cafenelei (fără gol cu apă)
+ {id:'bonus',theme:6,song:'winter',bonus:true,tip:'TE AȘTEPT LA CAFENEA, FIULE! APASĂ ↑ LA UȘĂ.',build(){const m=newMap(168);m.g(0,142);   // sol până lângă camera cafenelei (fără gol cu apă)
   // Bănuții: exact 50 cu totul (împreună cu cei 6 din blocurile M), puși ca să te poarte prin nivel: un rând după
   // blocurile de la început, un arc pe drumul săriturii peste primul iaz, două scânduri în trepte înainte de
   // cafenea (sus, o răsplată pentru cine urcă), o grămadă după cafenea, blocuri cu câte un bănuț deasupra fiecăruia,
@@ -1392,7 +1392,7 @@ const LEVELS=[
  // E mai greu decât primele două: aproape numai fermieri cu furcă, bombe lângă maluri (explozia lor sparge gheața),
  // copci late de 3 tile-uri în aproape fiecare lac, fermieri care te așteaptă pe malul celălalt, mobi și pe platforme
  // și un singur bloc cu power-up pe drum (în afară de cel de la început).
- {id:'padure',theme:1,song:'winter',tip:'Pe gheață nu sta pe loc: crapă!',build(){const m=newMap(466);m.g(0,465);
+ {id:'padure',theme:1,song:'winter',tip:'PE GHEAȚĂ NU STA PE LOC, FIULE. CRAPĂ!',build(){const m=newMap(466);m.g(0,465);
   m.c(6,10,3);m.r(11,8,'BMBHB');m.c(12,5,3);
   m.e('boy',20);m.e('bomb',23);
   // Lacul 1 (10 tile-uri): deja cu o copcă; bomba de pe mal te urmărește până la marginea gheții.
@@ -1453,7 +1453,7 @@ const LEVELS=[
  // loc). Fermierii nu calcă pe gheață, ci patrulează pe mal: treci lacul când se uită în altă parte, dar fără să aștepți
  // pe gheață. Ucenicii n-au felinar. Lung cât primele niveluri, cu un punct de salvare la jumătate și încă unul chiar
  // înaintea poienii în care te așteaptă FERMIERUL-ȘEF (boss-ul, vezi BOSS); după el, drumul spre restaurant.
- {id:'iarna',theme:5,song:'winter',tip:'MESOPOTAMIA e aproape!',build(){const m=newMap(266);m.g(0,265);
+ {id:'iarna',theme:5,song:'winter',tip:'MESOPOTAMIA E APROAPE. DAR NU EȘTI SINGUR PE DRUM, FIULE...',build(){const m=newMap(266);m.g(0,265);
   m.c(6,10,3);m.r(11,8,'BMBHB');m.c(12,5,3);
   m.e('boy',21);
   // Lacul 1: o copcă; dincolo, un fermier care patrulează între mal și trepte.
@@ -1493,7 +1493,7 @@ const LEVELS=[
 // Deșertul (fostul nivel 5, noaptea): scos din joc deocamdată, păstrat pentru mai târziu. Tema lui (THEMES[2]) a rămas
 // și se poate vedea în arena din modul de test. Ca să revină, se pune DESERT_LEVEL înapoi în LEVELS.
 const DESERT_LEVEL=
- {theme:2,tip:'MESOPOTAMIA e aproape!',build(){const m=newMap(250);m.g(0,249);
+ {theme:2,tip:'MESOPOTAMIA E APROAPE. DAR NU EȘTI SINGUR PE DRUM, FIULE...',build(){const m=newMap(250);m.g(0,249);
   m.c(6,10,4);m.r(12,8,'MBHBM');
   m.e('man',20);m.e('man',24);
   m.sp(29,3);
@@ -1832,7 +1832,7 @@ function updateBoss(){
       b.logY=Math.min(12*TS-44,-60+b.t*13);
       if(b.t===16){G.shake=10;sfx.thud();}
       // Prima dată când îl vezi, îți spune ceva (după ce s-au oprit baloții și curcanul a pus piciorul jos).
-      if(b.t===32&&!G.bossMet&&!p.dead){if(!p.onGround)b.t--;else{G.bossMet=true;openTalk(BOSS_HELLO,'boss');}}
+      if(b.t===32&&!G.bossMet&&!p.dead){if(!p.onGround)b.t--;else{G.bossMet=true;MOS.boss=true;mosSave();openTalk(BOSS_HELLO,'boss');}}
       if(b.t===40){sfx.roar();G.shake=14;popup('!',bcx,b.y-14,'#ff4040');playSong('boss');}      if(b.t>=80){b.st='walk';b.t=0;}
       break;
     case 'walk':{
@@ -2332,6 +2332,14 @@ const CAFE_HELLO=['BINE AI VENIT LA MESOCAFÉ, FIULE!','OBOSIT DE ATÂTA FUGĂ?'
 const CAFE_REACT=['PANĂ DE FOC! O SĂ-ȚI ÎNCĂLZEASCĂ IARNA!','AFINĂ ÎNGHEȚATĂ! RĂCOROASĂ CA UN FRAPPE!',
   'DOUĂ VIEȚI! AZI E ZIUA TA NOROCOASĂ!','NIMIC... NU-I BAI, CAFEAUA E DIN PARTEA CASEI!'];
 const CAFE_BYE='DRUM BUN SPRE MESOPOTAMIA!';
+// Dacă ai mai fost la el în alt joc, te ține minte: te salută altfel și-ți amintește ce ai luat data trecută de la
+// bloc; apoi îți spune iar regula blocului (ultima replică din CAFE_HELLO).
+function cafeHello(){
+  if(MOS.cafe<=1)return CAFE_HELLO;
+  const l=['IAR TU, FIULE? BINE AI REVENIT LA MESOCAFÉ!'];
+  if(MOS.slot>=0)l.push(`DATA TRECUTĂ AI LUAT ${MOS_SLOT[MOS.slot]} DE LA BLOC.`);
+  return l.concat(CAFE_HELLO[CAFE_HELLO.length-1]);
+}
 // Dacă tot dai cu capul în blocul-slot gol: la a 5-a lovitură, la a 10-a, apoi din 7 în 7 (17, 24, 31...) bătrânelul
 // zice câte ceva, pe rând, tot mai supărat că-i strici cafeneaua. Camera se
 // zgâlțâie de la prima lovitură (mai tare de la a 7-a), iar după primele 5 pică și praf din tavan.
@@ -2382,6 +2390,7 @@ function cafeDoor(){
 function cafeTeleport(){
   const p=player,c=cafe;
   // Înăuntru cântă piesa cafenelei (jazz), afară iar cea a nivelului.
+  if(G.doorTo==="in"&&!G.cafeSeen){G.cafeSeen=true;MOS.cafe++;mosSave();}   // Moș Curcan ține minte că ai fost la el
   if(G.doorTo==="in"){G.inCafe=true;p.x=c.a*TS+CAFE_DOOR-p.w/2;cam.x=c.a*TS+CAFE_CAMX;playSong('cafe');}
   else{G.inCafe=false;p.x=c.x*TS+48-p.w/2;cam.x=clamp(p.x+p.w/2-W*0.42,0,camMax());playSong(LEVELS[G.level].song||'main');}
   p.y=(G.inCafe?CAFE_FLOOR:12)*TS-p.h;p.vx=0;p.vy=0;p.face=1;feathers=[];
@@ -2397,7 +2406,7 @@ function slotHit(){
 }
 function slotPrize(){
   const c=cafe,r=c.res,x=(c.sx+1)*TS,y=c.sy*TS;
-  c.done=true;c.bump=0;c.react=r;c.reactT=55;setSlotTiles(c,'E');G.slotUsed={level:G.level,res:r};   // comentariul vine puțin după
+  c.done=true;c.bump=0;c.react=r;c.reactT=55;setSlotTiles(c,'E');G.slotUsed={level:G.level,res:r};MOS.slot=r;mosSave();   // comentariul vine puțin după
   // Boaba de foc / afina: ți se pune direct (cu transformarea obișnuită), nu mai iese din bloc.
   if(r===SLOT_FIRE||r===SLOT_ICE){const p=player,px=p.x+p.w/2;sparkle(px,p.y+p.h/2);if(r===SLOT_FIRE)powerFire(px,p.y);else powerIce(px,p.y);}
   else if(r===SLOT_2UP){G.lives+=2;sfx.oneup();popup('+2 VIEȚI!',x,y-16,'#7fff7f');sparkle(x,y-6);}
@@ -2415,7 +2424,7 @@ function updateCafe(){
   p.x=clamp(p.x,c.a*TS+CAFE_L+2,c.a*TS+CAFE_R-2-p.w);
   // Prima dată când intri, bătrânelul te salută; după slot, îți spune ce ți-a ieșit (vezi DIALOGUL).
   if(!G.talk&&G.doorT===0){
-    if(!c.met){c.met=true;openTalk(c.done?['BINE AI REVENIT, FIULE!',CAFE_BYE]:CAFE_HELLO);}
+    if(!c.met){c.met=true;openTalk(c.done?['BINE AI REVENIT, FIULE!',CAFE_BYE]:cafeHello());}
     else if(c.reactT>0&&--c.reactT===0)openTalk([CAFE_REACT[c.react],CAFE_BYE]);
   }
   // Fumul din pipă (aburul cafelelor de pe măsuțe e desenat în cameră, vezi drawCafeRoom).
@@ -2480,21 +2489,28 @@ function updateTalk(){
 function drawTalk(){
   const T=G.talk;if(!T||G.state!=='play')return;
   // O casetă mică, jos la mijloc (320 × 40), ca să nu acopere camera.
-  const w=320,h=40,x=(W-w)/2,y=H-h-4,line=T.lines[T.i],len=[...line].length,typing=T.n<len;
+  const line=T.lines[T.i];
+  drawTalkBox((W-TALK_BOX_W)/2,H-TALK_BOX_H-4,T.who||TALK_WHO.old,line,T.n,T.n>=[...line].length);
+}
+// Caseta de dialog (și pe ecranul dinaintea nivelului, unde Moș Curcan îți dă sfatul): who = cine vorbește,
+// n = câte litere s-au scris, next = arată triunghiul de „mai departe”.
+const TALK_BOX_W=320,TALK_BOX_H=40;
+function drawTalkBox(x,y,who,line,n,next){
+  const w=TALK_BOX_W,h=TALK_BOX_H;
   uiBox(x,y,w,h);
   // Numele, cu litere mici (3 × 5), într-o etichetă mică lipită deasupra casetei, chiar deasupra portretului.
-  const who=T.who||TALK_WHO.old,tw=tinyW(who.name)+8;uiBox(x+6,y-10,tw,11);tinyTxt(who.name,x+10,y-7,'#ffd23f');
+  const tw=tinyW(who.name)+8;uiBox(x+6,y-10,tw,11);tinyTxt(who.name,x+10,y-7,'#ffd23f');
   // Bustul celui care vorbește (la Moș Curcan: pălăria, capul, ochelarii, ciocul, pipa, gulerul și vesta), la mărimea
   // lui, cât rama de alamă (tăietura cade chiar pe ramă), la mijlocul casetei pe înălțime.
   ctx.fillStyle='#c8962c';ctx.fillRect(x+8,y+9,24,22);ctx.fillStyle='#e8c060';ctx.fillRect(x+8,y+9,24,1);
   ctx.fillStyle='#4a2228';ctx.fillRect(x+9,y+10,22,20);who.bust(x+9,y+10);
   // Textul, în dreapta portretului, la mijlocul casetei; literele apar pe rând (rândurile se rup o dată, pe tot
   // textul, ca să nu sară cuvintele).
-  const rows=wrapWords(line,TALK_WRAP),ty=y+Math.round((h-(rows.length*12-5))/2);let left=Math.floor(T.n);
+  const rows=wrapWords(line,TALK_WRAP),ty=y+Math.round((h-(rows.length*12-5))/2);let left=Math.floor(n);
   rows.forEach((l,i)=>{const s=[...l].slice(0,Math.max(0,left)).join('');left-=[...l].length+1;
     if(s)txt(s,x+38,ty+i*12,'#ffffff',1,'l',null);});
   // După ce s-a scris tot rândul: un triunghi mic, gri și fix, jos în dreapta (apeși ca să continui).
-  if(!typing){ctx.fillStyle='#8a84a8';ctx.fillRect(x+w-11,y+h-9,5,1);ctx.fillRect(x+w-10,y+h-8,3,1);ctx.fillRect(x+w-9,y+h-7,1,1);}
+  if(next){ctx.fillStyle='#8a84a8';ctx.fillRect(x+w-11,y+h-9,5,1);ctx.fillRect(x+w-10,y+h-8,3,1);ctx.fillRect(x+w-9,y+h-7,1,1);}
 }
 // Căsuța de afară. x0 = marginea ei din stânga pe ecran; ușa e la x0+38 .. x0+58.
 function drawCafeHouse(cx){
@@ -2703,26 +2719,85 @@ function updateIce(){
 function makeEnemy(type,tx,ty){return type==='man'||type==='boy'
   ?{type:'man',boy:type==='boy',x:tx*TS+3,y:(ty+1)*TS-18,w:10,h:18,vx:0,vy:0,dir:-1,active:false,dead:0,deadT:0,anim:0,chasing:false,alert:0,atk:0,cd:0,onGround:false}
   :{type:'bomb',x:tx*TS+2,y:(ty+1)*TS-12,w:12,h:12,vx:0,vy:0,dir:-1,active:false,lit:0,sit:false,slideDir:0,slideT:0,kickT:0,anim:0,onGround:false};}
-function newGame(){G.carryBig=false;G.carryFire=false;G.carryIce=false;G.lives=3;G.score=0;G.coins=0;G.level=0;G.cp=null;G.slotUsed=null;G.bossMet=false;G.goldLv=-1;G.tip=null;toIntro(true);stopSong();}
+function newGame(){G.carryBig=false;G.carryFire=false;G.carryIce=false;G.lives=3;G.score=0;G.coins=0;G.level=0;G.cp=null;G.slotUsed=null;G.bossMet=false;G.goldLv=-1;G.cafeSeen=false;G.tip=null;
+  MOS.plays++;mosSave();toIntro(true);stopSong();}
 // Sfaturile de pe ecranul de dinaintea nivelului, alese la întâmplare (niciodată același de două ori la rând).
 // Prima dată când intri într-un nivel, sfatul e despre nivelul ăla (tip-ul lui, plus cele pentru noapte / iarnă);
 // după ce pierzi o viață, poate fi și unul general. „fire” = despre boaba roșie, care iarna nu apare (acolo e afina).
 // Sfaturile sunt scurte și simple: o singură idee, pe un singur rând (cel mult ~40 de caractere).
+// Sfaturile de pe ecranul de dinaintea nivelului le spune Moș Curcan (bătrânelul înțelept din cafenea), în caseta
+// lui de dialog. Le spune cu vorbele lui, iar uneori, în loc de un sfat, îți spune ceva ce ține minte (vezi MOS).
 const TIPS={
-  all:['Ține apăsat SPACE ca să sari mai sus.','Ține apăsat X ca să fugi.','50 de bănuți îți dau o viață în plus.',
-    'Sari pe bombă, apoi împinge-o!','Bombele explodează! Nu sta lângă ele.','Ai grijă la atacul fermierilor cu furca.',
-    'Ucenicii nu te urmăresc.','Curcanul nu știe să înoate!','Timpul rămas se face puncte bonus.','Ferește-te de țepi!'],
-  fire:['Boaba roșie îți dă pene de foc.','Apasă scurt X ca să arunci pene.'],
-  night:['Strecoară-te prin spatele fermierilor.','Ucenicii n-au felinar.'],
-  snow:['Pe gheață aluneci.','Sari peste copcile cu steguleț roșu.','Afina înghețată îți dă pene de gheață.',
-    'Dușmanii înghețați se pot împinge.','Fermierii nu calcă pe gheață.','Exploziile sparg gheața.'],
-  level:{0:['Lovește blocurile M cu capul.'],2:['Unele platforme se mișcă: așteaptă-le!'],
-    3:['În cafenea, timpul stă pe loc.','Blocul mare din cafenea e un slot!'],
-    4:['Pădurea e lungă: are două steaguri.'],5:['Intră pe ușa restaurantului!','Fermierul-Șef obosit? Sari-i în cap!']},
+  all:['ȚINE APĂSAT SPACE ȘI SARI MAI SUS.','ȚINE APĂSAT X ȘI FUGI MAI REPEDE.','STRÂNGE BĂNUȚII, FIULE: LA 50 PRIMEȘTI O VIAȚĂ.',
+    'SARI PE BOMBĂ, APOI ÎMPINGE-O SPRE FERMIERI!','BOMBELE EXPLODEAZĂ, FIULE. NU STA LÂNGĂ ELE.',
+    'FERMIERII ÎMPUNG CU FURCA. NU-I LĂSA SĂ SE APROPIE.','UCENICII NU TE URMĂRESC. SUNT PREA LENEȘI.',
+    'CURCANII NU ÎNOATĂ, FIULE. NICI MĂCAR EU.','TIMPUL CARE ÎȚI RĂMÂNE SE FACE PUNCTE.','FEREȘTE-TE DE ȚEPI, FIULE. ÎNȚEAPĂ!'],
+  // Penele de aur (în nivelurile cu pene).
+  gold:['ÎN FIECARE NIVEL SE ASCUND 3 PENE DE AUR. CAUTĂ BINE, FIULE!','O PANĂ DE AUR E A TA ABIA CÂND AJUNGI CU EA LA FINAL.',
+    'NU TOATE CĂRĂMIZILE SUNT DOAR CĂRĂMIZI...','ADUNĂ TOATE PENELE DE AUR, FIULE. MERITĂ.'],
+  fire:['BOABA ROȘIE ÎȚI DĂ PENE DE FOC.','APASĂ SCURT X ȘI ARUNCI O PANĂ DE FOC.'],
+  night:['STRECOARĂ-TE PE LA SPATELE FERMIERILOR, FIULE.','UCENICII N-AU FELINAR. NICI PREA MULTĂ MINTE.'],
+  snow:['PE GHEAȚĂ ALUNECI. FRÂNEAZĂ DIN TIMP!','SARI PESTE COPCILE CU STEGULEȚ ROȘU.','AFINA ÎNGHEȚATĂ ÎȚI DĂ PENE DE GHEAȚĂ.',
+    'UN FERMIER ÎNGHEȚAT SE POATE ÎMPINGE, FIULE.','FERMIERII NU CALCĂ PE GHEAȚĂ. SUNT FRICOȘI.','EXPLOZIILE SPARG GHEAȚA. ȚINE MINTE!'],
+  level:{0:['LOVEȘTE BLOCURILE M CU CAPUL, FIULE.'],2:['UNELE PLATFORME SE MIȘCĂ. AȘTEAPTĂ-LE!'],
+    3:['LA MINE ÎN CAFENEA TIMPUL STĂ PE LOC. VINO SĂ TE ODIHNEȘTI!','AM UN BLOC MARE ÎN CAFENEA. VEI VEDEA...'],
+    4:['PĂDUREA E LUNGĂ, FIULE: ARE DOUĂ STEAGURI DE SALVARE.'],
+    5:['INTRĂ PE UȘA RESTAURANTULUI ȘI AI SCĂPAT!','FERMIERUL-ȘEF OBOSIT? SARI-I ÎN CAP!']},
 };
+// ---- Ce ține minte Moș Curcan ----
+// De la un joc la altul (în browser): de câte ori ai pornit jocul, de câte ori ai murit, până la ce nivel ai ajuns,
+// de câte ori ai ajuns la MESOPOTAMIA, de câte ori ai intrat în cafenea, ce ți-a ieșit ultima dată la blocul-slot și
+// dacă l-ai întâlnit pe Fermierul-Șef. De la o viață la alta (doar în jocul de acum): cum ai murit ultima dată
+// (G.lastDeath) și de câte ori ai murit în nivelul ăsta (G.lvlDeaths). În modul de test ține minte separat.
+const MOS_KEY=TEST?'curcan_mos_test':'curcan_mos';
+let MOS={plays:0,deaths:0,best:0,last:0,wins:0,cafe:0,slot:-1,boss:false};   // last = până unde ai ajuns în jocul trecut
+try{Object.assign(MOS,JSON.parse(localStorage.getItem(MOS_KEY)||'{}'));}catch(e){}
+function mosSave(){try{localStorage.setItem(MOS_KEY,JSON.stringify(MOS));}catch(e){}}
+const MOS_SLOT=['PANA DE FOC','AFINA ÎNGHEȚATĂ','DOUĂ VIEȚI','UN X'];
+// Ce i-ar veni lui Moș Curcan să-ți spună acum, din ce ține minte (poate să nu fie nimic).
+// first = intri prima dată în nivel; altfel tocmai ai pierdut o viață.
+function mosLines(first){
+  const out=[],i=G.level,def=LEVELS[i];
+  if(!first){
+    const d=G.lastDeath;
+    if(d==='water')out.push('CURCANII NU ÎNOATĂ, FIULE. ȚI-AM MAI SPUS-O.','APA E RECE ȘI ADÂNCĂ. SARI MAI DIN TIMP!');
+    else if(d==='pit')out.push('GROPILE ALEA N-AU FUND, FIULE. UITĂ-TE PE UNDE CALCI.');
+    else if(d==='time')out.push('AI STAT PREA MULT LA POVEȘTI. TIMPUL TRECE, FIULE!');
+    else out.push('TE-AU PRINS. SE MAI ÎNTÂMPLĂ, DAR NU PREA DES, BINE?','UN CURCAN ÎNȚELEPT NU SE BATE CU FURCA.');
+    if(G.lvlDeaths>=3)out.push('IAR AICI, FIULE? RESPIRĂ ADÂNC ȘI MAI ÎNCEARCĂ O DATĂ.','ȘI EU AM CĂZUT DE MULTE ORI AICI. PE VREMEA MEA...');
+    if(G.lives===1)out.push('ȚI-A MAI RĂMAS O SINGURĂ VIAȚĂ. AI GRIJĂ DE EA!');
+    return out;
+  }
+  // La începutul jocului: de câte ori ai mai fost pe drum și cât de departe ai ajuns.
+  if(i===0&&MOS.plays>1){
+    if(MOS.wins>0)out.push(MOS.wins>1?`AI AJUNS DE ${MOS.wins} ORI LA MESOPOTAMIA. MAI POȚI O DATĂ?`:'AI MAI AJUNS O DATĂ LA MESOPOTAMIA. MAI POȚI?');
+    else if(MOS.last>0)out.push(`IAR LA DRUM, FIULE? DATA TRECUTĂ AI AJUNS PÂNĂ LA NIVELUL ${levelTag(MOS.last)}.`);
+    else out.push('IAR LA DRUM, FIULE? DE DATA ASTA AJUNGI MAI DEPARTE, SIMT EU.');
+  }
+  // Penele de aur din nivelul ăsta: câte ai găsit deja (dacă ai mai trecut pe aici).
+  const n=goldCounts()[i]||0,f=n?goldFoundIn(i):0;
+  if(n&&f===n)out.push('AICI AI GĂSIT DEJA TOATE PENELE DE AUR. BRAVO, FIULE!');
+  else if(n&&f>0)out.push(`AICI AI GĂSIT ${f===1?'O PANĂ':f+' PENE'} DE AUR. MAI ${n-f===1?'E UNA':'SUNT '+(n-f)}.`);
+  // După cafenea: ce ți-a ieșit la blocul lui (sau că n-ai trecut pe la el).
+  if(i>0&&LEVELS[i-1].bonus){const s=G.slotUsed&&G.slotUsed.level===i-1?G.slotUsed.res:-1;
+    if(s===SLOT_FIRE)out.push('CUM ÎȚI MERGE CU PANA DE FOC? AI GRIJĂ SĂ NU-ȚI ARZI COADA!');
+    else if(s===SLOT_ICE)out.push('AFINA ÎNGHEȚATĂ E BUNĂ PRIN PĂDURE. AI ALES BINE, FIULE.');
+    else if(s===SLOT_2UP)out.push('CU DOUĂ VIEȚI ÎN PLUS AJUNGI DEPARTE. NU LE RISIPI!');
+    else if(s===SLOT_NONE)out.push('UN X LA BLOC? NU-I NIMIC, MĂCAR CAFEAUA A FOST BUNĂ.');
+    else if(G.cafeSeen)out.push('AI PLECAT FĂRĂ SĂ ÎNCERCI BLOCUL MEU? PĂCAT, FIULE.');
+    else out.push('N-AI TRECUT PE LA CAFENEA? DATA VIITOARE TE AȘTEPT.');}
+  // Înaintea cafenelei, dacă ai mai fost la el.
+  if(def.bonus&&MOS.cafe>0)out.push(MOS.slot>=0?`DATA TRECUTĂ AI LUAT ${MOS_SLOT[MOS.slot]} DE LA BLOC. VII IAR?`:'TE MAI AȘTEPT LA O CAFEA, FIULE. ȘTII DRUMUL.');
+  // Înaintea boss-ului, dacă l-ai mai întâlnit.
+  if(def.id==='iarna'&&MOS.boss)out.push('FERMIERUL-ȘEF TE ȚINE MINTE, FIULE. ȘI FURCA LUI LA FEL.');
+  return out;
+}
 function pickTip(first){
-  const def=LEVELS[G.level],th=THEMES[def.theme];
-  const own=[def.tip,...(TIPS.level[G.level]||[]),...(th.night?TIPS.night:[]),...(th.snow?TIPS.snow:[])].filter(Boolean);
+  const def=LEVELS[G.level],th=THEMES[def.theme],gold=(goldCounts()[G.level]||0)>0;
+  // Ce ține minte: după o viață pierdută îți spune aproape mereu ceva despre asta; la intrarea în nivel, des.
+  const mem=mosLines(first).filter(t=>t!==G.tip);
+  if(mem.length&&Math.random()<(first?0.6:0.75))return mem[Math.random()*mem.length|0];
+  const own=[def.tip,...(TIPS.level[G.level]||[]),...(th.night?TIPS.night:[]),...(th.snow?TIPS.snow:[]),...(gold?TIPS.gold:[])].filter(Boolean);
   const all=own.concat(TIPS.all,th.snow?[]:TIPS.fire);
   const pool=(first||Math.random()<0.4?own:all).filter(t=>t!==G.tip);
   return pool.length?pool[Math.random()*pool.length|0]:def.tip;
@@ -2731,7 +2806,14 @@ function pickTip(first){
 const levelNum=i=>LEVELS.slice(0,i+1).filter(d=>!d.bonus&&!d.arena).length;
 const levelTag=i=>LEVELS[i].bonus?'BONUS':String(levelNum(i));
 // Ecranul de dinaintea nivelului; first = intri prima dată în nivel (nu după ce ai pierdut o viață).
-function toIntro(first){G.state='intro';G.stateT=0;G.tip=pickTip(first);}
+// Câte litere din sfatul lui Moș Curcan s-au scris pe ecranul dinaintea nivelului (încep după ce s-a deschis ecranul).
+const introTipN=()=>Math.max(0,(G.stateT-18)*1.2);
+// Sfatul se alege înainte ca Moș Curcan să-și noteze nivelul nou (ca „data trecută” să fie jocul de dinainte).
+function toIntro(first){
+  if(first)G.lvlDeaths=0;
+  G.state='intro';G.stateT=0;G.tip=pickTip(first);
+  if(first&&!LEVELS[G.level].arena){MOS.last=G.level;MOS.best=Math.max(MOS.best,G.level);mosSave();}
+}
 // quiet = doar pregătește nivelul, fără muzică (modul de test îl folosește ca să facă pozele nivelurilor pentru panou).
 function startLevel(quiet){
   const def=LEVELS[G.level],m=def.build();
@@ -3241,14 +3323,15 @@ function updateFeathers(){
   }
   feathers=feathers.filter(f=>!f.remove);
 }
-function die(){
-  if(player.dead)return;player.dead=true;G.carryBig=false;G.carryFire=false;G.carryIce=false;feathers=[];G.state='dying';G.stateT=0;
+// cause = cum ai murit (Moș Curcan ține minte, vezi mosLines): 'hit' (te-au prins), 'water', 'pit', 'time'.
+function die(cause='hit'){
+  if(player.dead)return;player.dead=true;G.lastDeath=cause;G.lvlDeaths=(G.lvlDeaths||0)+1;MOS.deaths++;mosSave();G.carryBig=false;G.carryFire=false;G.carryIce=false;feathers=[];G.state='dying';G.stateT=0;
   stopSong();playSong('death');player.vx=0;player.vy=0;
 }
 // Curcanul cade în apă (încă nu poate înota): pleoscăie, apoi se scufundă încet și pierde viața.
 function drown(){
   if(player.dead)return;
-  const vy=player.vy;splash(player.x+player.w/2);die();
+  const vy=player.vy;splash(player.x+player.w/2);die('water');
   player.drown=true;player.vy=Math.min(Math.max(vy,0.5),2.5);
 }
 function levelClear(final){goldSaveLevel();G.carryBig=player.big;G.carryFire=player.fire;G.carryIce=player.ice;feathers=[];G.state='clear';G.final=final;G.stateT=0;G.tally=0;G.clearTime=G.time;stopSong();playSong('clear');player.vx=0;}
@@ -3306,7 +3389,7 @@ function updatePlayer(){
   // Țepii rănesc doar când calci pe ei de sus; dacă doar mergi în ei din lateral, te opresc ca un perete.
   if(p.onGround&&standsOnSpikes(p))hurt(-p.face);
   if(p.y+p.h>WATER_Y&&overPit(p))drown();
-  else if(p.y>H+8)die();
+  else if(p.y>H+8)die('pit');
 }
 function updateMan(e){
   if(e.dead){e.deadT--;
@@ -3442,7 +3525,7 @@ function updatePlay(){
   G.frame++;
   if(!TEST&&!inCafe()&&G.frame%60===0){G.time--;   // în cafenea timpul stă pe loc
     if(G.time===100){sfx.hurry();popup('GRĂBEȘTE-TE!',player.x+5,player.y-12,'#ff6060');}
-    if(G.time<=0){G.time=0;die();return;}}
+    if(G.time<=0){G.time=0;die('time');return;}}
   updatePlats();
   updatePlayer();
   if(G.state!=='play'){updateFx();return;}
@@ -3520,7 +3603,7 @@ function updateClear(){
   if(G.stateT>60){
     if(G.time>0){const d=Math.min(G.time,3);G.time-=d;G.score+=d*50;if(G.stateT%4===0)sfx.blip();}
     else if(++G.tally>90){
-      if(G.final){G.state='win';G.stateT=0;saveHi();playSong('win');}
+      if(G.final){G.state='win';G.stateT=0;saveHi();playSong('win');MOS.wins++;mosSave();}
       else{G.level++;G.cp=null;toIntro(true);}
     }
   }
@@ -3608,7 +3691,9 @@ function update(){
     case 'title':cam.x+=0.6;if(AC&&!seq.song)playSong('title');break;
     // Ecranul de dinaintea nivelului stă până apeși ENTER / SPACE (sau atingi ecranul); primele ~0,7 s nu se poate
     // sări, ca să nu-l treci din greșeală dacă tocmai apăsai taste.
-    case 'intro':G.stateT++;if(G.stateT>40&&startPressed())startLevel();break;
+    case 'intro':G.stateT++;
+      {const n=Math.floor(introTipN()),len=[...(G.tip||'')].length;if(n>0&&n<len&&G.stateT%3===0)sfx.talk();}   // Moș Curcan vorbește
+      if(G.stateT>40&&startPressed())startLevel();break;
     case 'play':
       if(pressed.KeyP||pressed.Escape){G.paused=!G.paused;sfx.pause();applyAudio();}
       // G.stepOnce (doar din modul de test): pe pauză, jocul avansează un singur cadru.
@@ -4165,7 +4250,6 @@ function drawClearCard(){
 // Apoi un sfat ales la întâmplare (vezi pickTip) și butonul de pornire (nivelul pornește doar când apeși). Jos, viețile
 // și scorul. Curcanul aleargă în stânga, ca să nu stea sub buton.
 const DOT_ICON=[".###.","#####","#####","#####",".###."];   // bulina din nodurile drumului
-const BULB_ICON=["..###..",".#####.","#######","#######",".#####.","..###..",".......","..###..","..###.."];
 function wrapWords(s,max){const out=[];let line='';
   for(const w of String(s).split(' ')){if(line&&(line+' '+w).length>max){out.push(line);line=w;}else line=line?line+' '+w:w;}
   if(line)out.push(line);return out;}
@@ -4205,12 +4289,9 @@ function drawIntro(){
   // Sub fiecare nivel, câte o bulină mică pentru fiecare pană de aur din el: aurie dacă ai găsit-o.
   for(let i=0;i<N;i++){const n=goldCounts()[i]||0,cx=x0+i*gap;
     for(let j=0;j<n;j++){ctx.fillStyle=goldSaved(lv[i].id,j)?'#ffd23f':'rgba(255,255,255,0.25)';ctx.fillRect(cx-5+j*4,ny+16,2,2);}}
-  // Sfatul.
-  // Rândurile sunt la 12 px, ca diacriticele de deasupra (Ă, Î, Â) să nu atingă rândul de sus.
-  const lines=wrapWords(G.tip||def.tip,44),bw=296,bh=18+lines.length*12,bx=W/2-bw/2,by=116+dy;
-  uiBox(bx,by,bw,bh);
-  icon(BULB_ICON,bx+8,by+6,'#ffd23f');txt('SFAT',bx+20,by+7,'#ffd23f',1,'l',null);
-  lines.forEach((l,i)=>txt(l,bx+20,by+18+i*12,'#e8f4ff',1,'l',null));
+  // Sfatul ți-l dă Moș Curcan, în caseta lui de dialog: literele apar pe rând, cu „bla-bla”-ul lui (vezi update).
+  const bx=W/2-TALK_BOX_W/2,by=124+dy,bh=TALK_BOX_H;
+  drawTalkBox(bx,by,TALK_WHO.old,G.tip||def.tip,introTipN(),false);
   // Butonul de pornire, ca butonul ales din meniu (roșu, cu săgeata care se mișcă), după ce se poate apăsa;
   // înainte, mov închis, fără săgeată.
   const touchUI=document.getElementById('touch').classList.contains('on');
@@ -4283,7 +4364,7 @@ const ARENA=TEST?LEVELS.push(TEST_LEVEL)-1:-1;
 function testLoad(lv,cp){
   const alive=player&&!player.dead;
   G.carryBig=alive&&player.big;G.carryFire=alive&&player.fire;G.carryIce=alive&&player.ice;
-  G.level=lv;G.slotUsed=null;G.bossMet=false;G.goldLv=-1;
+  G.level=lv;G.slotUsed=null;G.bossMet=false;G.goldLv=-1;G.cafeSeen=false;
   const x=cp>0?LEVELS[lv].build().cps[cp-1]:undefined;
   G.cp=x===undefined?null:{level:lv,x};
   startLevel();

@@ -50,7 +50,15 @@ Recordul apare în colțul din stânga jos al meniului principal. Cât timp muzi
   - Săriturile lui nu sparg gheața (bombele, da). Nu stă niciodată deasupra apei: nu calcă în găurile din gheață, iar dacă se deschide una sub el, sare pe un loc sigur.
   - Învins, e aruncat de pe ecran, iar ambele stive de baloți de fân (cea din spatele tău și cea din dreapta, care închide drumul spre restaurant) se prăbușesc într-un nor de praf și paie. Rămân pe jos baloți desfăcuți și fân împrăștiat, iar drumul e liber în ambele direcții.
 - **Lacul:** ferma ziua, dar aproape tot nivelul e un lac mare, iar drumul e pe sus: scânduri, insule care ies din apă, platforme care se mișcă (stânga-dreapta sau sus-jos) și platforme vechi, crăpate, care cad în lac la scurt timp după ce te urci pe ele (după câteva secunde reapar). Dacă pici în lac, pierzi o viață. Are două puncte de salvare, pe mici bucăți de mal. Pe lac e viață: rațe albe cu boboci (se scufundă cu coada în sus și fug măcăind dacă pleoscăie ceva lângă ele), pești care sar din apă, libelule, broaște pe nuferi care orăcăie și sar în apă când te apropii, umbre de pești sub apă și cercuri pe apă.
-- **Ecranul dinaintea fiecărui nivel:** decorul nivelului, drumul spre MESOPOTAMIA (unde ai ajuns; nivelul bonus are o steluță) și un sfat ales la întâmplare. Nivelul pornește când apeși ENTER sau SPACE.
+- **Ecranul dinaintea fiecărui nivel:** decorul nivelului, drumul spre MESOPOTAMIA (unde ai ajuns; nivelul bonus are o steluță) și un sfat de la **Moș Curcan**, înțeleptul jocului: îl spune în caseta lui de dialog (cu bustul și numele lui), cu literele care apar pe rând și „bla-bla”-ul lui. Sfaturile sunt cu vorbele lui („FIULE”), despre nivel, decor, bombe, gheață și penele de aur. Nivelul pornește când apeși ENTER sau SPACE.
+- **Moș Curcan ține minte:** uneori, în loc de sfat, îți spune ceva ce ține minte:
+  - după ce pierzi o viață: cum ai murit (în apă, într-o groapă, că a expirat timpul, că te-au prins), dacă ai murit de mai multe ori în același nivel sau că ți-a mai rămas o singură viață;
+  - la începutul unui joc nou: până la ce nivel ai ajuns data trecută sau de câte ori ai ajuns la MESOPOTAMIA;
+  - câte pene de aur ai găsit deja în nivelul în care intri;
+  - după cafenea: ce ți-a ieșit la blocul lui (sau că ai plecat fără să-l încerci, ori că n-ai trecut pe la el);
+  - înaintea cafenelei și în cafenea, dacă ai mai fost la el în alt joc: te salută altfel și-ți amintește ce ai luat data trecută de la bloc;
+  - înaintea ultimului nivel, dacă l-ai mai întâlnit pe Fermierul-Șef.
+  - Ce ține minte de la un joc la altul se păstrează în browser (în modul de test, separat).
 - **Pădurea de brazi:** e un nivel de două ori mai lung, cu un lac foarte mare spre final, peste care sunt platforme sus, păzite de mobi. E iarnă, cu munți înzăpeziți în spate, brazi, zăpadă pe jos și pe blocuri și fulguire ușoară. Muzica e mai liniștită, ca niște clopoței. Lacurile sunt mari și înghețate și se poate merge pe ele, dar:
   - pe gheață aluneci puțin când te oprești sau întorci;
   - gheața e doar un strat subțire la suprafață: dacă stai ~2 secunde pe același loc, trosnește, crapă și cazi prin ea în lac; gaura îngheață la loc după câteva secunde;
