@@ -15,6 +15,9 @@
   #touch button{width:68px;height:68px;border-radius:50%;border:3px solid rgba(255,255,255,.55);background:rgba(0,0,0,.35);
     color:#fff;font:bold 15px monospace;touch-action:none;-webkit-tap-highlight-color:transparent}
   #touch button:active{background:rgba(255,210,63,.45)}
+  /* ▲ (intri / ieși din cafenea): apare deasupra lui ◀ ▶ doar cât stai în fața unei uși. */
+  #touch .upk{display:none;position:absolute;left:57px;bottom:98px}
+  #touch.door .upk{display:block}
   #pauseBtn{position:fixed;top:10px;right:10px;width:40px;height:40px;border-radius:8px;border:2px solid rgba(255,255,255,.5);
     background:rgba(0,0,0,.35);color:#fff;font:bold 14px monospace;display:none}
   #pauseBtn.on{display:block}
@@ -25,7 +28,7 @@
 <div id="wrap"><canvas id="game"></canvas></div>
 <canvas id="infoV" class="info"></canvas>
 <div id="touch">
-  <div class="pad"><button data-k="left">◀</button><button data-k="right">▶</button></div>
+  <div class="pad"><button data-k="left">◀</button><button data-k="right">▶</button><button data-k="up" class="upk">▲</button></div>
   <div class="pad"><button data-k="run">FUGI</button><button data-k="jump">SARI</button></div>
 </div>
 <button id="pauseBtn" data-k="pause">II</button>
@@ -75,9 +78,9 @@ K:"HIKOKIH",L:"GGGGGGV",M:"HRLLHHH",N:"HHPLJHH",O:"EHHHHHE",P:"UHHUGGG",Q:"EHHHL
 U:"HHHHHHE",V:"HHHHHA4",W:"HHHLLLA",X:"HHA4AHH",Y:"HHA4444",Z:"V12488V",
 "0":"EHJLPHE","1":"4C4444E","2":"EH1248V","3":"V2421HE","4":"26AIV22","5":"VGU11HE","6":"68GUHHE","7":"V124888","8":"EHHEHHE","9":"EHHF12C",
 " ":"0000000","!":"4444404",".":"00000CC",",":"0000C48",":":"0CC0CC0","-":"000V000","?":"EH12404","/":"122488G",
-">":"8421248","<":"248G842","'":"4480000","+":"044V440","(":"2488842",")":"8422248","→":"042V240","←":"048V840"
+">":"8421248","<":"248G842","'":"4480000","+":"044V440","(":"2488842",")":"8422248","→":"042V240","←":"048V840","↑":"4EL4444"
 };
-const DIA={'Ă':['A',1],'Â':['A',2],'Î':['I',2],'Ș':['S',3],'Ş':['S',3],'Ț':['T',3],'Ţ':['T',3]};
+const DIA={'Ă':['A',1],'Â':['A',2],'Î':['I',2],'Ș':['S',3],'Ş':['S',3],'Ț':['T',3],'Ţ':['T',3],'É':['E',4]};   // É: din MesoCafé
 function txtRaw(g,s,x,y,col,sc){
   g.fillStyle=col;
   for(const chr of s){
@@ -87,6 +90,7 @@ function txtRaw(g,s,x,y,col,sc){
     if(m===1){g.fillRect(x+sc,y-3*sc,sc,sc);g.fillRect(x+3*sc,y-3*sc,sc,sc);g.fillRect(x+2*sc,y-2*sc,sc,sc);}
     else if(m===2){g.fillRect(x+sc,y-2*sc,sc,sc);g.fillRect(x+3*sc,y-2*sc,sc,sc);g.fillRect(x+2*sc,y-3*sc,sc,sc);}
     else if(m===3){g.fillRect(x+2*sc,y+8*sc,sc,sc);g.fillRect(x+sc,y+9*sc,sc,sc);}
+    else if(m===4){g.fillRect(x+3*sc,y-3*sc,sc,sc);g.fillRect(x+2*sc,y-2*sc,sc,sc);}
     x+=6*sc;
   }
 }
@@ -534,6 +538,8 @@ THEMES.push(Object.assign({},THEMES[0],{name:'LACUL',lake:true}));
 // de noapte la desenare (night:true), ca la ferma noaptea — deci și felinarele fermierilor.
 THEMES.push(Object.assign({},THEMES[1],{name:'NOAPTE DE IARNĂ',night:true,sun:null,moon:{x:92,y:42,r:10},stars:true,
   sky:['#070a1c','#0b1230','#121c44','#1c2a58']}));
+// Popasul la MesoCafe (nivelul bonus, la începutul iernii): pădurea de brazi ziua, cu alt nume (alt rng la fundal).
+THEMES.push(Object.assign({},THEMES[1],{name:'POPAS LA MESOCAFÉ'}));
 const tileCache={},bgCache={};
 function getTiles(ti){
   if(tileCache[ti])return tileCache[ti];
@@ -612,19 +618,26 @@ function getTiles(ti){
   g.fillRect(0,7,16,1);g.fillRect(0,15,16,1);g.fillRect(7,0,1,7);g.fillRect(15,0,1,7);g.fillRect(3,8,1,7);g.fillRect(11,8,1,7);
   g.fillStyle='#e6ae70';g.fillRect(0,0,7,1);g.fillRect(8,0,7,1);g.fillRect(0,8,3,1);g.fillRect(4,8,7,1);g.fillRect(12,8,4,1);
   g.fillStyle='#a86a34';g.fillRect(5,3,1,1);g.fillRect(12,4,1,1);g.fillRect(8,11,1,1);T.B=c;
-  // M block frames
-  T.M=['#f2b630','#f7c850','#ffd970'].map(base=>{const [c,g]=mkCanvas(16,16);
-    g.fillStyle='#7a3e0a';g.fillRect(0,0,16,16);g.fillStyle=base;g.fillRect(1,1,14,14);
-    g.fillStyle='#fff0b0';g.fillRect(1,1,14,1);g.fillRect(1,1,1,14);g.fillStyle='#b8701a';g.fillRect(1,14,14,1);g.fillRect(14,1,1,14);
-    g.fillStyle='#7a3e0a';[[2,2],[13,2],[2,13],[13,13]].forEach(([x,y])=>g.fillRect(x,y,1,1));
+  // M block frames (galben); A = același bloc, albăstrui ca gheața, din care iese afina înghețată (doar înaintea boss-ului).
+  const mBlock=(bases,o,hi,sh,dk)=>bases.map(base=>{const [c,g]=mkCanvas(16,16);
+    g.fillStyle=o;g.fillRect(0,0,16,16);g.fillStyle=base;g.fillRect(1,1,14,14);
+    g.fillStyle=hi;g.fillRect(1,1,14,1);g.fillRect(1,1,1,14);g.fillStyle=sh;g.fillRect(1,14,14,1);g.fillRect(14,1,1,14);
+    g.fillStyle=o;[[2,2],[13,2],[2,13],[13,13]].forEach(([x,y])=>g.fillRect(x,y,1,1));
     const M=["m....m","mm..mm","m.mm.m","m....m","m....m","m....m","m....m"];
-    M.forEach((r,y)=>{for(let x=0;x<6;x++)if(r[x]==='m'){g.fillStyle='#b8701a';g.fillRect(6+x,5+y,1,1);g.fillStyle='#6a2a0a';g.fillRect(5+x,4+y,1,1);}});
+    M.forEach((r,y)=>{for(let x=0;x<6;x++)if(r[x]==='m'){g.fillStyle=sh;g.fillRect(6+x,5+y,1,1);g.fillStyle=dk;g.fillRect(5+x,4+y,1,1);}});
     return c;});
+  T.M=mBlock(['#f2b630','#f7c850','#ffd970'],'#7a3e0a','#fff0b0','#b8701a','#6a2a0a');
+  T.A=mBlock(['#8ccfee','#a4dcf4','#c0e8fa'],'#24507a','#f0fbff','#5a98c4','#1a3a5e');
   [c,g]=mkCanvas(16,16);g.fillStyle='#4a2a10';g.fillRect(0,0,16,16);g.fillStyle='#9a6030';g.fillRect(1,1,14,14);
   g.fillStyle='#b07840';g.fillRect(1,1,14,1);g.fillStyle='#4a2a10';[[2,2],[13,2],[2,13],[13,13]].forEach(([x,y])=>g.fillRect(x,y,1,1));T.U=c;
   [c,g]=mkCanvas(16,16);g.fillStyle='#3a3a48';g.fillRect(0,0,16,16);g.fillStyle='#8a8fa0';g.fillRect(1,1,14,14);
   g.fillStyle='#b8bccc';g.fillRect(1,1,14,2);g.fillRect(1,1,2,14);g.fillStyle='#5a5e6e';g.fillRect(1,13,14,2);g.fillRect(13,1,2,14);
   g.fillStyle='#6a6e7e';g.fillRect(6,5,1,3);g.fillRect(7,8,1,2);g.fillRect(8,10,2,1);T.X=c;
+  // Podeaua cafenelei (F, nivelul bonus): scânduri vechi de lemn închis, cu muchia de sus luminată și îmbinări.
+  [c,g]=mkCanvas(16,16);g.fillStyle='#5a3a26';g.fillRect(0,0,16,16);g.fillStyle='#8a5c3a';g.fillRect(0,0,16,1);
+  g.fillStyle='#6e4a30';g.fillRect(0,1,16,1);g.fillStyle='#462c1c';g.fillRect(0,6,16,1);g.fillRect(0,11,16,1);
+  g.fillRect(9,2,1,4);g.fillRect(3,7,1,4);g.fillRect(12,12,1,4);
+  g.fillStyle='#64422c';[[5,3],[13,8],[7,14],[1,13]].forEach(([x,y])=>g.fillRect(x,y,2,1));T.F=c;
   [c,g]=mkCanvas(16,16);g.fillStyle='#b5793a';g.fillRect(0,0,16,6);g.fillStyle='#e0a860';g.fillRect(0,0,16,1);
   g.fillStyle='#5a3510';g.fillRect(0,5,16,1);g.fillRect(2,2,1,1);g.fillRect(13,2,1,1);g.fillStyle='#8a5424';g.fillRect(7,1,1,4);T['=']=c;
   // spikes
@@ -977,19 +990,32 @@ const sfx={
   quack(){if(!AC)return;const t=AC.currentTime;tone('sawtooth',560,t,0.08,0.045,sfxG,420);tone('sawtooth',540,t+0.12,0.09,0.045,sfxG,400);},
   plip(){if(!AC)return;tone('sine',700,AC.currentTime,0.07,0.05,sfxG,1500);},
   croak(){if(!AC)return;const t=AC.currentTime;tone('square',120,t,0.09,0.04,sfxG,95);tone('square',110,t+0.13,0.11,0.04,sfxG,85);},
-  // Boss-ul: răcnet gros, bubuitură (izbit de margine / butucii care cad), „au” când e lovit, fanfară când e învins.
+  // Boss-ul: răcnet gros, bubuitură (izbit de margine / baloții de fân care cad), „au” când e lovit, fanfară când e învins.
   roar(){if(!AC)return;const t=AC.currentTime;tone('sawtooth',140,t,0.5,0.14,sfxG,70);tone('square',95,t,0.5,0.08,sfxG,60);noise(t,0.45,0.25,sfxG,500,'lowpass');},
   thud(){if(!AC)return;const t=AC.currentTime;tone('sine',90,t,0.3,0.5,sfxG,35);noise(t,0.25,0.35,sfxG,400,'lowpass');},
   bossHurt(){if(!AC)return;const t=AC.currentTime;tone('sawtooth',300,t,0.3,0.12,sfxG,90);noise(t,0.15,0.2,sfxG,1200);},
   bossDown(){arp([62,66,69,74,69,74,78,81,86],0.07,0.11);},
   // Fluierat care coboară, cât boss-ul e în aer și vine peste tine.
   dive(){if(!AC)return;tone('sine',1500,AC.currentTime,0.55,0.06,sfxG,420);},
+  // Clopoțelul de la ușa cafenelei (intri / ieși) și „nimic” la blocul-slot (trei note care coboară).
+  bell(){if(!AC)return;const t=AC.currentTime;tone('triangle',1568,t,0.3,0.12,sfxG);tone('triangle',2093,t+0.11,0.4,0.1,sfxG);},
+  // „Bla-bla”-ul bătrânelului, cât îi apar literele în caseta de dialog: un sunet scurt, jos, cu înălțimea la întâmplare.
+  talk(){if(!AC)return;tone('triangle',230+Math.random()*90,AC.currentTime,0.05,0.07,sfxG);},
+  nope(){if(!AC)return;const t=AC.currentTime;tone('square',330,t,0.17,0.07,sfxG,310);tone('square',262,t+0.19,0.17,0.07,sfxG,247);tone('square',196,t+0.38,0.45,0.07,sfxG,175);},
 };
 
 // --- Music sequencer ---
 const NOTE={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
 function P(str){return str.trim().split(/\s+/).map(t=>{if(t==='-')return 0;if(t==='.')return -1;const m=t.match(/^([A-G])(b|#)?(\d)$/);return 12*(+m[3]+1)+NOTE[m[1]]+(m[2]==='#'?1:m[2]==='b'?-1:0);});}
 function bassBars(bars){const out=[];for(const b of bars)for(let h=0;h<2;h++){const r=b[h]??b[0];for(let e=0;e<4;e++)out.push(e%2?r+12:r,0);}return out;}
+// Piesa cafenelei e în swing: 3 pași pe timp (optimi de triolet), 12 pe măsură. Basul „walking” = o notă pe fiecare
+// timp; acordurile = câte o listă de [pasul din măsură, acordul, câți pași ține] pentru fiecare măsură.
+function walkBass(bars){const out=[];for(const b of bars)for(const n of b)out.push(n,0,0);return out;}
+function chordTrack(bars){const out=[];for(const bar of bars){const a=new Array(12).fill(0);for(const [st,n,d] of bar)a[st]={n,d};out.push(...a);}return out;}
+// Acordurile, fără fundamentală (o cântă basul), cu note apropiate de la unul la altul, ca la pian.
+const JZ={F:[57,60,64,67],D7:[54,57,60,64],Gm:[58,62,65,69],C7:[58,62,64,69],Am:[55,60,64,67],Bb:[57,62,65,69],Bbm:[56,61,65,68],Eb7:[55,58,61,65]};
+// Ritmul acordurilor: o măsură cu un acord = pe 1 și pe „și”-ul lui 2 (ritmul Charleston); cu două = câte unul pe jumătate.
+const comp1=c=>[[0,JZ[c],2],[5,JZ[c],7]],comp2=(a,b)=>[[0,JZ[a],5],[6,JZ[b],6]];
 const SONGS={
   main:{bpm:120,loop:true,drums:'k.h.s.h.k.khs.h.',
     lead:P(`D5 - A4 - Bb4 A4 G4 - F#4 - G4 A4 Bb4 - A4 -
@@ -1030,6 +1056,22 @@ const SONGS={
             Bb4 - C5 - D5 - Eb5 - F#5 - G5 - A5 - - -
             G5 - F#5 - Eb5 - C5 - D5 - - - . . . .`),
     bass:bassBars([[38],[46,45],[38],[43,38],[45],[43],[46,48],[38]])},
+  // MesoCafe (cafeneaua din nivelul bonus): jazz lent și liniștit, în Fa major, în swing (bpm 66 × 3 pași pe timp =
+  // ~88 de timpi pe minut). Melodie moale (triunghi), acorduri de pian electric, bas walking, ride și perii. 16 măsuri:
+  // F | D7 | Gm | C7 | Am | D7 | Gm C7 | F || Bb | Bbm Eb7 | Am | D7 | Gm | C7 | F D7 | Gm C7.
+  cafe:{bpm:66,loop:true,leadType:'triangle',leadVol:0.18,bassVol:0.36,chordVol:0.055,drums:'q..R.rr..R.r',
+    lead:P(`. . . . . C5 E5 - - D5 - C5     A4 - - - - . F#4 - A4 C5 - -
+            Bb4 - - - - A4 Bb4 - D5 F5 - -   E5 - - - - . D5 - C5 Bb4 - G4
+            A4 - - - - . . . E4 G4 - C5      B4 - - A4 - F#4 A4 - - - - .
+            . . D5 F5 - E5 D5 - Bb4 G4 - E4  F4 - - - - - - - . . . C5
+            D5 - - - - C5 D5 - F5 A5 - -     Ab5 - - - - F5 G5 - F5 Db5 - -
+            C5 - - - - . E5 - D5 C5 - A4     C5 - - - - . A4 - B4 C5 - D5
+            F5 - - - - D5 Bb4 - - - - .      . . G4 Bb4 - D5 E5 - D5 C5 - Bb4
+            A4 - - - - C5 A4 - - F#4 - -     G4 - - - - . E4 - G4 Bb4 - .`),
+    bass:walkBass([[41,45,48,49],[50,48,45,42],[43,45,46,47],[48,46,45,43],[45,48,52,51],[50,48,45,44],[43,50,48,40],[41,45,48,45],
+      [46,50,53,47],[46,49,51,46],[45,48,52,51],[50,42,45,44],[43,46,50,49],[48,46,43,40],[41,45,50,44],[43,50,48,40]]),
+    chords:chordTrack([comp1('F'),comp1('D7'),comp1('Gm'),comp1('C7'),comp1('Am'),comp1('D7'),comp2('Gm','C7'),comp1('F'),
+      comp1('Bb'),comp2('Bbm','Eb7'),comp1('Am'),comp1('D7'),comp1('Gm'),comp1('C7'),comp2('F','D7'),comp2('Gm','C7')])},
   // Lupta cu Fermierul-Șef: aceeași gamă, rapid și apăsat, cu tobe dese și basul care nu se oprește.
   boss:{bpm:152,loop:true,drums:'k.hsk.hsk.hsk.ss',
     lead:P(`D5 - D5 Eb5 D5 - C5 - D5 - A4 - - - - -
@@ -1059,11 +1101,17 @@ function sched(){
     if(!s.loop&&i>=s.lead.length){seq.song=null;if(s.next)playSong(s.next);break;}
     const li=i%s.lead.length,L=s.lead[li];
     if(L>0){let n=1;while(n<16&&s.lead[(li+n)%s.lead.length]===0&&(s.loop||li+n<s.lead.length))n++;if(s.leadMax)n=Math.min(n,s.leadMax);tone(s.leadType||'pulse',mtof(L),seq.next,sd*n*0.95,s.leadVol||0.1,musicG);}
-    if(s.bass&&s.bass.length){const bi=i%s.bass.length,B=s.bass[bi];if(B>0){let n=1;while(n<16&&s.bass[(bi+n)%s.bass.length]===0)n++;tone('triangle',mtof(B),seq.next,sd*n*0.9,0.3,musicG);}}
-    if(s.drums){const d=s.drums[i%s.drums.length];
-      if(d==='k')tone('sine',160,seq.next,0.12,0.5,musicG,40);
-      else if(d==='s')noise(seq.next,0.12,0.22,musicG,1800);
-      else if(d==='h')noise(seq.next,0.03,0.1,musicG,7000);}
+    if(s.bass&&s.bass.length){const bi=i%s.bass.length,B=s.bass[bi];if(B>0){let n=1;while(n<16&&s.bass[(bi+n)%s.bass.length]===0)n++;tone('triangle',mtof(B),seq.next,sd*n*0.9,s.bassVol||0.3,musicG);}}
+    // Acordurile (doar la piesa cafenelei): {n: notele, d: câți pași țin}, ca un pian electric moale.
+    if(s.chords){const c=s.chords[i%s.chords.length];if(c)for(const m of c.n)tone('sine',mtof(m),seq.next,sd*c.d,s.chordVol||0.04,musicG);}
+    if(s.drums){const d=s.drums[i%s.drums.length],t=seq.next;
+      if(d==='k')tone('sine',160,t,0.12,0.5,musicG,40);
+      else if(d==='s')noise(t,0.12,0.22,musicG,1800);
+      else if(d==='h')noise(t,0.03,0.1,musicG,7000);
+      // Jazz: r = ride (un „țss” moale și lung), R = ride + perie pe tobă, q = ride + o tobă mare abia atinsă.
+      else if(d==='r'||d==='R'||d==='q'){noise(t,0.22,0.06,musicG,6500);
+        if(d==='R')noise(t,0.16,0.1,musicG,2600,'bandpass');
+        if(d==='q')tone('sine',105,t,0.16,0.26,musicG,52);}}
     seq.step++;seq.next+=sd;
   }
 }
@@ -1087,13 +1135,16 @@ const inRight=()=>keys.ArrowRight||touch.right;
 const inJump=()=>keys.Space||touch.jump;
 const inRun=()=>keys.KeyX||touch.run;
 const jumpPressed=()=>pressed.Space||pressed.TouchJump;
+// ↑ (sau butonul ▲ de pe ecran, care apare doar în fața unei uși): intri / ieși din cafeneaua din nivelul bonus.
+const upPressed=()=>pressed.ArrowUp||pressed.KeyW||pressed.TouchUp;
 // O apăsare scurtă pe X (sau pe FUGI) aruncă o pană de foc; ținut apăsat, X rămâne fugă.
 const firePressed=()=>pressed.KeyX||pressed.TouchRun;
 const startPressed=()=>pressed.Enter||pressed.Space||pressed.TouchJump||pressed.Tap;
 if('ontouchstart' in window||navigator.maxTouchPoints>0){document.getElementById('touch').classList.add('on');document.getElementById('pauseBtn').classList.add('on');}
+const TOUCH_UI=document.getElementById('touch').classList.contains('on')?document.getElementById('touch'):null;
 document.querySelectorAll('[data-k]').forEach(b=>{
   const k=b.dataset.k;
-  const down=e=>{e.preventDefault();initAudio();if(k==='pause'){pressed.KeyP=true;return;}touch[k]=1;if(k==='jump')pressed.TouchJump=true;if(k==='run')pressed.TouchRun=true;};
+  const down=e=>{e.preventDefault();initAudio();if(k==='pause'){pressed.KeyP=true;return;}touch[k]=1;if(k==='jump')pressed.TouchJump=true;if(k==='run')pressed.TouchRun=true;if(k==='up')pressed.TouchUp=true;};
   const up=e=>{e.preventDefault();if(k!=='pause')touch[k]=0;};
   b.addEventListener('pointerdown',down);b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('pointerleave',up);
   b.addEventListener('contextmenu',e=>e.preventDefault());
@@ -1108,7 +1159,7 @@ cv.addEventListener('pointermove',e=>{const i=G.state==='title'?menuHit(e):-1;if
 // ================= LEVELS =================
 function newMap(w){
   const grid=[];for(let y=0;y<ROWS;y++)grid.push(new Array(w).fill('.'));
-  const m={w,grid,coins:[],ents:[],cps:[],goalDef:null,plats:[],bossDef:null};
+  const m={w,grid,coins:[],ents:[],cps:[],goalDef:null,plats:[],bossDef:null,cafeDef:null};
   m.set=(x,y,c)=>{if(x>=0&&x<w&&y>=0&&y<ROWS)grid[y][x]=c;};
   m.f=(x,y,ww,hh,c)=>{for(let j=0;j<hh;j++)for(let i=0;i<ww;i++)m.set(x+i,y+j,c);};
   m.g=(a,b)=>m.f(a,12,b-a+1,2,'D');
@@ -1129,8 +1180,13 @@ function newMap(w){
   m.mv=(x,y,w,ax,range,period=240,phase=0)=>m.plats.push({kind:'move',x,y,w,ax,range,period,phase});
   // Platformă care cade: tremură după ce te urci pe ea, apoi cade în lac; după câteva secunde reapare.
   m.fall=(x,y,w)=>m.plats.push({kind:'fall',x,y,w});
-  // Boss-ul (vezi BOSS): stă la tile-ul x, iar poiana în care se luptă e între tile-urile a și b (b = poarta).
+  // Boss-ul (vezi BOSS): stă la tile-ul x, iar poiana în care se luptă e între tile-urile a și b (b = stiva de fân din dreapta).
   m.boss=(x,a,b)=>{m.bossDef={x,a,b};};
+  // Căsuța MesoCafe (vezi CAFENEAUA): stă la tile-urile x .. x+5 (ușa la mijloc), iar camera dinăuntru, lată de un
+  // ecran (25 de tile-uri), e la tile-urile a .. a+24, în dreapta hărții, după țintă. Pe podeaua ei, la mijloc, blocul-slot
+  // (2 × 2 tile-uri, S).
+  m.cafe=(x,a)=>{m.cafeDef={x,a};m.f(a,CAFE_FLOOR,CAFE_W,ROWS-CAFE_FLOOR,'F');m.f(a+CAFE_SLOT,CAFE_SLOT_Y,2,2,'S');
+    m.f(a,0,CAFE_W,CAFE_CEIL,'K');};   // K = tavanul (solid, nedesenat): dai cu capul în grindă, nu sari afară
   m.done=()=>{for(let y=0;y<ROWS;y++)for(let x=0;x<w;x++)if(grid[y][x]==='D'&&(y===0||(grid[y-1][x]!=='D'&&grid[y-1][x]!=='G')))grid[y][x]='G';return m;};
   return m;
 }
@@ -1235,6 +1291,37 @@ const LEVELS=[
   m.c(325,10,4);m.e('man',328);
   m.goal('sign',334);
   return m.done();}},
+ // Nivelul BONUS — POPAS LA MESOCAFÉ: la începutul iernii, între Lac și Pădurea de brazi. Scurt (puțin mai scurt decât
+ // primul nivel), liniștit: fără punct de salvare, fără blocuri cu power-up și fără trepte de piatră; doar câțiva
+ // ucenici, două iazuri mici înghețate, bănuți și blocuri cu bănuți. La mijloc e căsuța MesoCafé: în fața ușii apeși ↑
+ // și intri în cafenea (vezi CAFENEAUA), unde te așteaptă un curcan bătrânel și blocul-slot. Pe drumul spre
+ // MESOPOTAMIA are o steluță în loc de bulină, iar numerotarea nivelurilor îl sare.
+ {theme:6,song:'winter',bonus:true,tip:'Apasă ↑ la ușa cafenelei ca să intri.',build(){const m=newMap(168);m.g(0,142);   // sol până lângă camera cafenelei (fără gol cu apă)
+  // Bănuții: exact 50 cu totul (împreună cu cei 6 din blocurile M), puși ca să te poarte prin nivel: un rând după
+  // blocurile de la început, un arc pe drumul săriturii peste primul iaz, două scânduri în trepte înainte de
+  // cafenea (sus, o răsplată pentru cine urcă), o grămadă după cafenea, blocuri cu câte un bănuț deasupra fiecăruia,
+  // o boltă peste copca celui de-al doilea iaz și un rând spre tăbliță. Cu 50 de bănuți primești o viață.
+  // arc: n bănuți de la x0 la x1, cu capetele pe rândul bot și mijlocul pe rândul top (pot fi și jumătăți de tile).
+  const arc=(x0,x1,top,bot,n)=>{for(let i=0;i<n;i++){const t=i/(n-1),u=2*t-1;m.coins.push([x0+(x1-x0)*t,top+(bot-top)*u*u]);}};
+  m.r(10,8,'MBMBM');                                                               //  3 (în blocuri)
+  m.c(20,9,5);                                                                     //  5 →  8
+  m.e('boy',24);
+  // Primul iaz înghețat: mic și fără copcă, de încercat gheața; arcul de bănuți merge de pe un mal pe altul.
+  m.lake(36,41);arc(34.5,42.5,7,10,7);                                             //  7 → 15
+  // Două scânduri în trepte: 3 bănuți pe cea de jos, 4 pe cea de sus.
+  m.r(45,9,'===');m.c(45,8,3);                                                     //  3 → 18
+  m.r(50,6,'====');m.c(50,5,4);                                                    //  4 → 22
+  // Căsuța MesoCafé la mijloc (tile-urile 60-65); camera ei e la 143-167. Fără punct de salvare: nivelul e scurt.
+  m.cafe(60,143);
+  m.c(70,9,5);m.c(70,10,5);                                                        // 10 → 32 (grămada)
+  m.e('boy',82);
+  m.r(87,8,'BMMMB');m.c(87,6,5);                                                   //  3 + 5 → 40
+  // Al doilea iaz: o copcă mică la mijloc, cu o boltă de 5 bănuți chiar peste ea (îi iei sărind copca).
+  m.lake(103,111);m.pit(106,107);arc(104.5,108.5,7,9,5);                           //  5 → 45
+  m.e('boy',116);
+  m.c(118,9,5);                                                                    //  5 → 50
+  m.goal('sign',128);
+  return m.done();}},
  // Nivelul 4 — pădurea de brazi, iarna: zăpadă, fulguire ușoară și lacuri mari înghețate. Pe gheață aluneci puțin;
  // dacă stai ~2 s pe același loc, crapă și pici în apă (gaura îngheață la loc după ~5 s). Mobii nu intră pe gheață
  // (se întorc la mal), deci lacurile te feresc de ei — dar nu poți sta pe loc. Copcile (apă deschisă, cu țăruși
@@ -1299,7 +1386,7 @@ const LEVELS=[
  // Amestecă felinarele (fermierii te văd doar în lumina din fața lor) cu lacurile înghețate (gheața crapă dacă stai pe
  // loc). Fermierii nu calcă pe gheață, ci patrulează pe mal: treci lacul când se uită în altă parte, dar fără să aștepți
  // pe gheață. Ucenicii n-au felinar. Lung cât primele niveluri, cu un punct de salvare la jumătate și încă unul chiar
- // înaintea poienii în care te așteaptă FERMIERUL-ȘEF (boss-ul, vezi BOSS); după el, poarta spre restaurant.
+ // înaintea poienii în care te așteaptă FERMIERUL-ȘEF (boss-ul, vezi BOSS); după el, drumul spre restaurant.
  {theme:5,song:'winter',tip:'MESOPOTAMIA e aproape!',build(){const m=newMap(266);m.g(0,265);
   m.c(6,10,3);m.r(11,8,'BMBHB');m.c(12,5,3);
   m.e('boy',21);
@@ -1325,9 +1412,9 @@ const LEVELS=[
   // Lacul 4: o copcă la mijloc, blocuri deasupra.
   m.lake(196,209);m.pit(201,203);m.r(199,8,'BMB');m.c(197,10,3);m.c(205,10,3);
   m.cp(211);                                                                       // punctul de salvare de dinaintea boss-ului
-  // Un bloc cu power-up chiar înainte de boss: mic, te face mare; mare, îți dă afina înghețată.
-  m.r(213,8,'BHB');m.c(212,5,5);
-  // Poiana boss-ului (tile-urile 218-240; butucii cad pe 217, poarta e pe 241): un iaz înghețat la mijloc și două
+  // Chiar înainte de boss, un bloc albăstrui (A) din care iese mereu afina înghețată, fie că ești mic, fie că ești mare.
+  m.r(213,8,'BAB');m.c(212,5,5);
+  // Poiana boss-ului (tile-urile 218-240; baloții de fân cad pe 217, a doua stivă de fân e pe 241): un iaz înghețat la mijloc și două
   // scânduri deasupra lui, pe care te poți feri de furcile aruncate, de împunsături și de valurile de zăpadă.
   m.lake(224,234);m.r(225,8,'===');m.r(231,8,'===');
   m.boss(237,218,241);
@@ -1370,10 +1457,10 @@ function saveSettings(){try{localStorage.setItem('curcan_settings',JSON.stringif
 function applyAudio(){if(!AC)return;musicG.gain.value=G.music?(G.paused?0.06:0.32):0;sfxG.gain.value=G.sfx?0.7:0;}
 function saveHi(){if(G.score>G.hi){G.hi=G.score;try{localStorage.setItem('curcan_hi',G.hi);}catch(e){}}}
 let grid=null,cols=0,theme=THEMES[0],tiles=getTiles(0),bg=getBG(0),goal=null;
-let player=null,enemies=[],coins=[],items=[],parts=[],popups=[],booms=[],bumps=[],cps=[],feathers=[],plats=[],boss=null;
+let player=null,enemies=[],coins=[],items=[],parts=[],popups=[],booms=[],bumps=[],cps=[],feathers=[],plats=[],boss=null,cafe=null;
 const cam={x:0};
 
-function solid(c){return c==='G'||c==='D'||c==='B'||c==='M'||c==='H'||c==='U'||c==='X'||c==='^'||c==='I';}
+function solid(c){return c==='G'||c==='D'||c==='B'||c==='M'||c==='H'||c==='A'||c==='U'||c==='X'||c==='^'||c==='I'||c==='F'||c==='S'||c==='E'||c==='K';}
 function tileAt(tx,ty){if(tx<0||tx>=cols)return 'X';if(ty<0||ty>=ROWS)return '.';return grid[ty][tx];}
 function moveX(e){
   e.x+=e.vx;e.hitWall=false;const t=Math.floor(e.y/TS),b=Math.floor((e.y+e.h-0.01)/TS);
@@ -1483,10 +1570,10 @@ function drawPlats(cx){
 // ================= BOSS: FERMIERUL-ȘEF (nivelul 5, înainte de restaurant) =================
 // Un fermier uriaș, clasic: pălărie de paie, barbă castanie, cămașă în carouri roșu cu alb, salopetă de blugi (cu
 // bretele, nasturi și buzunar) și cizme; ține o furcă. Fața își schimbă expresia: încruntat, răcnind (când atacă),
-// obosit, amețit, lovit. Poiana e luminată de două felinare pe stâlpi, la capete, care se fac roșii (și pulsează) cât
+// obosit, amețit, lovit. Poiana e luminată de două felinare de fermă (cu petrol, atârnate de stâlpi de lemn), la capete, care se fac roșii (și pulsează) cât
 // boss-ul se pregătește să sară peste tine sau să dea buzna.
-// Te așteaptă în poiana din fața restaurantului. Când intri, în spatele tău cad butuci, camera se oprește pe poiană și
-// pornește muzica de boss; poarta din dreapta se sparge abia când îl învingi. Are 3 inimi.
+// Te așteaptă în poiana din fața restaurantului. Când intri, în spatele tău cade o stivă de baloți de fân, camera se oprește pe poiană și
+// pornește muzica de boss; stiva de fân din dreapta se prăbușește abia când îl învingi. Are 3 inimi.
 // Atacuri (după fiecare face o pauză; cu cât îl rănești, cu atât e mai rapid și pauzele mai scurte):
 // - trei furci aruncate spre tine, una după alta (de fiecare dată trage întâi furca înapoi și tremură); după a treia e
 //   OBOSIT 3 secunde (gâfâie, transpiră, se clatină);
@@ -1523,7 +1610,6 @@ const BOSS_LEG_B=["......kk.kDDDDkDDDDk........","........kDDdDk.kDdDDk.......",
 "......kDDDDk.....kDDDDk.....",".....kOOOOOk.....kOOOOOk....",".....kOOOOOk.....kOOOOOOk...",".....kkkkkkk.....kkkkkkkk..."];
 const BOSS={A:spr(BOSS_TOP.concat(BOSS_LEG_A),BOSS_PAL),B:spr(BOSS_TOP.concat(BOSS_LEG_B),BOSS_PAL),ICE:spr(BOSS_TOP.concat(BOSS_LEG_A),icePal(BOSS_PAL))};
 BOSS.FLIP=mkSprite(BOSS_TOP.concat(BOSS_LEG_A).reverse(),BOSS_PAL,false);
-const HEART_ICON=[".##.##.","#######","#######",".#####.","..###..","...#..."];
 function makeBoss(d){
   // Scândurile din poiană (pe care sare ca să scape de bombe).
   const planks=[];
@@ -1555,7 +1641,7 @@ const bossVulnerable=()=>['tired','dazed','frozen'].includes(boss.st);
 // Se pregătește să sară peste tine sau să dea buzna (sau chiar o face): atunci felinarele poienii se fac roșii.
 const bossDanger=()=>boss&&(['leapWarn','chargePrep','charge'].includes(boss.st)||(boss.st==='leap'&&boss.after==='strike'));
 // Felinarele de pe stâlpi, câte unul la fiecare capăt al poienii (x = stâlpul, y = felinarul din vârf).
-const bossLamps=()=>[{x:boss.a0+10,y:12*TS-82},{x:boss.a1-10,y:12*TS-82}];
+const bossLamps=()=>[{x:boss.a0+14,y:12*TS-82,d:1},{x:boss.a1-14,y:12*TS-82,d:-1}];   // d = grinda spre poiană
 // E apă deschisă (nu sol, nu gheață) sub coloana din x?
 const bossWater=x=>tileAt(Math.floor(x/TS),12)==='.';
 // Cel mai apropiat loc din poiană (x al mijlocului) unde poate sta pe sol sau pe gheață.
@@ -1607,7 +1693,7 @@ function bossStrikeBox(){const b=boss,r=20+b.ext;return b.dir>0?{x:b.x+b.w,y:b.y
 function bossHit(kdir){
   const b=boss;if(!bossFighting()||b.inv>0||b.st==='hurt')return;
   const wasIce=b.st==='frozen';
-  b.hp--;b.inv=70;b.kdir=kdir||1;b.vy=0;b.raise=false;b.ice=0;G.shake=12;sfx.bossHurt();
+  b.hp--;b.lostT=40;b.inv=70;b.kdir=kdir||1;b.vy=0;b.raise=false;b.ice=0;G.shake=12;sfx.bossHurt();
   if(wasIce){iceShards(b.x+b.w/2,b.y+14,14);sfx.shatter();}
   if(b.hp<=0){b.st='dead';b.t=0;b.vy=-6;b.vx=b.kdir*1.4;b.forks=[];stopSong();sfx.bossDown();addScore(5000,b.x+b.w/2,b.y-10);
     popup('FERMIERUL-ȘEF ÎNVINS!',b.x+b.w/2,b.y-24,'#ffd23f');return;}
@@ -1620,17 +1706,27 @@ function bossIceHit(){
   if(++b.ice<BOSS_ICE_HITS){sfx.fwipIce();return;}
   b.ice=0;b.st='frozen';b.t=0;b.raise=false;b.vx=0;b.vy=0;sfx.freezeHit();
 }
-// De la 2 inimi (după fiecare lovitură primită): cheamă 2 sau 3 mobi, la întâmplare fermieri sau ucenici, care sar din
-// brazi în locuri alese la întâmplare prin poiană (nu chiar lângă tine). Cel mult 4 mobi deodată în poiană.
+// De la 2 inimi (după fiecare lovitură primită): cheamă 2 sau 3 mobi, la întâmplare fermieri sau ucenici, care intră în
+// poiană pe jos, din lateral: din stânga, de după baloții de fân, și din dreapta, de după cealaltă stivă (vezi e.enter în updateMan).
+// Vin pe rând din ambele părți; dacă stai chiar lângă una dintre margini, vin toți din partea cealaltă. Deasupra
+// marginii din care vin apare un „!”. Cel mult 4 mobi deodată în poiană.
 function bossSummon(){
-  const b=boss,alive=enemies.filter(e=>e.type==='man'&&!e.dead&&!e.remove&&e.x>b.a0-TS&&e.x<b.a1+TS).length;
+  const b=boss,alive=enemies.filter(e=>e.type==='man'&&!e.dead&&!e.remove&&(e.enter||(e.x>b.a0-TS&&e.x<b.a1+TS))).length;
   const n=Math.min(2+(Math.random()<0.5?1:0),4-alive);if(n<=0)return;
+  const pcx=player.x+player.w/2,near=pcx<b.a0+56?-1:pcx>b.a1-56?1:0;   // marginea lângă care stai: -1 stânga, 1 dreapta
+  let side=near?-near:(Math.random()<0.5?-1:1);const queue={'-1':0,'1':0};
   for(let i=0;i<n;i++){
-    let x=0;for(let k=0;k<12;k++){x=bossSafeX(b.a0+20+Math.random()*(b.a1-b.a0-40));if(Math.abs(x-(player.x+player.w/2))>56)break;}
-    const e=makeEnemy(Math.random()<0.5?'man':'boy',Math.floor(x/TS),0);e.y=-30-i*24;e.active=true;e.dir=x<player.x?1:-1;enemies.push(e);
+    const e=makeEnemy(Math.random()<0.5?'man':'boy',0,11),q=queue[side]++;   // q = al câtelea vine din partea asta
+    // Pornesc chiar de după marginea ecranului (camera stă pe poiană), la rând, unul după altul.
+    e.x=side<0?b.a0-TS-e.w-q*28:b.a1+TS+q*28;e.enter=-side;e.dir=-side;e.active=true;e.onGround=true;enemies.push(e);
+    if(q===0)popup('!',side<0?b.a0-TS/2:b.a1+TS/2,12*TS-56,'#ff8a5a');
+    if(!near)side=-side;
   }
   sfx.alert();popup('LA MINE!',b.x+b.w/2,b.y-16,'#ff8a5a');
 }
+// Mobul chemat de boss care n-a intrat încă de tot în poiană (e după una dintre stivele de fân): nu-l atingi, nu te
+// atinge, iar penele trec pe lângă el.
+const offstage=e=>e.enter&&boss&&(e.x<boss.a0||e.x+e.w>boss.a1);
 // Aruncă o bombă aprinsă în arc, ca să cadă pe jos în tx; stă în fund, cu fitilul obișnuit, ca s-o poți împinge în el.
 function bossThrowAt(tx){
   const b=boss,hx=b.x+b.w/2,e=makeEnemy('bomb',0,0);
@@ -1640,8 +1736,8 @@ function bossThrowAt(tx){
 }
 function updateBoss(){
   const b=boss,p=player;
-  b.t++;if(b.inv>0)b.inv--;if(b.gate>0&&b.gate<60)b.gate++;
-  // Furcile aruncate: zboară, te rănesc dacă te ating cu dinții, se înfig în sol, în gheață, în butuci sau în poartă și
+  b.t++;if(b.inv>0)b.inv--;if(b.lostT>0)b.lostT--;if(b.gate>0&&b.gate<60)b.gate++;
+  // Furcile aruncate: zboară, te rănesc dacă te ating cu dinții, se înfig în sol, în gheață, sau în baloți și
   // dispar după vreo 2 secunde.
   for(const f of b.forks){
     if(f.stuckT>0){if(--f.stuckT<=0)f.gone=true;continue;}
@@ -1661,11 +1757,10 @@ function updateBoss(){
     b.raise=false;bossJump(bossSafeX(bcx),24,'land');}
   switch(b.st){
     case 'wait':b.dir=-1;if(!p.dead&&p.x>b.a0+TS){b.st='intro';b.t=0;b.lock=true;stopSong();}break;
-    case 'intro':                                                    // cad butucii în spatele tău, apoi răcnește
+    case 'intro':                                                    // cad baloții de fân în spatele tău, apoi răcnește
       b.logY=Math.min(12*TS-44,-60+b.t*13);
       if(b.t===16){G.shake=10;sfx.thud();}
-      if(b.t===40){sfx.roar();G.shake=14;popup('!',bcx,b.y-14,'#ff4040');playSong('boss');}
-      if(b.t>=80){b.st='walk';b.t=0;}
+      if(b.t===40){sfx.roar();G.shake=14;popup('!',bcx,b.y-14,'#ff4040');playSong('boss');}      if(b.t>=80){b.st='walk';b.t=0;}
       break;
     case 'walk':{
       // A rămas sus, pe o scândură (de exemplu după ce a fost înghețat acolo): sare jos, lângă tine.
@@ -1756,10 +1851,14 @@ function updateBoss(){
       {const fy=bossFloorY()-b.h;if(b.y<fy){b.vy=Math.min(b.vy+0.4,7);b.y=Math.min(fy,b.y+b.vy);}}   // lovit în aer: cade pe ce are dedesubt
       if(b.t>=60){bossSummon();b.st='walk';b.t=0;b.cd=40;b.volleyT=90;b.leapT=Math.round(180*cdk);b.bombT=Math.round(140*cdk);b.chargeT=60;}
       break;
-    case 'dead':                                                     // aruncat de pe ecran; apoi se sparge poarta
+    case 'dead':                                                     // aruncat de pe ecran; apoi se prăbușesc stivele de fân
       b.vy+=0.35;b.y+=b.vy;b.x+=b.vx;
-      if(b.t===70){b.gate=1;b.lock=false;sfx.brk();G.shake=8;
-        for(let i=0;i<16;i++)parts.push({x:b.a1+Math.random()*TS,y:12*TS-Math.random()*60,vx:(Math.random()-0.2)*2.5,vy:-1-Math.random()*2.5,g:0.2,life:40,max:40,col:i%2?'#8a5a2a':'#c48a4a',s:2});}
+      if(b.t===70){b.gate=1;b.lock=false;sfx.brk();sfx.thud();G.shake=10;
+        // Baloții se desfac: paie care zboară și cad, plus un nor de praf de fân care se ridică încet și se risipește.
+        const hay=['#f6d872','#dcae40','#b08222'];
+        for(const [x0,d] of [[b.a1,1],[b.a0-TS,-1]]){
+          for(let i=0;i<40;i++)parts.push({x:x0+Math.random()*TS,y:12*TS-Math.random()*44,vx:(Math.random()-0.35)*3.2*d,vy:-0.8-Math.random()*3,g:0.16,life:45+Math.random()*25|0,max:70,col:hay[i%3],s:i%4?1:2});
+          for(let i=0;i<22;i++)parts.push({x:x0+8+(Math.random()-0.5)*30,y:12*TS-4-Math.random()*44,vx:(Math.random()-0.5)*0.7,vy:-0.15-Math.random()*0.35,g:-0.004,life:50+Math.random()*30|0,max:80,col:i%2?'#e8d8a8':'#d4c088',s:3+(i%3)});}}
       if(b.t===110)playSong(LEVELS[G.level].song||'main');
       if(b.t>110&&b.y>H+40)b.st='gone';
       break;
@@ -1786,7 +1885,7 @@ function updateBoss(){
 function bossArenaBounds(){
   const b=boss,p=player;if(!b||!b.lock)return;
   if(!p.dead)p.x=clamp(p.x,b.a0,b.a1-p.w);
-  for(const e of enemies){if(e.dead||e.remove)continue;
+  for(const e of enemies){if(e.dead||e.remove||(e.enter&&!e.frozen))continue;   // mobii chemați încă intră (bossSummon)
     // Cine e în afara poienii (de exemplu fermierii rămași în urmă) rămâne afară; cine e înăuntru rămâne înăuntru.
     const c=e.x+e.w/2;
     if(c<b.a0){e.x=Math.min(e.x,b.a0-e.w);continue;}
@@ -1797,24 +1896,56 @@ function bossArenaBounds(){
     else if(e.slideDir){e.slideDir=out;e.dir=out;sfx.bump();}
     else e.dir=out;}
 }
-// Stâlpii cu felinare de la capetele poienii, butucii din stânga (cad la începutul luptei) și poarta din dreapta (se
-// sparge când îl învingi).
+// Un balot de fân (16 × 11): fân galben cu fire mai deschise și mai închise, legat cu două sfori.
+const BALE=spr([
+  ".kkkkkkkkkkkkkk.",
+  "kLLLLtLLLLLtLLLk",
+  "kYYLLtLYYYYtLLYk",
+  "ksYYYtYYssstYYYk",
+  "kYYLLtYYYYYtYssk",
+  "kYYYYtLLLYYtYYYk",
+  "kssYYtYYYYYtLLYk",
+  "kYYYLtLYYsstYYYk",
+  "kYLLYtYYYYYtYYsk",
+  "ksssstssssstsssk",
+  ".kkkkkkkkkkkkkk."],{k:'#5a3a0e',L:'#f6d872',Y:'#dcae40',s:'#b08222',t:'#8a3418'});
+// O stivă de patru baloți puși unul peste altul, nu chiar drept (câte un pixel la stânga sau la dreapta), cu câteva paie
+// ieșite pe margini; iarna, cu zăpadă pe cel de sus. flip = stiva din dreapta, oglindită, ca să nu arate la fel.
+function drawBaleStack(x0,y0,flip){
+  for(let i=0;i<4;i++){const y=y0+i*11,x=x0+[0,1,-1,0][i]*(flip?-1:1),f=(i+(flip?1:0))%2;
+    ctx.drawImage(BALE[f?'l':'r'],x,y);
+    ctx.fillStyle='#f6d872';ctx.fillRect(f?x+16:x-1,y+3+i%3*2,1,1);ctx.fillStyle='#dcae40';ctx.fillRect(f?x-1:x+16,y+6-f*2,1,1);
+    if(theme.snow&&i===0){ctx.fillStyle='#f4f8fc';ctx.fillRect(x+1,y-1,14,2);ctx.fillRect(x+3,y-2,5,1);ctx.fillRect(x+10,y-2,3,1);
+      ctx.fillStyle='#c8d8e8';ctx.fillRect(x+1,y+1,14,1);}}
+}
+// Ce rămâne dintr-o stivă după ce l-ai învins: o grămadă de fân pe jos, o jumătate de balot cu capătul rupt, o bucată
+// din altul, sfoara ruptă și paie împrăștiate. x = locul stivei pe ecran; flip = oglindit (stiva din stânga).
+function drawBaleRuins(x,flip){
+  if(flip){ctx.save();ctx.translate(x+TS,0);ctx.scale(-1,1);drawBaleRuins(0,false);ctx.restore();return;}
+  const g=12*TS;
+  ctx.drawImage(BALE.l,8,0,8,11,x-11,g-11,8,11);                                    // bucata de balot din stânga
+  ctx.fillStyle='#f6d872';ctx.fillRect(x-12,g-9,1,1);ctx.fillRect(x-13,g-6,1,1);ctx.fillRect(x-12,g-3,1,1);
+  for(let i=0;i<30;i++){const h=Math.round(Math.sqrt(Math.max(0,1-((i-14.5)/15)**2))*8);if(!h)continue;   // grămada
+    const px=x-7+i;ctx.fillStyle='#dcae40';ctx.fillRect(px,g-h,1,h);ctx.fillStyle='#f6d872';ctx.fillRect(px,g-h,1,1);
+    if(i%4===1&&h>3){ctx.fillStyle='#b08222';ctx.fillRect(px,g-h+2,1,h-3);}
+    if(i%5===3&&h>4){ctx.fillStyle='#f6d872';ctx.fillRect(px,g-h+3,1,2);}}
+  ctx.fillStyle='#b08222';ctx.fillRect(x-6,g-1,28,1);
+  ctx.drawImage(BALE.r,0,0,10,11,x+14,g-11,10,11);                                 // jumătatea de balot din dreapta
+  ctx.fillStyle='#f6d872';ctx.fillRect(x+24,g-9,2,1);ctx.fillRect(x+24,g-6,1,1);ctx.fillRect(x+24,g-4,2,1);
+  ctx.fillStyle='#dcae40';ctx.fillRect(x+24,g-8,1,1);ctx.fillRect(x+25,g-2,1,1);
+  ctx.fillStyle='#8a3418';ctx.fillRect(x+3,g-7,4,1);ctx.fillRect(x+7,g-6,1,1);ctx.fillRect(x+8,g-5,2,1);   // sfoara ruptă
+  for(const [dx,c] of [[-22,0],[-17,1],[-2,0],[27,1],[31,0],[37,1],[44,0]]){                         // paie împrăștiate
+    ctx.fillStyle=c?'#dcae40':'#f6d872';ctx.fillRect(x+dx,g-1,2,1);ctx.fillRect(x+dx+(c?2:-1),g-2,1,1);}
+}
+// Stâlpii cu felinare de la capetele poienii și cele două stive de baloți de fân: cea din stânga cade la începutul
+// luptei, cea din dreapta stă acolo de la început. Când îl învingi, se prăbușesc amândouă (vezi 'dead' în updateBoss)
+// și rămân din ele doar resturi, peste care treci în ambele direcții.
 function drawArena(cx){
   const b=boss;if(!b)return;
-  for(const l of bossLamps()){const lx=Math.round(l.x-cx);if(lx>-10&&lx<W+10)drawLampPost(lx,l.y,bossDanger());}
-  const gx=Math.round(b.a1-cx);
-  if(!b.gate&&gx>-20&&gx<W+20){
-    const wd='#8a5a2a',dk='#5a3510',lt='#b07a40';
-    for(const px of [gx,gx+12]){ctx.fillStyle=dk;ctx.fillRect(px,12*TS-70,4,70);ctx.fillStyle=lt;ctx.fillRect(px+1,12*TS-70,1,70);}
-    for(let i=0;i<3;i++){const px=gx+4+i*3-1,top=12*TS-62+(i%2)*3;ctx.fillStyle=wd;ctx.fillRect(px,top,3,62-(i%2)*3);ctx.fillStyle=dk;ctx.fillRect(px+2,top,1,62-(i%2)*3);}
-    ctx.fillStyle=dk;ctx.fillRect(gx,12*TS-52,16,3);ctx.fillRect(gx,12*TS-20,16,3);
-    if(theme.snow){ctx.fillStyle='#f4f8fc';ctx.fillRect(gx-1,12*TS-72,6,2);ctx.fillRect(gx+11,12*TS-72,6,2);}
-  }
-  if(b.st!=='wait'){const lx=Math.round(b.a0-TS-cx),ly=Math.round(b.logY);
-    if(lx>-20&&lx<W+20)for(let i=0;i<4;i++){const y=ly+i*11;
-      ctx.fillStyle='#3a2414';ctx.fillRect(lx,y,16,11);ctx.fillStyle='#6a4428';ctx.fillRect(lx+1,y+1,14,9);
-      pcirc(ctx,lx+(i%2?11:5),y+5,3,'#c8a070');ctx.fillStyle='#8a6440';ctx.fillRect(lx+(i%2?11:5),y+5,1,1);
-      if(theme.snow&&i===0){ctx.fillStyle='#f4f8fc';ctx.fillRect(lx,y-1,16,2);}}}
+  for(const l of bossLamps()){const lx=Math.round(l.x-cx);if(lx>-20&&lx<W+20)drawLampPost(lx,l.y,bossDanger(),l.d);}
+  const gx=Math.round(b.a1-cx),lx=Math.round(b.a0-TS-cx);
+  if(gx>-50&&gx<W+50){if(b.gate)drawBaleRuins(gx,false);else drawBaleStack(gx,12*TS-44,true);}
+  if(b.st!=='wait'&&lx>-50&&lx<W+50){if(b.gate)drawBaleRuins(lx,true);else drawBaleStack(lx,Math.round(b.logY),false);}
   // Semnul de pe sol unde va ateriza (cât se ghemuiește și cât e în aer): doar un inel roșu care clipește.
   if(b.st==='leapWarn'||(b.st==='leap'&&b.after==='strike')){
     const mx=Math.round(b.jx+b.w/2-cx),on=(G.t>>2)%2;
@@ -1898,24 +2029,408 @@ function drawBossLight(cx){
   for(const l of bossLamps()){const lx=Math.round(l.x-cx),ly=l.y+5;if(lx<-40||lx>W+40)continue;
     glow(lx,ly,30,col,a);glow(lx,12*TS-2,18,col,a*0.4);glow(lx,ly,7,red?'255,120,110':'255,236,170',0.7);}
 }
-// Un stâlp cu felinar (decor, la marginea poienii): stâlp de fier, braț scurt și felinarul cu geam galben (roșu când
-// boss-ul se pregătește să sară sau să dea buzna); iarna, cu puțină zăpadă pe acoperișul felinarului.
-function drawLampPost(x,y,red){
-  ctx.fillStyle='#22222c';ctx.fillRect(x-1,y+9,3,12*TS-y-9);ctx.fillStyle='#4a4a58';ctx.fillRect(x,y+9,1,12*TS-y-9);   // stâlpul
-  ctx.fillStyle='#22222c';ctx.fillRect(x-3,12*TS-4,7,4);                                                              // baza
-  ctx.fillRect(x-4,y,9,2);ctx.fillRect(x-3,y-2,7,2);ctx.fillRect(x-1,y-3,3,1);                                      // acoperișul
-  ctx.fillRect(x-4,y+2,9,7);ctx.fillStyle=red?((G.t>>2)%2?'#ff4a3a':'#ff8a7a'):'#ffe08a';ctx.fillRect(x-3,y+2,7,6);  // geamul
-  ctx.fillStyle='#22222c';ctx.fillRect(x,y+2,1,6);ctx.fillRect(x-4,y+8,9,1);
-  if(theme.snow){ctx.fillStyle='#f4f8fc';ctx.fillRect(x-4,y-1,9,1);ctx.fillRect(x-2,y-3,5,1);}
+// Un stâlp de lemn cu felinar de fermă (decor, la marginea poienii): stâlp cioplit, o grindă cu proptea și, atârnat de
+// ea, un felinar cu petrol, roșu, cu sticlă galbenă și flacără (roșie și pâlpâind când boss-ul se pregătește să sară
+// sau să dea buzna). x = felinarul, y = vârful lui, d = încotro iese grinda din stâlp (spre poiană). Iarna, cu zăpadă
+// pe stâlp, pe grindă și la baza stâlpului.
+function drawLampPost(x,y,red,d){
+  const P=(px,py,w,h,c)=>{ctx.fillStyle=c;ctx.fillRect(px,py,w,h);};
+  const g=12*TS,px=x-d*8,wd='#6e4a2a',wl='#8e6640',wk='#3e2810',mr='#b03030',mk='#6a1818',ir='#2a2026',sn='#f4f8fc';
+  P(px-2,y-8,4,g-y+8,wd);P(px-1,y-8,1,g-y+8,wl);P(px+1,y-8,1,g-y+8,wk);P(px-2,y-8,4,1,wl);       // stâlpul, cu capătul tăiat
+  for(const ky of [y+14,y+37,y+58])P(px-1,ky,2,1,wk);                                           // noduri în lemn
+  const a0=Math.min(px,x+d*3),a1=Math.max(px,x+d*3)+1;                                          // grinda
+  P(a0,y-6,a1-a0,3,wd);P(a0,y-6,a1-a0,1,wl);P(a0,y-4,a1-a0,1,wk);
+  for(let i=0;i<7;i++)P(px+d*(2+(i>>1))-(d<0?1:0),y+3-i,2,1,i%2?wd:wl);                        // propteaua
+  P(x,y-3,1,2,ir);P(x-1,y-1,3,1,ir);P(x-2,y,1,1,ir);P(x+2,y,1,1,ir);                             // cârligul și toarta
+  P(x-2,y+1,5,1,mr);P(x-3,y+2,7,1,mr);P(x-2,y+1,2,1,'#d85050');P(x-3,y+2,7,1,mk);P(x-2,y+2,5,1,mr);   // capacul
+  const gl=red?((G.t>>2)%2?'#ff4a3a':'#ff8a7a'):'#ffe08a';                                       // sticla
+  P(x-2,y+3,5,1,gl);P(x-3,y+4,7,4,gl);P(x-2,y+8,5,1,gl);P(x-3,y+4,1,4,mk);P(x+3,y+4,1,4,mk);
+  P(x,y+5,1,2,red?'#ffd8d0':'#fff6c8');P(x,y+7,1,1,red?'#ff2a1a':'#ffb040');                     // flacăra
+  P(x-3,y+9,7,2,mr);P(x-2,y+9,1,1,'#d85050');P(x-2,y+11,5,1,mk);                                 // rezervorul
+  if(theme.snow){P(px-2,y-9,4,1,sn);if(d>0)P(px+2,y-7,a1-px-2,1,sn);else P(a0,y-7,px-2-a0,1,sn);
+    P(px-3,g-2,6,2,sn);P(px-4,g-1,8,1,sn);}
 }
-// Bara boss-ului, sub HUD: numele, câte o inimă pentru fiecare lovitură care i-a mai rămas și, dedesubt, cât de
-// aproape e de cubul de gheață (câte pene de gheață l-au nimerit din 10).
+// Bara boss-ului, sub HUD: numele și, dedesubt, o bară roșie mare cu 3 segmente, câte unul pentru fiecare viață care
+// i-a mai rămas. Un segment pierdut rămâne gol (închis la culoare, cu contur deschis), ca să se vadă câte au rămas din 3.
+// Când pierde o viață (b.lostT, vezi bossHit), bara tremură, segmentul clipește alb, apoi se golește de la dreapta la
+// stânga. Sub bară, cât e de aproape de cubul de gheață (câte pene de gheață l-au nimerit din 10).
 function drawBossBar(){
   const b=boss;if(!b||b.st==='wait'||b.st==='gone'||(b.st==='dead'&&b.t>70))return;
-  const x=W/2-62,y=18,frost=b.st==='frozen'?BOSS_ICE_HITS:b.ice;uiBox(x,y,124,frost?19:15);
-  txt('FERMIERUL-ȘEF',x+6,y+4,'#ffd23f',1,'l',null);
-  for(let i=0;i<BOSS_HP;i++)icon(HEART_ICON,x+98+i*9,y+4,i<b.hp?'#ff4a5a':'#4a3a5a');
-  if(frost)for(let i=0;i<BOSS_ICE_HITS;i++){ctx.fillStyle=i<frost?'#bfe8ff':'#3a3450';ctx.fillRect(x+6+i*4,y+14,3,2);}
+  const frost=b.st==='frozen'?BOSS_ICE_HITS:b.ice,lost=b.lostT||0,sh=lost>24?((lost>>1)%2?1:-1):0;
+  const w=180,x=W/2-w/2+sh,y=24,P=(px,py,pw,ph,c)=>{ctx.fillStyle=c;ctx.fillRect(px,py,pw,ph);};
+  uiBox(x,y,w,frost?31:26);
+  txt('FERMIERUL-ȘEF',x+w/2,y+4,'#ffd23f',1,'c',null);
+  const bx=x+5,by=y+14,sw=56,gap=1,bh=8;                     // 3 segmente de 56 px, lipite (1 px între ele)
+  P(bx-1,by-1,sw*3+gap*2+2,bh+2,'#0a0610');                  // conturul barei
+  for(let i=0;i<BOSS_HP;i++){const sx=bx+i*(sw+gap);
+    P(sx,by,sw,bh,'#2a2238');P(sx,by,sw,1,'#5a4a6a');P(sx,by+bh-1,sw,1,'#1a1428');   // locașul gol
+    const fill=(fw,top,mid,bot)=>{P(sx,by,fw,bh,mid);P(sx,by,fw,2,top);P(sx,by+bh-2,fw,2,bot);};
+    if(i<b.hp)fill(sw,'#ff7a80','#e8323e','#a01822');
+    else if(i===b.hp&&lost>24){if((lost>>2)%2)fill(sw,'#ffffff','#ffffff','#ffd0d0');else fill(sw,'#ff7a80','#e8323e','#a01822');}
+    else if(i===b.hp&&lost>0)fill(Math.round(sw*lost/24),'#ffffff','#ffd0d0','#ff9aa0');}   // se golește spre stânga
+  if(frost)for(let i=0;i<BOSS_ICE_HITS;i++)P(bx+i*17,y+25,15,2,i<frost?'#bfe8ff':'#3a3450');
+}
+// ================= CAFENEAUA (nivelul bonus: căsuța MesoCafe și camera dinăuntru) =================
+// La mijlocul nivelului bonus e o căsuță maro-cafea cu accente galbene și firma „MesoCafé” (ca la chioșc: bandă neagră cu sigla,
+// galben și lemn deschis), ferestre luminate, o ușă de stejar și un horn din care iese fum. În fața ușii apeși ↑ și
+// intri (ecranul se întunecă o clipă). Camera e o cafenea de un ecran, pusă în dreapta hărții, după țintă; cât ești
+// înăuntru (G.inCafe), camera stă pe ea și timpul nu curge. Ieși tot cu ↑, la ușa din stânga, și ajungi în fața căsuței.
+// Înăuntru: un curcan bătrânel și gras (pălărie, ochelari, pipă, baston, vestă) care îți vorbește într-o casetă de dialog (vezi DIALOGUL), și
+// blocul-slot din mijloc. Blocul arată pe rând boaba roșie, afina înghețată, „2UP” și un X. Îl lovești cu capul o
+// singură dată: se mai învârte puțin, tot mai încet, și se oprește la întâmplare pe unul dintre ele. Premiul ți se dă
+// pe loc (nu trebuie să-l iei): boaba de foc sau afina te îmbracă direct, 2UP îți dă două vieți, X nu-ți dă nimic.
+// Apoi rămâne gol (și după ce pierzi o viață, în același nivel).
+// Camera ocupă pe hartă un ecran întreg (CAFE_W tile-uri), dar cafeneaua propriu-zisă e mai mică: între CAFE_L și
+// CAFE_R pe ecran (în rest e întuneric). Ușa de ieșire are centrul la CAFE_DOOR. Blocul-slot stă pe coloanele a+10,
+// a+11 (x 160-192 pe ecran, la mijloc între cele două perechi de mese) și cu 4 rânduri deasupra podelei: sub el treci
+// (și mare), deasupra lui ajungi dintr-o săritură.
+// Podeaua cafenelei e pe rândul CAFE_FLOOR (cu 2 tile-uri mai sus decât solul de afară), ca sub ea să încapă caseta de
+// dialog fără să acopere camera; tot desenul camerei e urcat cu CAFE_DY.
+const CAFE_W=25,CAFE_L=64,CAFE_R=320,CAFE_DOOR=82,CAFE_FLOOR=10,CAFE_DY=(12-CAFE_FLOOR)*TS,CAFE_SLOT=10,CAFE_SLOT_Y=CAFE_FLOOR-4,DOOR_T=24;
+// Grinda din tavan (sus de tot în cafenea), în coordonatele camerei de dinainte de urcare (podeaua la y = 192):
+// camera e joasă și caldă, cu tavanul puțin deasupra firmei și a blocului-slot; deasupra e întuneric.
+const CAFE_TOP=88;
+// Rândurile 0 .. CAFE_CEIL-1 din camera cafenelei sunt tavanul solid (K, nedesenat), cu marginea de jos exact sub
+// grindă (CAFE_TOP+8-CAFE_DY = CAFE_CEIL*TS): deasupra blocului-slot rămân 2 tile-uri, cât să stea și curcanul mare.
+const CAFE_CEIL=4;
+// Ca cafeneaua să stea la mijlocul ecranului: camera de vedere e cu CAFE_CAMX față de marginea camerei de pe hartă,
+// iar desenul lumii e urcat cu CAFE_VY (doar desenul; tile-urile rămân pe loc).
+const CAFE_CAMX=-8,CAFE_VY=-12;
+const SLOT_FIRE=0,SLOT_ICE=1,SLOT_2UP=2,SLOT_NONE=3;
+// Sigla „MesoCafé” (cu litere mici și accent pe é, ca pe firmă): „Meso” albă, „Café” galbenă. 43 × 7.
+const MESO_LOGO=(()=>{
+  const L={M:["#.....#","##...##","#.#.#.#","#..#..#","#.....#","#.....#","#.....#"],
+    e:["....","....",".##.","#..#","####","#...",".###"],é:["..#.",".#..",".##.","#..#","####","#...",".###"],
+    s:["....","....",".###","#...",".##.","...#","###."],
+    o:["....","....",".##.","#..#","#..#","#..#",".##."],C:[".###.","#...#","#....","#....","#....","#...#",".###."],
+    a:["....","....",".##.","...#",".###","#..#",".###"],f:["..##",".#..",".#..","####",".#..",".#..",".#.."]};
+  const word=[['M',0],['e',0],['s',0],['o',0],['C',1],['a',1],['f',1],['é',1]];
+  const w=word.reduce((s,[ch])=>s+L[ch][0].length+1,0)-1,[c,g]=mkCanvas(w,7);let x=0;
+  for(const [ch,y] of word){g.fillStyle=y?'#ffd23f':'#ffffff';
+    L[ch].forEach((r,j)=>{for(let i=0;i<r.length;i++)if(r[i]==='#')g.fillRect(x+i,j,1,1);});x+=L[ch][0].length+1;}
+  return c;})();
+// Bătrânelul din cafenea: un curcan gras, cu pălărie de fetru, sprâncene albe stufoase, ochelari, pipă în cioc, guler în
+// carouri, vestă verde cu nasturi aurii, burtă crem și baston. Coada e spălăcită (bătrân). 28 × 31, privind spre dreapta.
+const OLD_PAL={k:'#14121c',h:'#6a4428',H:'#3a2010',j:'#8e6440',w:'#e2e2ea',g:'#b8bcc8',e:'#ffffff',G:'#3a2a1a',
+  y:'#ffc21a',o:'#e8870e',r:'#e0222c',R:'#a01018',P:'#8a4a22',p:'#3a1e0e',T:'#e6dcc8',q:'#b8484a',u:'#c8bca6',
+  D:'#3a2a26',v:'#2f6a46',b:'#ffd23f',n:'#8a4a22',N:'#5a2c12',m:'#b8723a',c:'#f2e4c8',C:'#dccaa4',l:'#e8682c',s:'#8a5a2a'};
+const OLD=spr([
+  ".............kkkkkk.........",
+  "............khhjhhhk........",
+  "............khjhhhhk........",
+  "............kHHHHHHk........",
+  "..........kkhhhhhhhhkk......",
+  ".........khhhhhhhhhhhhk.....",
+  "...T.q.....kwwweeeewk.......",
+  "..qTuqT....kwwwwGGGwk.......",
+  "..TuqTuq...kwGGGGkGyyy.pp...",
+  ".qTuqTuqT..kwwwwGkGyyyoPP...",
+  "TuqTuqTuqT.kwwwwGGGrrkpPP...",
+  ".uqTuqTuqkkgwwwwwwryok.pp...",
+  ".TuqTuqTukwkwkwkwrr.........",
+  "..TuqTuqkkwkwkwkwkrR........",
+  "TuqTuqkDDDDvvvvvvvvkR.......",
+  "uqTuqkDDDDvvvvvvvvvvk.......",
+  "qTuqkDDnnNnvvvvvvvvvvk.sss..",
+  ".TuqkDnnnNnnvvvvvbvvvvks.s..",
+  "..ukDmnnnNnnvvvvvvvvvvk..s..",
+  "...kDmmnnnNnnvvvvbvvvvvk.s..",
+  "...kDmmnnNnnnvvvvvvvvvvk.s..",
+  "...kDDmmnnNnnvvvvbvvvvvk.s..",
+  "...kDDDmmnNnvvvvvvvvvvvk.s..",
+  "....kDDDmNnvvvvcccccccck.s..",
+  "....kDDDDDvvvcccccccCCk..s..",
+  ".....kDDDDvvcccccccCCk...s..",
+  "......kDDDDcccccccCCk....s..",
+  "........kkkkkkkkkkk......s..",
+  "...........l...l.........s..",
+  "...........l...l.........s..",
+  "..........lll.lll........ss."],OLD_PAL);
+const OLD_W=28,OLD_H=31;
+const CAFE_HELLO=['BINE AI VENIT LA MESOCAFÉ, FIULE!','OBOSIT DE ATÂTA FUGĂ?','ODIHNEȘTE-TE PUȚIN DIN AVENTURA TA.',
+  'ÎNCEARCĂ-ȚI NOROCUL LA BLOCUL MARE!'];
+const CAFE_REACT=['PANĂ DE FOC! O SĂ-ȚI ÎNCĂLZEASCĂ IARNA!','AFINĂ ÎNGHEȚATĂ! RĂCOROASĂ CA UN FRAPPE!',
+  'DOUĂ VIEȚI! AZI E ZIUA TA NOROCOASĂ!','NIMIC... NU-I BAI, CAFEAUA E DIN PARTEA CASEI!'];
+const CAFE_BYE='DRUM BUN SPRE MESOPOTAMIA!';
+// Dacă tot dai cu capul în blocul-slot gol: la a 5-a, a 7-a și a 15-a lovitură bătrânelul se supără tot mai tare că-i
+// strici cafeneaua; după aceea, la fiecare 5 lovituri (20, 25, 30...), mai zice câte ceva, pe rând. De la a 5-a pică
+// praf din tavan, de la a 7-a se zgâlțâie și camera.
+const CAFE_BONK={5:'HEI, FIULE! BLOCUL E GOL, NU MAI DA CU CAPUL ÎN EL!',7:'MAI ÎNCET, CĂ-MI STRICI CAFENEAUA! ABIA AM ZUGRĂVIT-O!',
+  15:'GATA, ȚI-O TREC PE NOTĂ: O CAFEA ȘI UN TAVAN NOU!'};
+const CAFE_BONK_MORE=['CE CAP TARE AI... SEMENI CU MAICĂ-TA.','LASĂ BLOCUL ÎN PACE ȘI BEA-ȚI CAFEAUA!',
+  'AUZI CUM SCÂRȚÂIE GRINDA? NU MAI SĂRI!','CURCANII DE AZI... PE VREMEA MEA BĂTEAM DIN ARIPI!'];
+function cafeBonk(){
+  const c=cafe;if(!c||!inCafe())return;
+  const n=++c.bonks;
+  if(n>=5)for(let i=0;i<5;i++)parts.push({x:(c.sx+Math.random()*2)*TS,y:CAFE_CEIL*TS+1,vx:(Math.random()-0.5)*0.4,vy:0.3+Math.random()*0.5,g:0.06,life:45,max:45,col:i%2?'#c8b89a':'#8a7a64',s:1});
+  if(n>=7)G.shake=Math.max(G.shake,5);
+  const line=CAFE_BONK[n]||(n>15&&(n-15)%5===0?CAFE_BONK_MORE[((n-15)/5-1)%CAFE_BONK_MORE.length]:null);
+  if(line)openTalk([line]);
+}
+function makeCafe(d){
+  const used=!!G.slotUsed&&G.slotUsed.level===G.level;
+  const c={x:d.x,a:d.a,sx:d.a+CAFE_SLOT,sy:CAFE_SLOT_Y,i:used?G.slotUsed.res:0,spin:0,next:0,k:0,res:used?G.slotUsed.res:-1,
+    done:used,bump:-1,met:false,react:-1,reactT:0,bonks:0,npcX:d.a*TS+276-OLD_W/2};   // bătrânelul: în fața tejghelei
+  if(used)setSlotTiles(c,'E');
+  return c;
+}
+function setSlotTiles(c,ch){for(let j=0;j<2;j++)for(let i=0;i<2;i++)grid[c.sy+j][c.sx+i]=ch;}
+const inCafe=()=>!!cafe&&!!G.inCafe;
+// Cea mai din dreapta poziție a camerei afară (înainte de golul dintre nivel și camera cafenelei).
+const camMax=()=>cafe?(cafe.a-3)*TS-W:cols*TS-W;
+// Ușa în fața căreia stă curcanul (pe sol): 'in' = ușa căsuței (intri), 'out' = ușa din cafenea (ieși), altfel null.
+function cafeDoor(){
+  const p=player;if(!cafe||!p||p.dead||!p.onGround||G.doorT>0)return null;
+  const pc=p.x+p.w/2;
+  if(inCafe())return Math.abs(pc-(cafe.a*TS+CAFE_DOOR))<10?'out':null;
+  return Math.abs(pc-(cafe.x*TS+48))<12&&p.y+p.h>=12*TS-1?'in':null;
+}
+// La jumătatea întunecării: curcanul trece dincolo de ușă, iar camera sare direct acolo.
+function cafeTeleport(){
+  const p=player,c=cafe;
+  // Înăuntru cântă piesa cafenelei (jazz), afară iar cea a nivelului.
+  if(G.doorTo==="in"){G.inCafe=true;p.x=c.a*TS+CAFE_DOOR-p.w/2;cam.x=c.a*TS+CAFE_CAMX;playSong('cafe');}
+  else{G.inCafe=false;p.x=c.x*TS+48-p.w/2;cam.x=clamp(p.x+p.w/2-W*0.42,0,camMax());playSong(LEVELS[G.level].song||'main');}
+  p.y=(G.inCafe?CAFE_FLOOR:12)*TS-p.h;p.vx=0;p.vy=0;p.face=1;feathers=[];
+}
+// Lovit cu capul: alege la întâmplare unde se oprește și mai face 8-11 pași, tot mai rar, până ajunge acolo.
+// Șansele: X (nimic) 10%; boaba de foc, afina și 2UP câte 30%.
+function slotHit(){
+  const c=cafe;if(!c||c.done||c.spin>0)return;
+  const r=Math.random();c.res=r<0.1?SLOT_NONE:r<0.4?SLOT_FIRE:r<0.7?SLOT_ICE:SLOT_2UP;c.spin=8+((c.res-c.i)%4+4)%4;c.next=3;c.k=0;c.bump=0;sfx.bump();
+}
+function slotPrize(){
+  const c=cafe,r=c.res,x=(c.sx+1)*TS,y=c.sy*TS;
+  c.done=true;c.bump=0;c.react=r;c.reactT=55;setSlotTiles(c,'E');G.slotUsed={level:G.level,res:r};   // comentariul vine puțin după
+  // Boaba de foc / afina: ți se pune direct (cu transformarea obișnuită), nu mai iese din bloc.
+  if(r===SLOT_FIRE||r===SLOT_ICE){const p=player,px=p.x+p.w/2;sparkle(px,p.y+p.h/2);if(r===SLOT_FIRE)powerFire(px,p.y);else powerIce(px,p.y);}
+  else if(r===SLOT_2UP){G.lives+=2;sfx.oneup();popup('+2 VIEȚI!',x,y-16,'#7fff7f');sparkle(x,y-6);}
+  else{sfx.nope();popup('NIMIC...',x,y-16,'#c8c4d8');dust(x,y,6);}
+}
+// Bătrânelul se uită spre curcan.
+const oldFace=()=>player.x+player.w/2<cafe.npcX+OLD_W/2?-1:1;
+function updateCafe(){
+  const c=cafe,p=player;
+  if(c.bump>=0&&++c.bump>=BUMPY.length)c.bump=-1;
+  if(!c.done&&c.spin===0)c.i=Math.floor(G.t/7)%4;
+  if(c.spin>0&&--c.next<=0){c.i=(c.i+1)%4;c.k++;c.next=Math.round(3+c.k*1.3);sfx.tick();if(--c.spin===0)slotPrize();}
+  if(!inCafe())return;
+  p.x=clamp(p.x,c.a*TS+CAFE_L+2,c.a*TS+CAFE_R-2-p.w);
+  // Prima dată când intri, bătrânelul te salută; după slot, îți spune ce ți-a ieșit (vezi DIALOGUL).
+  if(!G.talk&&G.doorT===0){
+    if(!c.met){c.met=true;openTalk(c.done?['BINE AI REVENIT, FIULE!',CAFE_BYE]:CAFE_HELLO);}
+    else if(c.reactT>0&&--c.reactT===0)openTalk([CAFE_REACT[c.react],CAFE_BYE]);
+  }
+  // Fumul din pipă (aburul cafelelor de pe măsuțe e desenat în cameră, vezi drawCafeRoom).
+  if(G.t%34===0){const f=oldFace();parts.push({x:c.npcX+(f>0?24:4),y:CAFE_FLOOR*TS-OLD_H+7,vx:f*0.12,vy:-0.35,g:-0.003,life:70,max:70,col:'#dcdce4',s:2});}
+}
+// Ce îți spune dacă îl mai întrebi (stai lângă el și apeși ↑): să-ți încerci norocul, sau, după slot, „drum bun”.
+const cafeLine=()=>cafe.done?CAFE_BYE:'ÎNCEARCĂ-ȚI NOROCUL LA BLOCUL MARE!';
+// Ce poți face acum cu ↑: 'in' / 'out' = ușile (vezi cafeDoor), 'talk' = vorbești cu bătrânelul (stai lângă el).
+function cafeAction(){
+  const d=cafeDoor();if(d)return d;
+  const p=player;if(!inCafe()||!p||p.dead||!p.onGround||G.talk||G.doorT>0)return null;
+  return Math.abs(p.x+p.w/2-(cafe.npcX+OLD_W/2))<22?'talk':null;
+}
+// ================= DIALOGUL (bătrânelul din cafenea) =================
+// Ce spune apare jos, într-o casetă (lower third), cu fața lui în stânga și numele deasupra textului. Literele apar
+// pe rând, cu un „bla-bla” încet; SPACE / ENTER / ↑ (pe telefon: atingi ecranul sau SARI) arată tot rândul, apoi trece
+// la următorul, iar după ultimul închide caseta. Cât e deschisă, jocul stă (curcanul nu se mișcă, timpul nu curge).
+const TALK_NAME='MOȘ CURCAN',TALK_WRAP=44;
+// Litere mici (3 × 5, M și N mai late), doar pentru numele de pe eticheta casetei de dialog; Ș are virgulă dedesubt.
+const TINY={A:[".#.","#.#","###","#.#","#.#"],C:[".##","#..","#..","#..",".##"],M:["#...#","##.##","#.#.#","#...#","#...#"],
+  N:["#..#","##.#","#.##","#..#","#..#"],O:[".#.","#.#","#.#","#.#",".#."],R:["##.","#.#","##.","#.#","#.#"],
+  S:[".##","#..",".#.","..#","##."],U:["#.#","#.#","#.#","#.#","###"],'Ș':[".##","#..",".#.","..#","##.","...",".#."],' ':["..",".."]};
+const tinyW=s=>[...s].reduce((w,ch)=>w+(TINY[ch]||TINY[' '])[0].length+1,0)-1;
+function tinyTxt(s,x,y,col){ctx.fillStyle=col;
+  for(const ch of s){const g=TINY[ch]||TINY[' '];g.forEach((r,j)=>{for(let i=0;i<r.length;i++)if(r[i]==='#')ctx.fillRect(x+i,y+j,1,1);});x+=g[0].length+1;}}
+function openTalk(lines){G.talk={lines,i:0,n:0};if(player)player.vx=0;}
+function updateTalk(){
+  const T=G.talk,len=[...T.lines[T.i]].length,prev=Math.floor(T.n);
+  if(T.n<len){T.n=Math.min(len,T.n+0.5);const n=Math.floor(T.n);if(n!==prev&&n%2===0)sfx.talk();}
+  if(startPressed()||upPressed()){
+    if(T.n<len)T.n=len;
+    else if(++T.i>=T.lines.length)G.talk=null;
+    else T.n=0;
+    sfx.blip();
+  }
+}
+function drawTalk(){
+  const T=G.talk;if(!T||G.state!=='play')return;
+  // O casetă mică, jos la mijloc (320 × 40), ca să nu acopere camera.
+  const w=320,h=40,x=(W-w)/2,y=H-h-4,line=T.lines[T.i],len=[...line].length,typing=T.n<len;
+  uiBox(x,y,w,h);
+  // Numele, cu litere mici (3 × 5), într-o etichetă mică lipită deasupra casetei, chiar deasupra portretului.
+  const tw=tinyW(TALK_NAME)+8;uiBox(x+6,y-10,tw,11);tinyTxt(TALK_NAME,x+10,y-7,'#ffd23f');
+  // Bustul lui (pălăria, capul, ochelarii, ciocul, pipa, gulerul și vesta: coloanele 6-27, rândurile 0-19 din desen),
+  // la mărimea lui, cât rama de alamă (tăietura cade chiar pe ramă), la mijlocul casetei pe înălțime.
+  ctx.fillStyle='#c8962c';ctx.fillRect(x+8,y+9,24,22);ctx.fillStyle='#e8c060';ctx.fillRect(x+8,y+9,24,1);
+  ctx.fillStyle='#4a2228';ctx.fillRect(x+9,y+10,22,20);ctx.drawImage(OLD.r,6,0,22,20,x+9,y+10,22,20);
+  // Textul, în dreapta portretului, la mijlocul casetei; literele apar pe rând (rândurile se rup o dată, pe tot
+  // textul, ca să nu sară cuvintele).
+  const rows=wrapWords(line,TALK_WRAP),ty=y+Math.round((h-(rows.length*12-5))/2);let left=Math.floor(T.n);
+  rows.forEach((l,i)=>{const s=[...l].slice(0,Math.max(0,left)).join('');left-=[...l].length+1;
+    if(s)txt(s,x+38,ty+i*12,'#ffffff',1,'l',null);});
+  // După ce s-a scris tot rândul: un triunghi mic, gri și fix, jos în dreapta (apeși ca să continui).
+  if(!typing){ctx.fillStyle='#8a84a8';ctx.fillRect(x+w-11,y+h-9,5,1);ctx.fillRect(x+w-10,y+h-8,3,1);ctx.fillRect(x+w-9,y+h-7,1,1);}
+}
+// Căsuța de afară. x0 = marginea ei din stânga pe ecran; ușa e la x0+38 .. x0+58.
+function drawCafeHouse(cx){
+  const x0=Math.round(cafe.x*TS-cx);if(x0>W+40||x0<-140)return;
+  const P=(px,py,w,h,col)=>{ctx.fillStyle=col;ctx.fillRect(x0+px,py,w,h);},snow=theme.snow;
+  // Hornul (în spatele acoperișului), din cărămizi roșii, cu zăpadă deasupra.
+  P(66,84,12,34,'#a8442a');for(let y=88;y<118;y+=4){P(66,y,12,1,'#7a2a18');P(66+((y>>2)%2?3:8),y+1,1,3,'#7a2a18');}
+  P(64,81,16,4,'#5a2a1a');if(snow){P(64,79,16,3,'#f4f8fc');P(66,78,11,1,'#f4f8fc');}
+  // Acoperișul: în două ape, cu șiruri de țigle închise la culoare și un strat gros de zăpadă sus.
+  for(let y=98;y<124;y++){const t=(y-98)/26,l=Math.round(24-30*t),r=Math.round(72+30*t);
+    P(l,y,r-l,1,(y-98)%5===4?'#2a2026':'#3e3238');P(l,y,2,1,'#54464e');}
+  if(snow){for(let y=94;y<103;y++){const t=Math.max(0,(y-98)/26),l=Math.round(24-30*t)-1,r=Math.round(72+30*t)+1;P(l,y,r-l,1,y<101?'#f4f8fc':'#c8d8e8');}
+    for(const [dx,h] of [[4,3],[17,2],[31,4],[47,2],[61,3],[78,2],[90,3]])P(dx,124,1,h,'#e8f0f8');}
+  // Banda neagră cu sigla MesoCafe și o dungă galbenă jos, ca la chioșc; dedesubt, beculețe calde.
+  P(-4,122,104,17,'#16121a');P(-4,122,104,1,'#2e2834');P(-4,137,104,2,'#ffd23f');
+  ctx.drawImage(MESO_LOGO,x0+48-(MESO_LOGO.width>>1),126);
+  // Pereții închiși la culoare, maro-cafea, cu scânduri orizontale, umbră în dreapta și soclu din lemn deschis;
+  // galbenul MesoCafé rămâne doar ca accent: dunga de sub firmă, ramele ferestrelor și cănile.
+  P(0,139,96,53,'#6e5040');for(let y=146;y<182;y+=6)P(0,y,96,1,'#5f4436');P(92,139,4,53,'#56392c');P(0,139,96,1,'#7e5e4c');
+  P(0,182,96,10,'#e2c290');for(let x=0;x<96;x+=12)P(x,182,1,10,'#c8a46a');P(0,182,96,1,'#f6efe2');
+  // Ferestrele luminate: rame galbene, cruce albă, o cană galbenă pe pervazul dinăuntru și zăpadă pe pervazul de afară.
+  for(const wx of [8,66]){P(wx-1,147,24,26,'#e0a818');P(wx,148,22,24,'#ffd23f');P(wx+1,149,20,22,'#ffe9a0');P(wx+1,149,20,7,'#fff6c8');
+    P(wx+10,149,2,22,'#fffaf0');P(wx+1,159,20,2,'#fffaf0');P(wx+4,166,4,4,'#ffd23f');P(wx+8,167,1,2,'#ffd23f');
+    P(wx-2,173,28,2,snow?'#f4f8fc':'#fffaf0');}
+  // Ușa (cât personajele, centrul la x0+48): lemn de stejar, mai deschis decât pereții, cu ferestruică luminată, două
+  // panouri și mâner auriu, sub o streașină mică; în fața ei, un preș.
+  P(39,160,18,32,'#3a2414');P(41,162,14,30,'#a8743c');P(43,164,10,7,'#ffe9a0');P(47,164,2,7,'#a8743c');
+  P(43,174,10,7,'#946232');P(43,183,10,7,'#946232');P(52,177,1,2,'#ffd23f');
+  P(37,157,22,3,'#3a2414');P(37,157,22,1,'#5a3a24');if(snow)P(37,156,22,1,'#f4f8fc');
+  P(37,190,22,2,'#5a3a2a');
+  glow(x0+19,160,24,'255,214,130',0.22);glow(x0+77,160,24,'255,214,130',0.22);glow(x0+48,167,10,'255,214,130',0.18);
+  // Fumul din horn: rotocoale care urcă, se lățesc și se risipesc.
+  for(let k=0;k<5;k++){const ph=(G.t*0.5+k*22)%110;ctx.globalAlpha=(1-ph/110)*0.75;
+    pcirc(ctx,x0+72+Math.sin(G.t*0.03+k)*2+ph*0.2,76-ph*0.6,2+ph*0.045,'#eef2f6');}
+  ctx.globalAlpha=1;
+}
+// Camera dinăuntru (în locul cerului și al fundalului): o cafenea veche, mică și caldă, între x = CAFE_L și CAFE_R pe
+// ecran și sub grinda de la CAFE_TOP (în rest e întuneric, vezi drawCafeFrame). Totul e la scara ușii (34 px ≈ 2 m):
+// lambriul și tejgheaua cam de 1 m, o fereastră mică, firma MesoCafé pe o tăbliță deasupra blocului-slot, două lămpi
+// de alamă, un tablou mic, un ceas de perete, un raft cu sticle și borcane, un espressor de alamă, două măsuțe cu
+// scaune cu perne roșii și câte o cafea care aburește, și ușa de ieșire (centrul ei: CAFE_DOOR).
+// Coordonatele sunt ca și cum podeaua ar fi pe rândul 12 (y = 192); totul e urcat apoi cu CAFE_DY.
+function drawCafeRoom(cx){
+  const x0=Math.round(cafe.a*TS-cx),P=(px,py,w,h,col)=>{ctx.fillStyle=col;ctx.fillRect(x0+px,py,w,h);},L=CAFE_L,R=CAFE_R,RW=R-L;
+  const BR='#c8962c',BRL='#e8c060',BRD='#8a6418',T=CAFE_TOP;
+  ctx.fillStyle='#120c0a';ctx.fillRect(0,-H,W,H*3);   // tot ecranul, și când lumea e urcată (CAFE_VY)
+  ctx.save();ctx.translate(0,-CAFE_DY);
+  // Grinda de sus și tapetul vișiniu, cu dungi și un model mărunt în cruce.
+  P(L,T,RW,8,'#2a1a12');P(L,T,RW,1,'#4a3020');P(L,T+7,RW,1,'#1a100a');
+  P(L,T+8,RW,170-T-8,'#4a2228');
+  for(let x=L+4;x<R;x+=12)P(x,T+8,2,170-T-8,'#542a30');
+  for(let x=L+10,j=0;x<R;x+=12,j++)for(let y=T+14+(j%2)*7;y<168;y+=14){P(x-1,y,3,1,'#60343a');P(x,y-1,1,3,'#60343a');}
+  // Brâul și lambriul din lemn închis (cam 1 m), cu panouri.
+  P(L,170,RW,3,'#6a4428');P(L,170,RW,1,'#8a5a38');P(L,172,RW,1,'#3a2414');P(L,173,RW,19,'#40281a');
+  for(let x=L+3;x<R-14;x+=16){P(x,175,13,15,'#4a2e1e');P(x,175,13,1,'#5a3a26');P(x,189,13,1,'#2e1c12');P(x+12,175,1,15,'#2e1c12');}
+  // Firma MesoCafé pe o tăbliță mică cu ramă de alamă, deasupra blocului-slot.
+  const sx=(CAFE_SLOT+1)*TS;
+  P(sx-27,T+10,54,13,BR);P(sx-27,T+10,54,1,BRL);P(sx-26,T+11,52,11,'#16121a');
+  ctx.drawImage(MESO_LOGO,x0+sx-(MESO_LOGO.width>>1),T+13);
+  // Lămpile de alamă, atârnate de grindă, cu becuri calde.
+  for(const lx of [120,240]){P(lx,T+8,1,8,'#1a100a');P(lx-3,T+16,7,2,BRD);P(lx-3,T+16,7,1,BRL);P(lx-1,T+18,3,2,'#fff0b0');
+    glow(x0+lx,T+22,34,'255,190,110',0.36);}
+  // Fereastra mică, cu perdele de catifea pe o bară de alamă și zăpadă care cade afară (W0 o mută cu 6 px la dreapta
+  // și 14 px mai sus față de coordonatele de mai jos, ca pervazul să stea departe de brâu).
+  const W0=(px,py,w,h,col)=>P(px+6,py-14,w,h,col);
+  W0(98,140,24,26,'#2a1a12');W0(100,142,20,22,'#8aa6bc');W0(100,157,20,7,'#dfe8f0');
+  W0(104,151,1,6,'#3a2a20');for(let j=0;j<3;j++)W0(104-j,146+j*2,1+j*2,2,'#24463a');
+  W0(115,153,1,4,'#3a2a20');for(let j=0;j<2;j++)W0(115-j,149+j*2,1+j*2,2,'#24463a');
+  for(let i=0;i<6;i++){const fx=100+(i*13+Math.floor(G.t*0.2))%20,fy=142+(i*7+Math.floor(G.t*0.35+i*5))%22;W0(fx,fy,1,1,'#ffffff');}
+  W0(109,142,2,22,'#2a1a12');W0(100,152,20,1,'#2a1a12');
+  for(const [x,d] of [[95,1],[121,-1]]){W0(x,138,4,30,'#7a1e24');W0(x+(d>0?1:2),138,1,30,'#5a141a');W0(x+(d>0?3:0),138,1,29,'#9a2a30');}
+  W0(93,137,34,1,BR);W0(97,166,26,2,'#5a3a24');
+  // Un tablou mic (peisaj în sepia, ramă aurie) și ceasul de perete.
+  P(214,140,16,12,BR);P(214,140,16,1,BRL);P(215,141,14,10,'#c8a878');P(215,147,14,4,'#9a7a50');P(220,144,4,3,'#7a5a38');
+  pcirc(ctx,x0+296,128,5,BR);pcirc(ctx,x0+296,128,4,'#f0e4c8');P(296,125,1,3,'#2a1a12');P(296,128,2,1,'#2a1a12');P(295,127,2,2,'#2a1a12');
+  // Raftul din spatele tejghelei: sticle, borcane, o cutie de alamă și o plantă.
+  P(254,150,64,2,'#2a1a12');P(254,150,64,1,'#4a3020');
+  P(258,141,2,9,'#2a4a2a');P(264,144,3,6,'#a0601a');P(271,145,4,5,'#d8c8a8');P(271,144,4,1,'#5a3a24');P(272,147,2,3,'#5a3a1a');
+  P(279,142,2,8,'#3a2a5a');P(285,145,4,5,BR);P(292,145,4,5,'#d8c8a8');P(292,144,4,1,'#5a3a24');
+  pcirc(ctx,x0+309,144,3,'#3e6e34');P(307,146,5,4,'#c86a3a');
+  // Două măsuțe cu câte două scaune, la fel de departe de blocul-slot de o parte și de alta.
+  // Scaun mic de lemn curbat (7 lat, cât jumătate din ușă cu spătar cu tot; mai deschis decât lambriul, ca să se
+  // vadă), cu o pernă roșie pe el; bl = spătarul în stânga.
+  const chair=(x,bl)=>{const bx=bl?x:x+6,cx2=bl?x+1:x+4;
+    P(bx,168,1,14,'#8a5a34');P(cx2,167,2,1,'#8a5a34');P(cx2,172,2,1,'#8a5a34');
+    P(x,182,7,1,'#8a5a34');P(x+1,183,1,9,'#6a4426');P(x+5,183,1,9,'#6a4426');P(x+2,187,3,1,'#6a4426');
+    P(x,179,7,3,'#a82a2a');P(x+1,179,5,1,'#d04848');P(x,181,7,1,'#7a1a1a');};
+  // Măsuță rotundă cu blat de lemn închis pe un picior de fontă (x = marginea din stânga a blatului, w = lățimea), cu o
+  // ceașcă de cafea pe farfurioară: albă, cu cafeaua închisă la culoare sus, toartă în dreapta și un fir subțire de
+  // abur, scurt și abia vizibil, care se unduiește.
+  const table=(x,w)=>{const m=x+(w>>1),cx=m-3,cy=173;
+    P(x,178,w,2,'#6a4428');P(x,178,w,1,'#8a5c3a');P(x,180,w,1,'#3a2414');P(m-1,181,2,9,'#2a2a30');P(m-4,190,8,2,'#2a2a30');
+    P(cx-1,177,8,1,'#e8e2d8');P(cx,173,5,1,'#ffffff');P(cx+1,173,3,1,'#4a2810');P(cx,174,5,3,'#f4efe6');P(cx+4,174,1,3,'#d0c8bc');
+    P(cx+5,174,1,1,'#f4efe6');P(cx+6,175,1,1,'#f4efe6');P(cx+5,176,1,1,'#f4efe6');
+    for(let j=0;j<3;j++){ctx.globalAlpha=(1-j/3)*0.35;P(cx+2+Math.round(Math.sin(G.t*0.06+x*0.3+j*0.9)),cy-2-j,1,1,'#f4f0ea');}
+    ctx.globalAlpha=1;};
+  chair(104,true);table(113,12);chair(127,false);
+  chair(218,true);table(227,12);chair(241,false);
+  // Tejgheaua veche (cam 1 m): blat de lemn închis cu bară de alamă și panouri; pe ea espressorul de alamă și două căni.
+  P(250,169,70,3,'#3a2414');P(250,169,70,1,'#5a3a24');P(250,172,70,1,BR);
+  P(252,173,68,19,'#4a2e1c');for(let x=255;x<315;x+=16){P(x,176,12,11,'#56361f');P(x,176,12,1,'#6a4428');}P(252,189,68,3,'#2a1a12');
+  P(300,160,8,9,BR);P(300,160,1,9,BRL);P(307,160,1,9,BRD);pcirc(ctx,x0+304,160,3,BR);P(303,155,2,2,'#2a1a12');
+  P(302,165,4,1,'#2a1a12');P(302,167,3,2,'#f0e4c8');
+  P(258,167,3,2,'#f0e4c8');P(264,167,3,2,'#f0e4c8');
+  // Ușa de ieșire (cât personajele): lemn, cu ferestruică, panou, mâner de alamă și un preș.
+  P(CAFE_DOOR-10,158,20,34,'#2a1a12');P(CAFE_DOOR-8,160,16,32,'#6a4428');P(CAFE_DOOR-6,163,12,8,'#8aa6bc');P(CAFE_DOOR-1,163,2,8,'#6a4428');
+  P(CAFE_DOOR-6,175,12,13,'#5a3a24');P(CAFE_DOOR+5,178,1,2,BR);P(CAFE_DOOR-12,190,24,2,'#5a1a1a');
+  ctx.restore();
+}
+// Peste podea și peste tot ce e în afara camerei: întuneric, doi stâlpi de lemn la margini și o umbră caldă spre colțuri
+// (mai întunecat, mai cozy). Se desenează după tile-uri și înaintea personajelor, ca ele să rămână luminoase.
+function drawCafeFrame(cx){
+  const x0=Math.round(cafe.a*TS-cx);if(x0>W||x0+CAFE_W*TS<0)return;
+  const P=(px,py,w,h,col)=>{ctx.fillStyle=col;ctx.fillRect(x0+px,py,w,h);},L=CAFE_L,R=CAFE_R,fy=CAFE_FLOOR*TS+2*TS;
+  const top=CAFE_TOP-CAFE_DY,gr=ctx.createRadialGradient(x0+176,150-CAFE_DY,30,x0+176,150-CAFE_DY,160);
+  gr.addColorStop(0,'rgba(24,10,6,0)');gr.addColorStop(1,'rgba(24,10,6,0.55)');
+  ctx.fillStyle=gr;ctx.fillRect(x0+L,0,R-L,fy);
+  // Întunericul: în stânga, în dreapta, deasupra grinzii și sub podea (acolo stă caseta de dialog).
+  P(-W,-H,W+L,H*3,'#120c0a');P(R,-H,W,H*3,'#120c0a');P(L,-H,R-L,top+H,'#120c0a');P(L,fy,R-L,H*2,'#120c0a');
+  for(const x of [L-5,R]){P(x,top,5,fy-top,'#2a1a12');P(x+(x<L?4:0),top,1,fy-top,'#4a3020');}
+}
+// Blocul-slot (32 × 32), desenat o dată, din colțul lui din stânga sus (vezi drawTiles). Activ: auriu, cu becuri pe
+// margine care se aprind pe rând (mai repede cât se învârte); gol (după ce s-a oprit): maro, cu premiul spălăcit.
+function drawSlotBlock(x,y,used){
+  const c=cafe;if(c&&c.bump>=0)y-=BUMPY[c.bump];
+  const P=(px,py,w,h,col)=>{ctx.fillStyle=col;ctx.fillRect(x+px,y+py,w,h);};
+  if(used){P(0,0,32,32,'#4a2a10');P(1,1,30,30,'#9a6030');P(1,1,30,2,'#b07840');P(1,29,30,2,'#7a4a20');}
+  else{P(0,0,32,32,'#7a3e0a');P(1,1,30,30,['#f2b630','#f7c850','#ffd970'][[0,1,2,1][(G.t>>3)%4]]);
+    P(1,1,30,2,'#fff0b0');P(1,1,2,30,'#fff0b0');P(1,29,30,2,'#b8701a');P(29,1,2,30,'#b8701a');
+    const sp=c&&c.spin>0?G.t>>1:G.t>>3;
+    [[4,1],[10,1],[16,1],[22,1],[27,1],[27,9],[27,15],[27,21],[27,28],[22,28],[16,28],[10,28],[4,28],[1,21],[1,15],[1,9]]
+      .forEach(([bx,by],i)=>P(bx,by,2,2,(i+sp)%2?'#fff3b0':'#ff5a3a'));}
+  P(5,5,22,22,'#120a04');P(6,6,20,20,used?'#3a2410':'#2a1a10');P(6,25,20,1,used?'#5a3a1a':'#4a2e14');
+  ctx.globalAlpha=used?0.5:1;drawSlotIcon(c?c.i:0,x+16,y+16);ctx.globalAlpha=1;
+}
+// Ce arată blocul-slot: boaba roșie, afina înghețată (de două ori mai mari), „2UP” sub un cap de curcan, sau un X roșu.
+function drawSlotIcon(r,cx,cy){
+  if(r===SLOT_FIRE)ctx.drawImage(BERRY,cx-10,cy-11,20,22);
+  else if(r===SLOT_ICE)ctx.drawImage(ICEBERRY,cx-10,cy-11,20,22);
+  else if(r===SLOT_2UP){ctx.drawImage(HEAD,cx-4,cy-9);txt('2UP',cx,cy+1,'#7fff7f',1,'c','#0a3a0a');}
+  else{for(const [col,o,s] of [['#5a0a10',-1,4],['#ff4a4a',0,2]]){ctx.fillStyle=col;
+    for(let i=0;i<12;i++){ctx.fillRect(cx-7+i+o,cy-7+i+o,s,s);ctx.fillRect(cx+4-i+o,cy-7+i+o,s,s);}}}
+}
+// Bătrânelul (după tile-uri, înaintea curcanului), cu o respirație lentă: corpul coboară 1 px din când în când.
+function drawCafeNPC(cx){
+  const c=cafe,x=Math.round(c.npcX-cx);if(x<-40||x>W+40)return;
+  const img=OLD[oldFace()>0?'r':'l'],y=CAFE_FLOOR*TS-OLD_H,b=(G.t%110)<14?1:0;
+  ctx.drawImage(img,0,0,OLD_W,OLD_H-3,x,y+b,OLD_W,OLD_H-3);ctx.drawImage(img,0,OLD_H-3,OLD_W,3,x,y+OLD_H-3,OLD_W,3);
+}
+// Cât stai în fața unei uși sau lângă bătrânel: o tastă mică ↑, fixă, în culori liniștite, deasupra ușii (sau
+// deasupra pălăriei lui) — apeși ↑ ca să intri, să ieși sau să vorbești cu el.
+function drawCafeHints(cx){
+  const a=cafeAction();if(!a||G.talk)return;
+  const hx=a==='in'?cafe.x*TS+48:a==='out'?cafe.a*TS+CAFE_DOOR:cafe.npcX+OLD_W/2;
+  const hy=a==='in'?12*TS-49:a==='out'?CAFE_FLOOR*TS-47:CAFE_FLOOR*TS-OLD_H-14;
+  const x=Math.round(hx-cx)-4,y=hy;
+  ctx.fillStyle='rgba(20,14,30,0.7)';ctx.fillRect(x,y,9,11);ctx.fillStyle='rgba(255,255,255,0.3)';ctx.fillRect(x,y,9,1);
+  txt('↑',x+2,y+2,'#e0d8c8',1,'l',null);
 }
 // ================= GHEAȚĂ (lacurile înghețate din nivelul 4) =================
 // Fiecare tile de gheață strânge „crăpături” cât timp curcanul stă pe el și se vindecă încet când pleacă — așa
@@ -1962,7 +2477,7 @@ function updateIce(){
 function makeEnemy(type,tx,ty){return type==='man'||type==='boy'
   ?{type:'man',boy:type==='boy',x:tx*TS+3,y:(ty+1)*TS-18,w:10,h:18,vx:0,vy:0,dir:-1,active:false,dead:0,deadT:0,anim:0,chasing:false,alert:0,atk:0,cd:0,onGround:false}
   :{type:'bomb',x:tx*TS+2,y:(ty+1)*TS-12,w:12,h:12,vx:0,vy:0,dir:-1,active:false,lit:0,sit:false,slideDir:0,slideT:0,kickT:0,anim:0,onGround:false};}
-function newGame(){G.carryBig=false;G.carryFire=false;G.carryIce=false;G.lives=3;G.score=0;G.coins=0;G.level=0;G.cp=null;G.tip=null;toIntro(true);stopSong();}
+function newGame(){G.carryBig=false;G.carryFire=false;G.carryIce=false;G.lives=3;G.score=0;G.coins=0;G.level=0;G.cp=null;G.slotUsed=null;G.tip=null;toIntro(true);stopSong();}
 // Sfaturile de pe ecranul de dinaintea nivelului, alese la întâmplare (niciodată același de două ori la rând).
 // Prima dată când intri într-un nivel, sfatul e despre nivelul ăla (tip-ul lui, plus cele pentru noapte / iarnă);
 // după ce pierzi o viață, poate fi și unul general. „fire” = despre boaba roșie, care iarna nu apare (acolo e afina).
@@ -1976,7 +2491,8 @@ const TIPS={
   snow:['Pe gheață aluneci.','Sari peste copcile cu steguleț roșu.','Afina înghețată îți dă pene de gheață.',
     'Dușmanii înghețați se pot împinge.','Fermierii nu calcă pe gheață.','Exploziile sparg gheața.'],
   level:{0:['Lovește blocurile M cu capul.'],2:['Unele platforme se mișcă: așteaptă-le!'],
-    3:['Pădurea e lungă: are două steaguri.'],4:['Intră pe ușa restaurantului!','Fermierul-Șef obosit? Sari-i în cap!']},
+    3:['În cafenea, timpul stă pe loc.','Blocul mare din cafenea e un slot!'],
+    4:['Pădurea e lungă: are două steaguri.'],5:['Intră pe ușa restaurantului!','Fermierul-Șef obosit? Sari-i în cap!']},
 };
 function pickTip(first){
   const def=LEVELS[G.level],th=THEMES[def.theme];
@@ -1985,6 +2501,9 @@ function pickTip(first){
   const pool=(first||Math.random()<0.4?own:all).filter(t=>t!==G.tip);
   return pool.length?pool[Math.random()*pool.length|0]:def.tip;
 }
+// Numărul nivelului i, cum îl vede jucătorul: nivelul bonus nu se numără (Pădurea de brazi rămâne nivelul 4).
+const levelNum=i=>LEVELS.slice(0,i+1).filter(d=>!d.bonus&&!d.arena).length;
+const levelTag=i=>LEVELS[i].bonus?'BONUS':String(levelNum(i));
 // Ecranul de dinaintea nivelului; first = intri prima dată în nivel (nu după ce ai pierdut o viață).
 function toIntro(first){G.state='intro';G.stateT=0;G.tip=pickTip(first);}
 // quiet = doar pregătește nivelul, fără muzică (modul de test îl folosește ca să facă pozele nivelurilor pentru panou).
@@ -1992,7 +2511,7 @@ function startLevel(quiet){
   const def=LEVELS[G.level],m=def.build();
   grid=m.grid;cols=m.w;theme=THEMES[def.theme];tiles=getTiles(def.theme);bg=getBG(def.theme);goal=m.goalDef;
   enemies=m.ents.map(d=>makeEnemy(d.type,d.x,d.y));
-  G.frame=0;plats=m.plats.map(makePlat);boss=m.bossDef?makeBoss(m.bossDef):null;
+  G.frame=0;plats=m.plats.map(makePlat);boss=m.bossDef?makeBoss(m.bossDef):null;cafe=m.cafeDef?makeCafe(m.cafeDef):null;G.doorT=0;G.inCafe=false;G.talk=null;
   // Mobii puși pe o platformă care se mișcă stau pe ea de la început (și sunt duși cu ea chiar înainte să se „trezească”).
   for(const e of enemies){const p=plats.find(p=>Math.abs(p.y-(e.y+e.h))<1&&e.x+e.w>p.x&&e.x<p.x+p.w);if(p)e.plat=p;}
   coins=m.coins.map(([x,y])=>({x:x*TS+8,y:y*TS+8,taken:false}));
@@ -2308,12 +2827,16 @@ function addCoin(x,y){
 }
 function hitBlock(tx,ty){
   const c=tileAt(tx,ty);
-  if(c==='M'||c==='H'){
+  if(c==='M'||c==='H'||c==='A'){
     grid[ty][tx]='U';bumps.push({tx,ty,t:0});
     if(c==='M'){parts.push({type:'coin',x:tx*TS+8,y:ty*TS-6,vx:0,vy:-5.5,g:0.35,life:26,max:26});addCoin(tx*TS+8,ty*TS);}
+    // Blocul de gheață (doar înaintea boss-ului): mereu afina înghețată; mic, te face direct mare și de gheață.
+    else if(c==='A'){items.push({type:'ice',x:tx*TS+3,y:ty*TS,w:10,h:11,vx:0,vy:0,rise:11,dir:1});sfx.sprout();}
     // Curcan mic → grăunte auriu; curcan deja mare → boabă roșie de foc (iarna: afină înghețată).
     else{items.push({type:player.big?(theme.snow?'ice':'berry'):'grain',x:tx*TS+3,y:ty*TS,w:10,h:11,vx:0,vy:0,rise:11,dir:player.x<tx*TS?1:-1});sfx.sprout();}
   }else if(c==='B'){if(player.big)breakBrick(tx,ty);else{bumps.push({tx,ty,t:0});sfx.bump();}}
+  else if(c==='S')slotHit();                      // blocul-slot din cafenea (vezi CAFENEAUA)
+  else if(c==='E'){sfx.bump();cafeBonk();}        // blocul-slot gol: bătrânelul se supără dacă tot dai în el
   else sfx.bump();
   for(const e of enemies){if(e.dead||e.remove||!e.active)continue;
     if(overlap(e,{x:tx*TS,y:ty*TS-4,w:TS,h:5})){if(e.frozen)shatter(e,200);else if(e.type==='man')killMan(e,2,200);else lightBomb(e);}}
@@ -2475,10 +2998,12 @@ function updateFeathers(){
     // Zboară doar o anumită distanță; se stinge și dacă lovește un perete.
     const tx=Math.floor((f.dir>0?f.x+f.w:f.x)/TS),ty=Math.floor((f.y+f.h/2)/TS);
     if(solid(tileAt(tx,ty))||f.dist>=FEATHER_RANGE){puffFeather(f);continue;}
+    // În cafenea, pana se stinge la pereți (dincolo e întuneric).
+    if(inCafe()&&(f.x<cafe.a*TS+CAFE_L||f.x+f.w>cafe.a*TS+CAFE_R)){puffFeather(f);continue;}
     // Boss-ul: pana de gheață îl brumează (după 10 se face cub de gheață); cea de foc doar se stinge pe el.
     if(bossFighting()&&overlap(f,boss)){if(f.ice)bossIceHit();puffFeather(f);continue;}
     for(const e of enemies){
-      if(!e.active||e.dead||e.remove||e.sink||!overlap(f,e))continue;
+      if(!e.active||e.dead||e.remove||e.sink||offstage(e)||!overlap(f,e))continue;
       if(f.ice)freeze(e);                       // pana de gheață îngheață (fermieri, ucenici, bombe)
       else if(e.frozen)shatter(e,200);          // pana de foc topește gheața cu el cu tot
       else if(e.type==='man'){killMan(e,2,200);sfx.burn();}
@@ -2565,6 +3090,13 @@ function updateMan(e){
   if(e.sink){sinkStep(e);return;}
   if(e.frozen){updateFrozen(e);return;}
   const dx=(player.x+player.w/2)-(e.x+5),dy=(player.y+player.h)-(e.y+e.h);
+  // Chemat de boss (vezi bossSummon): intră pe jos în poiană, de după una dintre stivele de fân. Când a trecut și
+  // de felinar, se întoarce spre tine și se poartă ca orice mob.
+  if(e.enter){
+    const b=boss;
+    if(!b||(e.enter>0?e.x>=b.a0+16:e.x+e.w<=b.a1-16)){e.enter=0;e.dir=Math.sign(dx)||e.dir;e.cd=30;}
+    else{e.dir=e.enter;e.vx=0;e.x+=e.enter*(e.boy?0.6:0.9);e.anim+=e.boy?1:1.6;return;}
+  }
   if(e.cd>0)e.cd--;
   if(e.boy){
     // Ucenicul nu te urmărește și nu atacă: se plimbă încet înainte și înapoi și se întoarce
@@ -2663,20 +3195,27 @@ function updateFx(){
   if(G.shake>0)G.shake--;
 }
 function updateCam(){
-  // În lupta cu boss-ul, camera stă pe poiană (butucii la marginea din stânga, poarta la cea din dreapta).
-  const target=boss&&boss.lock?boss.a0-TS:clamp(player.x+player.w/2-W*0.42,0,cols*TS-W);
+  // În lupta cu boss-ul, camera stă pe poiană (între cele două stive de baloți de fân).
+  // În cafenea, camera stă pe cameră (un ecran); afară nu trece de capătul nivelului (camera cafenelei e după el).
+  const target=boss&&boss.lock?boss.a0-TS:inCafe()?cafe.a*TS+CAFE_CAMX:clamp(player.x+player.w/2-W*0.42,0,camMax());
   cam.x+=(target-cam.x)*0.18;
 }
 function updatePlay(){
   // Animația de creștere/micșorare îngheață jocul pentru o clipă, ca la platformerele clasice.
   if(G.growT>0){G.growT--;return;}
+  // Intrarea / ieșirea din cafenea: ecranul se întunecă, iar la jumătate curcanul trece dincolo de ușă.
+  if(G.doorT>0){if(--G.doorT===DOOR_T/2)cafeTeleport();updateFx();return;}
+  // Cât vorbește bătrânelul, jocul stă: doar caseta de dialog, fumul și blocul-slot merg mai departe.
+  if(G.talk){updateTalk();if(cafe)updateCafe();updateFx();return;}
   G.frame++;
-  if(!TEST&&G.frame%60===0){G.time--;
+  if(!TEST&&!inCafe()&&G.frame%60===0){G.time--;   // în cafenea timpul stă pe loc
     if(G.time===100){sfx.hurry();popup('GRĂBEȘTE-TE!',player.x+5,player.y-12,'#ff6060');}
     if(G.time<=0){G.time=0;die();return;}}
   updatePlats();
   updatePlayer();
   if(G.state!=='play'){updateFx();return;}
+  if(cafe){updateCafe();const d=cafeAction();
+    if(d&&upPressed()){if(d==='talk')openTalk([cafeLine()]);else{G.doorT=DOOR_T;G.doorTo=d;player.vx=0;sfx.bell();}}}
   for(const e of enemies){
     if(e.remove)continue;
     if(!e.active){if(e.x<cam.x+W+24&&e.x>cam.x-80)e.active=true;else continue;}
@@ -2684,7 +3223,7 @@ function updatePlay(){
     if(G.state!=='play')break;
   }
   if(G.state==='play')for(const e of enemies){
-    if(!e.active||e.dead||e.remove||e.sink||player.dead)continue;
+    if(!e.active||e.dead||e.remove||e.sink||player.dead||offstage(e))continue;
     const box=e.sit?{x:e.x-BOMB_PUSH_PAD,y:e.y,w:e.w+BOMB_PUSH_PAD*2,h:e.h}:e;
     if(!overlap(player,box))continue;
     const stomp=player.vy>0&&(player.y+player.h-e.y)<=Math.max(8,player.vy+3);
@@ -2716,9 +3255,10 @@ function updatePlay(){
     if(overlap(player,it)){it.remove=true;powerUp(it.x+5,it.y);}
   }
   items=items.filter(i=>!i.remove);
+  // (În cafenea curcanul e în dreapta hărții, după punctele de salvare și după țintă: acolo nu se ating.)
   for(const cp of cps){if(cp.on){cp.raise=Math.min(1,cp.raise+0.05);continue;}
-    if(player.x+player.w>cp.x+6){cp.on=true;G.cp={level:G.level,x:cp.tx};sfx.cp();popup('SALVAT!',cp.x+8,150,'#7fff7f');}}
-  if(G.state==='play'&&goal){
+    if(!inCafe()&&player.x+player.w>cp.x+6){cp.on=true;G.cp={level:G.level,x:cp.tx};sfx.cp();popup('SALVAT!',cp.x+8,150,'#7fff7f');}}
+  if(G.state==='play'&&goal&&!inCafe()){
     if(goal.type==='sign'&&player.x+player.w>goal.x*TS+34)levelClear(false);
     else if(goal.type==='restaurant'&&overlap(player,doorRect()))levelClear(true);
   }
@@ -2834,6 +3374,7 @@ function update(){
     case 'gameover':G.stateT++;if(G.stateT>90&&startPressed()){G.state='title';stopSong();playSong('title');}break;
   }
   for(const k in pressed)delete pressed[k];
+  if(TOUCH_UI)TOUCH_UI.classList.toggle('door',G.state==='play'&&!!cafeAction());
   if(TEST&&G.t%6===0)testStatus();
 }
 
@@ -2844,7 +3385,7 @@ function drawBG(){ctx.drawImage(bg.sky,0,0);if(bg.clouds)par(bg.clouds,0.1,0,G.t
 const BUMPY=[2,4,5,5,4,3,2,1];
 function drawTiles(cx){
   const x0=Math.max(0,Math.floor(cx/TS)),x1=Math.min(cols-1,Math.floor((cx+W)/TS));
-  const mf=tiles.M[[0,1,2,1][(G.t>>3)%4]];
+  const fi=[0,1,2,1][(G.t>>3)%4],mf=tiles.M[fi];
   for(let ty=0;ty<ROWS;ty++){const row=grid[ty];for(let tx=x0;tx<=x1;tx++){const c=row[tx];if(c==='.')continue;
     // Placa de gheață se desenează în drawWater, peste apă și peste personaje (ca să cazi „pe sub” ea).
     // Aici punem doar țărușii cu steguleț roșu de pe marginea copcilor (ca să se vadă de departe că acolo e apă).
@@ -2852,14 +3393,16 @@ function drawTiles(cx){
       if(isCopca(tx-1))drawStake(tx*TS+3-cx);
       if(isCopca(tx+1))drawStake(tx*TS+11-cx);
       continue;}
-    let img=(c==='M'||c==='H')?mf:tiles[c];
+    // Blocul-slot (2 × 2 tile-uri) se desenează o singură dată, din colțul lui din stânga sus.
+    if(c==='S'||c==='E'){if(tileAt(tx-1,ty)!==c&&tileAt(tx,ty-1)!==c)drawSlotBlock(tx*TS-cx,ty*TS,c==='E');continue;}
+    let img=(c==='M'||c==='H')?mf:c==='A'?tiles.A[fi]:tiles[c];
     if(c==='G'&&tiles.Gv)img=pickVar(tiles.Gv,tx,ty);else if(c==='D'&&tiles.Dv)img=pickVar(tiles.Dv,tx,ty);
     if(!img)continue;let oy=0;for(const b of bumps)if(b.tx===tx&&b.ty===ty)oy=-BUMPY[b.t];
     ctx.drawImage(img,tx*TS-cx,ty*TS+oy);
     // Iarna: puțină zăpadă pe blocuri, platforme și trepte (doar pe cele cu cerul liber deasupra).
     if(theme.snow&&SNOW_CAPPED.includes(c)){const up=tileAt(tx,ty-1);if(!solid(up)&&up!=='=')ctx.drawImage(tiles.cap,tx*TS-cx,ty*TS+oy);}}}
 }
-const SNOW_CAPPED='BMHUX=';
+const SNOW_CAPPED='BMHAUX=';
 // Copcă = apă deschisă dintr-un lac, pusă din nivel (nu o gaură făcută de curcan, care îngheață la loc).
 function isCopca(tx){
   if(tileAt(tx,12)!=='.'||iceHole[tx]>0)return false;
@@ -2903,7 +3446,7 @@ function drawSign(cx){
   const x=goal.x*TS-cx;
   ctx.fillStyle='#5a3510';ctx.fillRect(x+33,150,6,42);ctx.fillStyle='#8a5a2a';ctx.fillRect(x+34,150,2,42);
   ctx.fillStyle='#4a2a10';ctx.fillRect(x-2,128,76,30);ctx.fillStyle='#c89050';ctx.fillRect(x,130,72,26);ctx.fillStyle='#e0b070';ctx.fillRect(x,130,72,2);
-  txt('MESOPOTAMIA',x+36,134,'#5a1a0a',1,'c',null);txt(['→ 4 KM','→ 3 KM','→ 2 KM','→ 500 M'][G.level]||'→ 500 M',x+36,145,'#a02a0a',1,'c',null);
+  txt('MESOPOTAMIA',x+36,134,'#5a1a0a',1,'c',null);txt(['→ 4 KM','→ 3 KM','→ 2 KM','→ 1 KM','→ 500 M'][G.level]||'→ 500 M',x+36,145,'#a02a0a',1,'c',null);
 }
 function drawRestaurant(cx){
   const x=goal.x*TS-cx,y=192-RH;
@@ -3071,14 +3614,17 @@ function drawHUD(){
   ctx.drawImage(HEAD,6,3);txt('X'+G.lives,16,4,'#fff');
   ctx.drawImage(COIN,40,2);txt('X'+pad(G.coins,2),54,4,'#ffd23f');
   txt('SCOR '+pad(G.score,6),W/2,4,'#fff',1,'c');
-  txt(TEST?(LEVELS[G.level].arena?'ARENĂ':'TEST '+(G.level+1)):'NIVEL '+(G.level+1),262,4,'#9fe8ff');
+  txt(TEST?(LEVELS[G.level].arena?'ARENĂ':'TEST '+levelTag(G.level)):'NIVEL '+levelTag(G.level),262,4,'#9fe8ff');
   txt('TIMP '+pad(G.time,3),W-5,4,(G.time<=100&&(G.t>>4)%2)?'#ff5050':'#fff',1,'r');
   drawBossBar();
 }
 function drawWorld(){
-  drawBG();
   const sh=G.shake>0?Math.round((Math.random()-0.5)*4):0;
   const cx=Math.round(cam.x)+sh;
+  // În cafenea, camera dinăuntru ține loc de cer și fundal, iar toată lumea e urcată cu CAFE_VY, ca să stea camera la
+  // mijlocul ecranului (tile-urile, și deci săriturile, rămân aceleași).
+  const vy=inCafe()?CAFE_VY:0;ctx.save();ctx.translate(0,vy);
+  if(inCafe())drawCafeRoom(cx);else drawBG();
   // Noaptea: lumea de joc (sol, blocuri, personaje, apă) se desenează pe un canvas separat, ca să primească
   // umbra albastră doar ea — fundalul are deja culori de noapte, iar luminile se pun după, nealterate.
   const night=theme.night,main=ctx;
@@ -3097,24 +3643,30 @@ function drawWorld(){
     if(night)glow(Math.round(c.x-cx),y,13+Math.sin(G.t*0.1+i)*1.5,'255,190,70',0.6);
     drawCoin(c.x-cx,y,i*0.5);});
   if(goal){if(goal.type==='sign')drawSign(cx);else drawRestaurant(cx);}
+  if(cafe)drawCafeHouse(cx);
   for(const cp of cps)drawCP(cp,cx);
   // Noaptea, bănuții și power-up-urile luminează: se desenează după umbră (vezi mai jos).
   // Doar cel care încă iese din bloc rămâne aici, ca să apară din spatele blocului.
   for(const it of items)if(!night||it.rise>0)drawItem(it);
   drawTiles(cx);
   drawPlats(cx);
+  if(inCafe())drawCafeFrame(cx);   // întunericul din jurul cafenelei (peste podea), înaintea personajelor
+  if(cafe)drawCafeNPC(cx);
+  // Mobii chemați de boss care încă intră în poiană trec prin spatele baloților de fân și al felinarelor.
+  const entering=e=>e.enter&&!e.dead;
+  for(const e of enemies)if(entering(e))drawEnemy(e,cx);
   drawArena(cx);
   if(theme.snow)drawLakeBase(cx);
   if(!night)drawCoins();
   // Noaptea, bomba aprinsă luminează: nu primește umbra, se desenează după ea, cu strălucire (vezi mai jos).
   const litBomb=e=>night&&e.type==='bomb'&&e.lit>0&&!e.sink;
-  for(const e of enemies)if((e.active||(e.x-cx<W+24))&&!litBomb(e))drawEnemy(e,cx);
+  for(const e of enemies)if((e.active||(e.x-cx<W+24))&&!litBomb(e)&&!entering(e))drawEnemy(e,cx);
   drawBoss(cx);
   drawPlayer(cx);
   // Decorul de pe sol stă în fața personajelor; nu pe marginea gropilor și nu sub țepi/trepte.
   if(theme.farm)drawGroundDecor(cx,theme,tx=>grid[12][tx]==='G'&&grid[11][tx]==='.'&&tileAt(tx-1,12)!=='.'&&tileAt(tx+1,12)!=='.');
-  else if(theme.snow)drawSnowDecor(cx,tx=>grid[12]&&grid[12][tx]==='G'&&grid[11][tx]==='.'&&!'.I'.includes(tileAt(tx-1,12))&&!'.I'.includes(tileAt(tx+1,12)));
-  drawWater(cx);
+  else if(theme.snow&&!inCafe())drawSnowDecor(cx,tx=>grid[12]&&grid[12][tx]==='G'&&grid[11][tx]==='.'&&!'.I'.includes(tileAt(tx-1,12))&&!'.I'.includes(tileAt(tx+1,12)));
+  if(!inCafe())drawWater(cx);   // în cafenea nu e apă (la margine s-ar vedea golul de lângă ea)
   if(lakeLife)drawLakeLife(cx);
   if(night){
     // Umbra de noapte: amestecă doar pixelii desenați cu un albastru închis (mai întunecat, dar se vede tot).
@@ -3141,9 +3693,14 @@ function drawWorld(){
     if(p.edge){ctx.fillStyle=p.edge;ctx.fillRect(Math.round(p.x-cx)-1,Math.round(p.y)-1,p.s+2,p.s+2);}
     ctx.globalAlpha=p.max?Math.min(1,p.life/(p.max*0.5)):1;ctx.fillStyle=p.col;ctx.fillRect(Math.round(p.x-cx),Math.round(p.y),p.s,p.s);ctx.globalAlpha=1;
   }
-  if(theme.snow)drawSnowfall();
+  if(theme.snow&&!inCafe())drawSnowfall();
   for(const p of popups)txt(p.s,p.x-cx,p.y,p.c,1,'c','#000');
+  if(cafe)drawCafeHints(cx);
   if(TEST&&G.showHB)drawHitboxes(cx);
+  ctx.restore();
+  drawTalk();   // caseta de dialog (lower third), fixă pe ecran
+  // Intrarea / ieșirea din cafenea: ecranul se întunecă și se luminează la loc (HUD-ul rămâne).
+  if(G.doorT>0){ctx.fillStyle=`rgba(13,11,20,${1-Math.abs(G.doorT-DOOR_T/2)/(DOOR_T/2)})`;ctx.fillRect(0,0,W,H);}
 }
 // Luminile nopții, peste umbră: conul felinarului fiecărui fermier (galben cald; portocaliu când te-a văzut),
 // felinarul care pâlpâie, apoi licuricii.
@@ -3317,20 +3874,21 @@ function drawIntro(){
   ctx.drawImage(img,100-(img.width>>1),192-img.height+(Math.floor(G.t/5)%2?-1:0));
   if(th.snow)drawSnowfall();
   // „NIVELUL n” și numele nivelului.
-  const lbl='NIVELUL '+(G.level+1),pw=[...lbl].length*6+13;
+  const lbl=def.bonus?'NIVEL BONUS':'NIVELUL '+levelNum(G.level),pw=[...lbl].length*6+13;
   uiBox(Math.round(W/2-pw/2),12+dy,pw,15);txt(lbl,W/2,16+dy,'#ffffff',1,'c',null);
   txtCute(th.name,W/2,40+dy,3,'#e8323e','#000000');
-  // Drumul spre MESOPOTAMIA: un nod pentru fiecare nivel, plus restaurantul la capăt.
+  // Drumul spre MESOPOTAMIA: un nod pentru fiecare nivel, plus restaurantul la capăt. Nivelul bonus are o steluță
+  // în loc de bulină.
   const lv=LEVELS.filter(d=>!d.arena),N=lv.length,gap=40,x0=W/2-N*gap/2,ny=90+dy;
   for(let i=0;i<N;i++){const xa=x0+i*gap+7,xb=x0+(i+1)*gap-7;
     if(i<G.level){ctx.fillStyle='#ffd23f';ctx.fillRect(xa,ny+6,xb-xa,2);}
     else{ctx.fillStyle='rgba(255,255,255,0.45)';for(let x=xa+1;x<xb-1;x+=4)ctx.fillRect(x,ny+6,2,2);}}
-  for(let i=0;i<=N;i++){const cx=x0+i*gap,x=cx-6;
+  for(let i=0;i<=N;i++){const cx=x0+i*gap,x=cx-6,mark=(col)=>lv[i].bonus?icon(STAR_ICON,x+3,ny+3,col):icon(DOT_ICON,x+4,ny+4,col);
     if(i===N){uiBox(x,ny,13,13,'#7a1a1a','#ffd23f','#9a2a2a','#4a0a0a');txt('M',cx-2,ny+3,'#ffd23f',1,'l',null);}
-    else if(i<G.level){uiBox(x,ny,13,13,'#ffd23f','#fff3b0','#ffe680','#b88a10');icon(DOT_ICON,x+4,ny+4,'#7a4a00');}
-    else if(i===G.level){uiBox(x,ny,13,13,'#e8323e','#ffffff','#ff6a72','#a01822');icon(DOT_ICON,x+4,ny+4,'#ffffff');
+    else if(i<G.level){uiBox(x,ny,13,13,'#ffd23f','#fff3b0','#ffe680','#b88a10');mark('#7a4a00');}
+    else if(i===G.level){uiBox(x,ny,13,13,'#e8323e','#ffffff','#ff6a72','#a01822');mark('#ffffff');
       ctx.drawImage(HEAD,cx-4,ny-11+Math.round(Math.sin(G.t*0.15)*1.5));}
-    else{uiBox(x,ny,13,13);icon(DOT_ICON,x+4,ny+4,'#8a84a8');}
+    else{uiBox(x,ny,13,13);mark(lv[i].bonus?'#ffd23f':'#8a84a8');}
   }
   // Sfatul.
   // Rândurile sunt la 12 px, ca diacriticele de deasupra (Ă, Î, Â) să nu atingă rândul de sus.
@@ -3410,7 +3968,7 @@ const ARENA=TEST?LEVELS.push(TEST_LEVEL)-1:-1;
 function testLoad(lv,cp){
   const alive=player&&!player.dead;
   G.carryBig=alive&&player.big;G.carryFire=alive&&player.fire;G.carryIce=alive&&player.ice;
-  G.level=lv;
+  G.level=lv;G.slotUsed=null;
   const x=cp>0?LEVELS[lv].build().cps[cp-1]:undefined;
   G.cp=x===undefined?null:{level:lv,x};
   startLevel();
@@ -3418,7 +3976,7 @@ function testLoad(lv,cp){
 // Rândul pe care se poate sta în coloana x: cel mai de sus sol, bloc sau platformă, dacă deasupra e loc de curcan.
 // -1 = acolo nu se poate sta (groapă, zid până sus, țepi, gaură în gheață).
 function standRow(x){
-  for(let y=0;y<ROWS;y++){const t=tileAt(x,y);
+  for(let y=0;y<ROWS;y++){const t=tileAt(x,y);if(t==='K')continue;   // (tavanul cafenelei nu e un loc de stat)
     if(solid(t)||t==='=')return y<2||t==='^'||(t==='I'&&iceHole[x]>0)?-1:y;}
   return -1;
 }
@@ -3431,6 +3989,8 @@ function testTeleport(tx){
     const y=standRow(x);if(y<0)continue;
     const p=player;p.x=x*TS+(TS-p.w)/2;p.y=y*TS-p.h;p.vx=0;p.vy=0;p.onGround=false;
     feathers=[];cam.x=clamp(p.x+p.w/2-W*0.42,0,cols*TS-W);
+    // În nivelul bonus, un click pe camera cafenelei te duce înăuntru (cu camera pe ea), altfel ești afară.
+    G.inCafe=!!cafe&&p.x>=cafe.a*TS;if(G.inCafe)cam.x=cafe.a*TS+CAFE_CAMX;
     dust(p.x+p.w/2,p.y+p.h,6);
     return;
   }
@@ -3502,7 +4062,8 @@ function testThumbs(){
 // din joc), ca butoanele din panou să arate exact ca jocul.
 function testHello(){
   const u=c=>c.toDataURL();
-  const levels=LEVELS.slice(0,ARENA).map(d=>({name:THEMES[d.theme].name,theme:d.theme,cps:d.build().cps.length}));
+  const levels=LEVELS.slice(0,ARENA).map((d,i)=>({name:THEMES[d.theme].name,theme:d.theme,cps:d.build().cps.length,
+    bonus:!!d.bonus,num:d.bonus?'★':String(levelNum(i))}));
   toParent({hello:{version:GAME_VERSION,levels,arenaTheme:TEST_LEVEL.theme,thumbs:TEST_THUMBS,
     icons:{tks:u(TKS.A.r),tk:u(TK.A.r),tkf:u(TKF.A.r),tki:u(TKI.A.r),boy:u(BOY.A.l),man:u(MAN.A.l),bomb:u(BOMB.A.l),sit:u(BOMB.S.l),head:u(HEAD)}}});
 }
@@ -3510,7 +4071,7 @@ function testHello(){
 // culorile decorului. Panoul o desenează mică, sub joc; un click pe ea mută curcanul acolo (comanda tp).
 function testMap(){
   const def=LEVELS[G.level],th=theme;
-  toParent({map:{level:G.level,arena:!!def.arena,theme:def.theme,name:th.name,cols,rows:grid.map(r=>r.join('')),
+  toParent({map:{level:G.level,arena:!!def.arena,bonus:!!def.bonus,num:def.arena?0:levelNum(G.level),theme:def.theme,name:th.name,cols,rows:grid.map(r=>r.join('')),
     cps:cps.map(c=>c.tx),goal,colors:{sky:th.sky,grass:th.grass,dirt:th.dirt,water:th.water.body,night:!!th.night},
     plats:plats.map(p=>({kind:p.kind,x:p.x0/TS,y:p.y0/TS,w:p.w/TS,ax:p.ax,range:p.range/TS}))}});
 }

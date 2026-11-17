@@ -304,8 +304,8 @@ function onHello(h){
   h.levels.forEach((l,i)=>{
     const b=document.createElement('button');
     b.className='lvl';b.dataset.level=i;b.setAttribute('aria-pressed','false');
-    b.title=`Nivelul ${i+1}: ${nice(l.name)}`+(l.cps?` · ${l.cps} ${l.cps>1?'puncte':'punct'} de salvare`:'');
-    b.innerHTML=`<span class="thumb"><img alt=""><span class="now">ACUM</span></span><span class="name"><span class="num">${i+1}</span><span></span></span>`;
+    b.title=(l.bonus?'Nivel bonus':`Nivelul ${l.num||i+1}`)+`: ${nice(l.name)}`+(l.cps?` · ${l.cps} ${l.cps>1?'puncte':'punct'} de salvare`:'');
+    b.innerHTML=`<span class="thumb"><img alt=""><span class="now">ACUM</span></span><span class="name"><span class="num">${l.num||i+1}</span><span></span></span>`;
     b.querySelector('.name span:last-child').textContent=nice(l.name);
     if(h.thumbs)b.querySelector('img').src=h.thumbs.levels[i];
     box.insertBefore(b,arenaCard);
@@ -330,7 +330,7 @@ function onMap(m){
   selectLevel();
   $$('[data-from]').forEach(b=>{const n=+b.dataset.from;b.disabled=n>m.cps.length;
     b.title=b.disabled?(m.arena?'Arena n-are puncte de salvare':'Nivelul ăsta n-are al doilea punct de salvare'):'';});
-  $('#mapName').textContent=m.arena?'Arena · '+ARENA_NAMES[m.theme]:`Nivelul ${m.level+1} · ${nice(m.name)}`;
+  $('#mapName').textContent=m.arena?'Arena · '+ARENA_NAMES[m.theme]:(m.bonus?'Nivel bonus':`Nivelul ${m.num||m.level+1}`)+` · ${nice(m.name)}`;
   drawMap();
 }
 function selectLevel(){
@@ -363,7 +363,7 @@ frame.addEventListener('load',()=>{send('hello');focusGame();});
 // Desenată din tile-urile trimise de joc: fiecare coloană a nivelului e o fâșie, fiecare rând câteva pixeli.
 // Peste ea: fereastra camerei, punctele de salvare, ținta, mobii și curcanul. Click / tras = mută curcanul.
 const mapCv=$('#map'),mg=mapCv.getContext('2d');
-const TILE_COL={B:'#c98a4b',M:'#f2b630',H:'#f2b630',U:'#9a6030',X:'#8a8fa0','=':'#b5793a','^':'#d8dce6',I:'#dff4ff'};
+const TILE_COL={B:'#c98a4b',M:'#f2b630',H:'#f2b630',A:'#8ccfee',F:'#e6d9c0',S:'#f2b630',E:'#9a6030',K:'#2a1a12',U:'#9a6030',X:'#8a8fa0','=':'#b5793a','^':'#d8dce6',I:'#dff4ff'};
 const MOB_COL={m:'#ff4a4a',u:'#f4f4f4',b:'#ffa024',f:'#9fe8ff',B:'#ff2020'};   // B = boss-ul
 const MTOP=10;                       // spațiul de sus (px), pentru stegulețe
 let terrain=null,hoverX=null;
