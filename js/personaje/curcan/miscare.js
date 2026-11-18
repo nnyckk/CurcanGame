@@ -21,17 +21,20 @@ function updatePlayer(){
     if(p.vx<target)p.vx=Math.min(target,p.vx+acc);else if(p.vx>target)p.vx=Math.max(target,p.vx-acc);
     p.airMax=Math.max(WALK,Math.abs(p.vx));
   }else{
-    const max=p.airMax||WALK;
-    if(dir)p.vx+=dir*0.15;
+    if(p.vy<0)p.walkOff=false;
+    // Coborât de pe margine în mers: cazi aproape drept
+    const max=p.walkOff?1:(p.airMax||WALK);
+    if(dir)p.vx+=dir*0.15;else if(p.walkOff)p.vx*=0.7;
     p.vx=clamp(p.vx,-max,max);
   }
   if(jumpPressed())p.jbuf=8;else if(p.jbuf>0)p.jbuf--;
   if(p.onGround){p.coyote=6;p.combo=0;}else if(p.coyote>0)p.coyote--;
   if(p.jbuf>0&&p.coyote>0){p.vy=-6.2-Math.abs(p.vx)*0.12;p.jbuf=0;p.coyote=0;p.onGround=false;sfx.jump();}
   p.vy=Math.min(p.vy+((jh&&p.vy<0)?0.27:0.42),7);
-  if(!jh&&p.vy<-3.5)p.vy=-3.5;
+  if(p.pop>0)p.pop--;else if(!jh&&p.vy<-3.5)p.vy=-3.5;   // pop: sare singur din gaura peșterii
   const wasAir=!p.onGround,vyB=p.vy;
   moveX(p);moveY(p);
+  if(p.onGround)p.walkOff=false;else if(!wasAir&&p.vy>=0)p.walkOff=p.airMax<=WALK+0.01;   // a ieșit de pe margine fără săritură
   if(p.headHit)hitBlock(p.headHit[0],p.headHit[1]);
   if(p.onGround&&wasAir&&vyB>3)dust(p.x+p.w/2,p.y+p.h,4);
   // Curcanul de foc: jar din coadă și de pe costum

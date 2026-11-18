@@ -12,7 +12,7 @@ LEVELS.push({id:'iarna',theme:5,song:'winter',tip:'MESOPOTAMIA E APROAPE. DAR NU
   m.e('man',74);m.e('bomb',79);
   // Un dâmb cu un fermier sus
   m.f(84,9,7,3,'D');m.e('man',88,8);m.c(85,7,3);
-  m.pana(87,4);   // pana 1: deasupra dâmbului
+  m.pana(50,9,'hidden');   // pana 1: invizibilă, lipită de ultima treaptă, la nivelul ei
   m.sp(95,2);
   m.cp(104);m.c(101,10,4);   // punctul de salvare
   // ——— A doua jumătate
@@ -20,7 +20,7 @@ LEVELS.push({id:'iarna',theme:5,song:'winter',tip:'MESOPOTAMIA E APROAPE. DAR NU
   m.r(108,4,'B B');m.pana(109,4,'brick');   // pana 2: în cărămidă
   m.e('boy',114);m.e('man',120);m.e('boy',126);
   // Lacul 3: copci late, scânduri sus
-  m.lake(131,150);m.pit(136,138);m.pit(145,146);m.r(133,8,'====');m.r(140,6,'====');m.e('boy',141,5);m.c(133,7,4);m.c(140,5,4);
+  m.lake(131,150);m.pit(136,138);m.pit(145,146);m.r(133,8,'====');m.r(140,6,'BMMB');m.e('boy',141,5);m.c(133,7,4);m.c(140,5,4);
   m.e('man',155);m.e('bomb',160);
   // Un iaz înghețat între două trepte mici
   m.st(165,2,1);m.lake(167,174);m.pit(170,171);m.st(175,2,-1);m.c(167,10,3);m.c(172,10,2);

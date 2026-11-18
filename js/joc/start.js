@@ -1,13 +1,13 @@
 'use strict';
 // ===== JOC NOU, ECRANUL DINAINTEA NIVELULUI =====
-function newGame(){G.carryBig=false;G.carryFire=false;G.carryIce=false;G.lives=3;G.score=0;G.coins=0;G.level=0;G.cp=null;G.slotUsed=null;G.bossMet=false;G.goldLv=-1;G.cafeSeen=false;G.tip=null;
+function newGame(){G.carryBig=false;G.carryFire=false;G.carryIce=false;G.lives=3;G.score=0;G.coins=0;G.level=0;G.cp=null;G.slotUsed=null;G.bossMet=false;G.goldLv=-1;G.cafeSeen=false;G.tip=null;G.underOpen=-1;
   G.fullRun=true;G.runDeaths=0;   // NEMURITOR: un joc întreg
   MOS.plays++;mosSave();toIntro(true);stopSong();}
 // Ecranul de dinaintea nivelului
 const introTipN=()=>Math.max(0,(G.stateT-18)*1.2);
 // Sfatul se alege înainte ca Moș Curcan să-și noteze nivelul nou
 function toIntro(first){
-  if(first){G.lvlDeaths=0;G.lvlHurt=false;G.lvlSeen=false;}
+  if(first){G.lvlDeaths=0;G.underOpen=-1;G.lvlHurt=false;G.lvlSeen=false;}
   G.state='intro';G.stateT=0;G.tip=pickTip(first);
   if(first&&!LEVELS[G.level].arena){MOS.last=G.level;MOS.best=Math.max(MOS.best,G.level);mosSave();}
 }
@@ -16,7 +16,7 @@ function startLevel(quiet){
   const def=LEVELS[G.level],m=def.build();
   grid=m.grid;cols=m.w;theme=THEMES[def.theme];tiles=getTiles(def.theme);bg=getBG(def.theme);goal=m.goalDef;
   enemies=m.ents.map(d=>makeEnemy(d.type,d.x,d.y));
-  G.frame=0;plats=m.plats.map(makePlat);boss=m.bossDef?makeBoss(m.bossDef):null;cafe=m.cafeDef?makeCafe(m.cafeDef):null;G.doorT=0;G.inCafe=false;G.talk=null;G.lift=0;golds=makeGolds(m);
+  G.frame=0;plats=m.plats.map(makePlat);boss=m.bossDef?makeBoss(m.bossDef):null;cafe=m.cafeDef?makeCafe(m.cafeDef):null;under=m.underDef?makeUnder(m.underDef):null;G.inUnder=false;G.subT=0;G.doorT=0;G.inCafe=false;G.talk=null;G.lift=0;golds=makeGolds(m);
   // Mobii puși pe o platformă care se mișcă stau pe ea de la început
   for(const e of enemies){const p=plats.find(p=>Math.abs(p.y-(e.y+e.h))<1&&e.x+e.w>p.x&&e.x<p.x+p.w);if(p)e.plat=p;}
   coins=m.coins.map(([x,y])=>({x:x*TS+8,y:y*TS+8,taken:false}));G.lvlCoins=0;   // bănuții luați acum

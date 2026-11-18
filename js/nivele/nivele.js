@@ -9,6 +9,13 @@ function newMap(w){
   m.pit=(a,b)=>m.f(a,12,b-a+1,2,'.');
   // Lac înghețat: gheață pe rândul solului, apă dedesubt
   m.lake=(a,b)=>{m.f(a,12,b-a+1,1,'I');m.f(a,13,b-a+1,1,'.');};
+  // Pământul din spate (Z): doar decor, treci prin el
+  m.z=(x,y,ww,hh)=>{for(let j=0;j<hh;j++)for(let i=0;i<ww;i++)if(grid[y+j]&&grid[y+j][x+i]==='.')grid[y+j][x+i]='Z';};
+  // Deal din față / din spate, din sol în sus: câte o înălțime pe coloană
+  m.hill=(x,hs)=>hs.forEach((h,i)=>m.f(x+i,12-h,1,h,'D'));
+  m.back=(x,hs)=>hs.forEach((h,i)=>m.z(x+i,12-h,1,h));
+  // Pasaj prin deal (Y): scobit în pământ, treci prin el
+  m.tunnel=(x,y,ww,hh)=>m.f(x,y,ww,hh,'Y');
   m.r=(x,y,s)=>{for(let i=0;i<s.length;i++)if(s[i]!==' ')m.set(x+i,y,s[i]);};
   m.c=(x,y,n=1)=>{for(let i=0;i<n;i++)m.coins.push([x+i,y]);};
   m.e=(type,x,y=11)=>m.ents.push({type,x,y});
@@ -29,7 +36,12 @@ function newMap(w){
     m.f(a,0,CAFE_W,CAFE_CEIL,'K');};   // K = tavanul
   // Pană de aur: 'open', 'brick' (P), 'hidden' (V) sau 'boss'
   m.pana=(x,y,kind='open')=>{m.golds.push({x,y,kind});if(kind==='brick')m.set(x,y,'P');else if(kind==='hidden')m.set(x,y,'V');};
-  m.done=()=>{for(let y=0;y<ROWS;y++)for(let x=0;x<w;x++)if(grid[y][x]==='D'&&(y===0||(grid[y-1][x]!=='D'&&grid[y-1][x]!=='G')))grid[y][x]='G';return m;};
+  // Peștera de sub pământ: găurile x, x2 în sol; camera de la a, lată de w (în dreapta hărții); opt: fall, pool, gems
+  m.under=(x,x2,a,w,opt)=>{m.underDef={x,x2,a,w,opt};   // găurile se deschid în joc
+    m.f(a,0,w,SUB_CEIL,'D');m.f(a,12,w,2,'D');m.f(a,SUB_CEIL,1,12-SUB_CEIL,'D');m.f(a+w-1,SUB_CEIL,1,12-SUB_CEIL,'D');
+    m.f(a+2,0,2,SUB_CEIL,'Y');m.f(a+w-4,0,2,SUB_CEIL,'Y');m.f(a+w-4,10,2,2,'D');m.f(a+w-5,11,1,1,'D');};   // puțurile și treapta de ieșire
+  // În peșteră nu crește iarbă
+  m.done=()=>{const u=m.underDef;for(let y=0;y<ROWS;y++)for(let x=0;x<w;x++)if(grid[y][x]==='D'&&!(u&&x>=u.a)&&(y===0||(grid[y-1][x]!=='D'&&grid[y-1][x]!=='G')))grid[y][x]='G';return m;};
   return m;
 }
 // Numărul nivelului i, cum îl vede jucătorul

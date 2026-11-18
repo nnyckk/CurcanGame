@@ -5,7 +5,7 @@ function drawWorld(){
   const cx=Math.round(cam.x)+sh;
   // În cafenea, camera dinăuntru ține loc de cer și fundal
   const lift=inCafe()?0:Math.round(G.lift||0),vy=inCafe()?CAFE_VY:-lift;ctx.save();ctx.translate(0,vy);
-  if(inCafe())drawCafeRoom(cx);else drawBG();
+  if(inCafe())drawCafeRoom(cx);else if(inUnder())drawUnderBG(cx);else drawBG();
   // Noaptea: lumea de joc se desenează pe un canvas separat
   const night=theme.night,main=ctx;
   if(night){ctx=shadeCtx;ctx.clearRect(0,0,W,H);}
@@ -27,6 +27,7 @@ function drawWorld(){
   // Noaptea, bănuții și power-up-urile luminează
   for(const it of items)if(!night||it.rise>0)drawItem(it);
   drawTiles(cx);
+  if(inUnder())drawCaveLife(cx);else drawHoleCracks(cx);   // stalactite, lilieci, pânze / crăpăturile de deasupra peșterii
   drawPlats(cx);
   if(inCafe())drawCafeFrame(cx);   // întunericul din jurul cafenelei
   if(cafe)drawCafeNPC(cx);
@@ -83,5 +84,6 @@ function drawWorld(){
   for(let y=H-lift;y<H;y+=TS){const h=Math.min(TS,H-y);ctx.drawImage(cv,0,H-lift-TS,W,h,0,y,W,h);}
   drawTalk();   // caseta de dialog, fixă pe ecran
   // Intrarea / ieșirea din cafenea
-  if(G.doorT>0){ctx.fillStyle=`rgba(13,11,20,${1-Math.abs(G.doorT-DOOR_T/2)/(DOOR_T/2)})`;ctx.fillRect(0,0,W,H);}
+  const fade=G.doorT>0?G.doorT:G.subT>0?G.subT:0;   // ușa cafenelei sau gaura peșterii
+  if(fade){ctx.fillStyle=`rgba(13,11,20,${1-Math.abs(fade-DOOR_T/2)/(DOOR_T/2)})`;ctx.fillRect(0,0,W,H);}
 }

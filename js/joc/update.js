@@ -2,7 +2,7 @@
 // ===== UPDATE: un cadru de joc =====
 function updateCam(){
   // În lupta cu boss-ul, camera stă pe poiană
-  const target=boss&&boss.lock?boss.a0-TS:inCafe()?cafe.a*TS+CAFE_CAMX:clamp(player.x+player.w/2-W*0.42,0,camMax());
+  const target=boss&&boss.lock?boss.a0-TS:inCafe()?cafe.a*TS+CAFE_CAMX:inUnder()?underCam():clamp(player.x+player.w/2-W*0.42,0,camMax());
   cam.x+=(target-cam.x)*0.18;
 }
 function updatePlay(){
@@ -12,6 +12,8 @@ function updatePlay(){
   if(G.growT>0){G.growT--;return;}
   // Intrarea / ieșirea din cafenea: ecranul se întunecă
   if(G.doorT>0){if(--G.doorT===DOOR_T/2)cafeTeleport();updateFx();return;}
+  // Intrarea / ieșirea din peșteră: tot cu întunecare
+  if(G.subT>0){if(--G.subT===DOOR_T/2)subTeleport();updateFx();return;}
   // Cât vorbește cineva, jocul stă: doar caseta de dialog
   if(G.talk){updateTalk();if(cafe)updateCafe();updateFx();return;}
   G.frame++;
@@ -21,6 +23,7 @@ function updatePlay(){
   updatePlats();
   updatePlayer();
   if(G.state!=='play'){updateFx();return;}
+  updateUnder();
   if(cafe){updateCafe();const d=cafeAction();
     if(d&&upPressed()){if(d==='talk')openTalk([cafeLine()]);else{G.doorT=DOOR_T;G.doorTo=d;player.vx=0;sfx.bell();}}}
   for(const e of enemies){
@@ -64,8 +67,8 @@ function updatePlay(){
   }
   items=items.filter(i=>!i.remove);
   for(const cp of cps){if(cp.on){cp.raise=Math.min(1,cp.raise+0.05);continue;}
-    if(!inCafe()&&player.x+player.w>cp.x+6){cp.on=true;G.cp={level:G.level,x:cp.tx};goldCheckpoint();sfx.cp();popup('SALVAT!',cp.x+8,150,'#7fff7f');}}
-  if(G.state==='play'&&goal&&!inCafe()){
+    if(!inRoom()&&player.x+player.w>cp.x+6){cp.on=true;G.cp={level:G.level,x:cp.tx};goldCheckpoint();sfx.cp();popup('SALVAT!',cp.x+8,150,'#7fff7f');}}
+  if(G.state==='play'&&goal&&!inRoom()){
     if(goal.type==='sign'&&player.x+player.w>goal.x*TS+34)levelClear(false);
     else if(goal.type==='restaurant'&&overlap(player,doorRect()))levelClear(true);
   }

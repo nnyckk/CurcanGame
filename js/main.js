@@ -8,6 +8,6 @@ function frame(now){
   render();requestAnimationFrame(frame);
 }
 achRetro();   // achievements pentru ce ai făcut
-if(TEST){G.level=ARENA;startLevel();}
+if(TEST){G.god=true;G.level=ARENA;startLevel();}   // în test pornești invincibil
 else playSong('title');
 requestAnimationFrame(frame);

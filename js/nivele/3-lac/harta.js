@@ -21,7 +21,7 @@ LEVELS.push({id:'lac',theme:4,tip:'SCÂNDURILE CRĂPATE NU TE ȚIN MULT. NU STA 
   // Primul șir de platforme care cad, coborând spre mal
   m.fall(99,6,2);m.fall(103,7,2);m.fall(107,8,2);m.fall(111,9,2);m.c(99,4,2);m.c(103,5,2);m.c(107,6,2);m.c(111,7,2);
   m.isl(115,128,12);m.cp(120);m.c(117,10,3);m.r(122,8,'BHB');   // punctul de salvare 1
-  m.pana(126,8,'hidden');   // pana 1: invizibilă, lângă blocuri
+  m.pana(116,8,'hidden');   // pana 1: invizibilă, la începutul insulei
   // ——— A doua parte
   m.r(131,9,'====');m.e('bomb',133,8);
   m.mv(137,8,3,'x',8,300);m.c(140,6,4);

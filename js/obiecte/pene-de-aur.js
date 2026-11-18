@@ -22,6 +22,9 @@ const GOLD_MINI=["..#..",".###.","#####","#####","#####",".###.","..#..","..#.."
 const GOLD_KEY=TEST?'curcan_pene_test':'curcan_pene',GOLD_PTS=1000;
 let golds=[],GOLD_SAVE={},GOLD_COUNTS=null,GOLD_OK=null;
 try{GOLD_SAVE=JSON.parse(localStorage.getItem(GOLD_KEY)||'{}')||{};}catch(e){}
+// O singură dată: în nivelul 2, pana invizibilă a devenit prima
+if(!GOLD_SAVE._v){const o=GOLD_SAVE.noapte||0;if(o)GOLD_SAVE.noapte=((o>>2)&1)|((o&1)<<1)|(((o>>1)&1)<<2);GOLD_SAVE._v=1;
+  try{localStorage.setItem(GOLD_KEY,JSON.stringify(GOLD_SAVE));}catch(e){}}
 function goldStore(){GOLD_OK=null;try{localStorage.setItem(GOLD_KEY,JSON.stringify(GOLD_SAVE));}catch(e){}}
 const goldSaved=(id,i)=>!!((GOLD_SAVE[id]||0)&(1<<i));
 // Câte pene are fiecare nivel
@@ -51,6 +54,8 @@ function goldTake(g){
 // Pana din cărămida spartă / din blocul invizibil
 function goldFromTile(tx,ty){
   const g=golds.find(g=>g.tx===tx&&g.ty===ty&&!g.taken);if(!g)return;
+  // Luată deja: iese și rămâne deasupra blocului
+  if(g.ghost){if(!g.out){g.out=true;if(grid[ty][tx]!=='.')g.y-=TS;}return;}
   g.out=true;parts.push({type:'gold',x:g.x,y:g.y-6,vx:0,vy:-3.6,g:0.16,life:40,max:40});goldTake(g);
 }
 // S-a prăbușit stiva de fân din dreapta poienii boss-ului
@@ -62,7 +67,7 @@ function updateGolds(){
     if(g.flash>0)g.flash--;
     if(g.taken||!g.out)continue;
     if(g.restY){g.vy+=0.2;g.y+=g.vy;if(g.vy>0&&g.y>=g.restY){g.y=g.restY;g.vy=0;g.restY=0;}}
-    if(!player.dead&&overlap(player,{x:g.x-5,y:g.y-7,w:10,h:14}))goldTake(g);
+    if(!g.ghost&&!player.dead&&overlap(player,{x:g.x-5,y:g.y-7,w:10,h:14}))goldTake(g);
   }
 }
 // La atingerea unui punct de salvare

@@ -4,6 +4,78 @@ function par(img,f,y=0,extra=0){const w=img.width;let ox=-((cam.x*f+extra)%w);if
 function drawBG(){ctx.drawImage(bg.sky,0,0);if(bg.clouds)par(bg.clouds,0.1,0,G.t*0.08);
   if(bg.dyn&&!bg.night)drawBirds();par(bg.far,0.2);if(bg.dyn)drawFarmLife();par(bg.mid,0.45);if(bg.near)par(bg.near,0.7);}
 const BUMPY=[2,4,5,5,4,3,2,1];
+// Vecinii lângă care pământul nu are margine
+const EARTH_N='GDIXF';
+const EDGE_CACHE=new Map();
+// Pământ cu margini: contur închis și umbră unde se termină
+// bare = pământ gol deasupra (în peșteră): margine de sus deschisă la culoare și colțuri rotunjite ca la iarbă
+function earthEdge(img,l,r,b,grass,bare){
+  if(!l&&!r&&!b&&!bare)return img;
+  let m=EDGE_CACHE.get(img);if(!m)EDGE_CACHE.set(img,m={});
+  const k=(l?1:0)|(r?2:0)|(b?4:0)|(bare?8:0);if(m[k])return m[k];
+  const [c,g]=mkCanvas(16,16);g.drawImage(img,0,0);
+  const d=mixHex(theme.dirtD,'#000000',0.45),P=(x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(x,y,w,h);},round=grass||bare,top=round?2:0,s0=grass?6:bare?2:0;
+  if(bare){P(0,0,16,1,theme.dirtL);P(0,1,16,1,mixHex(theme.dirtL,theme.dirt,0.5));if(l)P(1,1,1,1,theme.dirtL);if(r)P(14,1,1,1,theme.dirtL);}
+  // Umbra de pe laturi e continuă de la un tile la altul
+  if(l){P(0,top,1,16-top,d);P(1,s0,1,16-s0,'rgba(0,0,0,0.15)');if(round)g.clearRect(0,0,2,1),g.clearRect(0,1,1,1);}
+  if(r){P(15,top,1,16-top,d);P(14,s0,1,16-s0,'rgba(0,0,0,0.25)');P(13,s0,1,16-s0,'rgba(0,0,0,0.12)');if(round)g.clearRect(14,0,2,1),g.clearRect(15,1,1,1);}   // latura din dreapta, în umbră
+  if(b){P(0,15,16,1,d);P(0,13,16,2,'rgba(0,0,0,0.22)');if(l)g.clearRect(0,15,1,1);if(r)g.clearRect(15,15,1,1);}
+  return m[k]=c;
+}
+// Tile-ul de bază al pământului, fără margini
+const earthBase=(c,tx,ty)=>c==='G'?(tiles.Gv?pickVar(tiles.Gv,tx,ty):tiles.G):(tiles.Dv?pickVar(tiles.Dv,tx,ty):tiles.D);
+// Pământul din spate: iarbă sus, tot mai închis în jos
+function zImg(tx,ty){let d=0;while(d<4&&tileAt(tx,ty-1-d)==='Z')d++;if(!d)return tiles.ZG;const a=tiles.Zd[d-1];return a.length>1?pickVar(a,tx,ty):a[0];}
+// Ce se vede prin colțurile rotunjite: pasajul sau pământul din spate
+function behindEarth(tx,ty){
+  const ns=[[1,0],[-1,0],[0,1],[0,-1]].map(([a,b])=>[tx+a,ty+b,tileAt(tx+a,ty+b)]);
+  if(ns.some(n=>n[2]==='Y'))return tiles.Yv[vhash(tx,ty)%3];
+  const z=ns.find(n=>n[2]==='Z');return z?zImg(z[0],z[1]):null;
+}
+// Pământul e mai închis spre mijloc, mai deschis lângă margini (hartă de umbră, câte 4 px)
+const SHADE={grid:null,cv:null},SHADE_STEP=[12,26],SHADE_A=[0,0.14,0.26];
+function earthShade(){
+  if(SHADE.grid===grid)return SHADE.cv;
+  const w=cols*4,h=ROWS*4,D=new Float32Array(w*h),INF=1e9;
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++)D[y*w+x]='GD'.includes(grid[y>>2][x>>2])?INF:0;
+  // Distanța până la cel mai apropiat loc gol (două treceri)
+  const at=(x,y)=>x<0||x>=w||y>=h||y<0?INF:D[y*w+x];
+  for(let y=0;y<h;y++)for(let x=0;x<w;x++){const i=y*w+x;if(!D[i])continue;
+    D[i]=Math.min(D[i],at(x-1,y)+3,at(x,y-1)+3,at(x-1,y-1)+4,at(x+1,y-1)+4);}
+  for(let y=h-1;y>=0;y--)for(let x=w-1;x>=0;x--){const i=y*w+x;if(!D[i])continue;
+    D[i]=Math.min(D[i],at(x+1,y)+3,at(x,y+1)+3,at(x+1,y+1)+4,at(x-1,y+1)+4);}
+  // Pe pixeli: 3 trepte de umbră, cu margini puțin colțuroase
+  const PW=cols*TS,PH=ROWS*TS,[c,g]=mkCanvas(PW,PH),img=g.createImageData(PW,PH),A=SHADE_A.map(a=>a*255);
+  const cd=(x,y)=>{x=Math.max(0,Math.min(w-1,x));y=Math.max(0,Math.min(h-1,y));return D[y*w+x]/3*4;};
+  for(let Y=0;Y<PH;Y++){const fy=Y/4-0.5,y0=Math.floor(fy),ty=fy-y0;
+    for(let X=0;X<PW;X++){if(!'GD'.includes(grid[Y>>4][X>>4]))continue;
+      const fx=X/4-0.5,x0=Math.floor(fx),tx=fx-x0;
+      const dd=(cd(x0,y0)*(1-tx)+cd(x0+1,y0)*tx)*(1-ty)+(cd(x0,y0+1)*(1-tx)+cd(x0+1,y0+1)*tx)*ty+(vhash(X>>2,Y>>2)%7)-3;
+      const lv=dd<SHADE_STEP[0]?0:dd<SHADE_STEP[1]?1:2,i=(Y*PW+X)*4;
+      img.data[i]=18;img.data[i+1]=8;img.data[i+2]=16;img.data[i+3]=A[lv];}}
+  g.putImageData(img,0,0);SHADE.grid=grid;return SHADE.cv=c;
+}
+function drawEarthShade(cx){ctx.drawImage(earthShade(),cx,0,W,ROWS*TS,0,0,W,ROWS*TS);}
+// Lățimea gurii pasajului, rând cu rând
+const MOUTH=[7,5,4,3,2,2,1,1];
+// Pasajul prin deal: umbră sub tavan; la gură peretele coboară și se rotunjește
+function drawTunnel(tx,ty,cx){
+  const x=tx*TS-cx,y=ty*TS,rc=tileAt(tx,ty-1),open=t=>t!=='Y'&&!EARTH_N.includes(t);
+  ctx.drawImage(tiles.Yv[vhash(tx,ty)%3],x,y);
+  if(!EARTH_N.includes(rc))return;
+  ctx.fillStyle='rgba(0,0,0,0.35)';ctx.fillRect(x,y,16,3);ctx.fillStyle='rgba(0,0,0,0.18)';ctx.fillRect(x,y+3,16,3);
+  const d=mixHex(theme.dirtD,'#000000',0.45),top=earthBase(rc,tx,ty-1),tex=earthBase('D',tx,ty);
+  for(const s of [-1,1]){if(!open(tileAt(tx+s,ty)))continue;
+    const P=(i,yy,col)=>{ctx.fillStyle=col;ctx.fillRect(x+(s<0?i:15-i),yy,1,1);};
+    const row=(src,sy,n,yy)=>{if(n>0){const sx=s<0?1:15-n;ctx.drawImage(src,sx,sy,n,1,x+sx,yy,n,1);}};
+    const sh=s<0?[[1,'rgba(0,0,0,0.15)']]:[[1,'rgba(0,0,0,0.25)'],[2,'rgba(0,0,0,0.12)']];
+    // Sub gură, tavanul nu mai are linia de jos
+    for(let j=-3;j<0;j++){row(top,16+j,MOUTH[0]-1,y+j);sh.forEach(([i,c])=>P(i,y+j,c));}
+    P(0,y-1,d);
+    MOUTH.forEach((w,j)=>{const k=Math.min(w-1,MOUTH[j+1]||0)-1;
+      row(tex,j,k,y+j);sh.forEach(([i,c])=>{if(i<=k)P(i,y+j,c);});
+      P(0,y+j,d);for(let i=Math.max(k+1,1);i<w;i++)P(i,y+j,d);});}
+}
 function drawTiles(cx){
   const x0=Math.max(0,Math.floor(cx/TS)),x1=Math.min(cols-1,Math.floor((cx+W)/TS));
   const fi=[0,1,2,1][(G.t>>3)%4],mf=tiles.M[fi];
@@ -16,9 +88,17 @@ function drawTiles(cx){
     // Blocul-slot se desenează o singură dată
     if(c==='S'||c==='E'){if(tileAt(tx-1,ty)!==c&&tileAt(tx,ty-1)!==c)drawSlotBlock(tx*TS-cx,ty*TS,c==='E');continue;}
     let img=(c==='M'||c==='H')?mf:c==='A'?tiles.A[fi]:c==='P'?tiles.B:tiles[c];   // V nu are desen
-    if(c==='G'&&tiles.Gv)img=pickVar(tiles.Gv,tx,ty);else if(c==='D'&&tiles.Dv)img=pickVar(tiles.Dv,tx,ty);
+    if(c==='G'||c==='D')img=earthBase(c,tx,ty);else if(c==='Z')img=zImg(tx,ty);
+    if(c==='Y'){drawTunnel(tx,ty,cx);continue;}
+    if(c==='G'||c==='D'){const u=behindEarth(tx,ty);if(u)ctx.drawImage(u,tx*TS-cx,ty*TS);}
+    // Pământul: margini rotunjite unde se termină
+    // Pământul din spate continuă și în spatele celui din față
+    if(c==='G'||c==='D'||c==='Z'){const n=c==='Z'?(x,y)=>{const t=tileAt(x,y);return t==='Z'||EARTH_N.includes(t);}:(x,y)=>EARTH_N.includes(tileAt(x,y));
+      const up=tileAt(tx,ty-1),bare=c==='D'&&ty>0&&up!=='Z'&&up!=='Y'&&!EARTH_N.includes(up);
+      img=earthEdge(img,!n(tx-1,ty),!n(tx+1,ty),ty<ROWS-1&&!n(tx,ty+1),c==='G'||img===tiles.ZG,bare);}
     if(!img)continue;let oy=0;for(const b of bumps)if(b.tx===tx&&b.ty===ty)oy=-BUMPY[b.t];
     ctx.drawImage(img,tx*TS-cx,ty*TS+oy);
     // Iarna: puțină zăpadă pe blocuri, platforme și trepte
     if(theme.snow&&SNOW_CAPPED.includes(c)){const up=tileAt(tx,ty-1);if(!solid(up)&&up!=='=')ctx.drawImage(tiles.cap,tx*TS-cx,ty*TS+oy);}}}
+  drawEarthShade(cx);
 }

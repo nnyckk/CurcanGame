@@ -2,7 +2,9 @@
 // ===== APA: gropile cu apă, iazurile, lacurile =====
 // Coloanele fără sol pe rândul 12 sunt gropi cu apă
 const WATER_Y=12*TS+5;
-function overPit(e){return tileAt(Math.floor((e.x+e.w/2)/TS),12)==='.';}
+// Apă doar unde lipsește tot solul (adânciturile au pământ jos)
+const waterCol=tx=>'.I'.includes(tileAt(tx,12))&&tileAt(tx,13)==='.';
+function overPit(e){const tx=Math.floor((e.x+e.w/2)/TS);return tileAt(tx,12)==='.'&&tileAt(tx,13)==='.';}
 function splash(x){
   const w=theme.water;
   for(let i=0;i<12;i++)parts.push({x:x+(Math.random()-0.5)*8,y:WATER_Y-1,vx:(Math.random()-0.5)*2.2,vy:-1.5-Math.random()*2.5,g:0.22,life:28,max:28,col:i%3?w.top:w.foam,s:2});
@@ -20,8 +22,8 @@ function enterWater(e){
   e.sink=true;e.vy=Math.min(Math.max(e.vy,0.5),2.5);splash(e.x+e.w/2);
   // Apa frânează brusc mișcarea pe orizontală
   e.vx*=0.3;
-  let l=Math.floor((e.x+e.w/2)/TS),r=l;const wet=c=>c==='.'||c==='I';
-  while(wet(tileAt(l-1,12)))l--;while(wet(tileAt(r+1,12)))r++;
+  let l=Math.floor((e.x+e.w/2)/TS),r=l;
+  while(waterCol(l-1))l--;while(waterCol(r+1))r++;
   e.pitL=l*TS;e.pitR=(r+1)*TS;
   if(e.type==='man'&&e.frozen&&e.slideDir)addScore(e.boy?100:200,e.x+5,WATER_Y-14);   // l-ai împins tu în apă, înghețat
   if(e.type==='bomb'){
@@ -41,7 +43,7 @@ function sinkStep(e){
 // Desenată peste personaje
 function drawWater(cx){
   const w=theme.water,x0=Math.max(0,Math.floor(cx/TS)),x1=Math.min(cols-1,Math.floor((cx+W)/TS));
-  const wet=tx=>grid[12][tx]==='.'||grid[12][tx]==='I';
+  const wet=waterCol;
   const waveTop=wx=>WATER_Y+Math.round(Math.sin(wx*0.3+G.t*0.07)*1.2);
   for(let tx=x0;tx<=x1;tx++){
     if(!wet(tx))continue;
@@ -64,14 +66,14 @@ function drawWater(cx){
       if(grid[12][Math.floor(wx/TS)]==='.'&&(((G.t>>3)+k*5)%7)<2)ctx.fillRect(wx-cx,WATER_Y+3+(k%3)*4,2,1);}
     if(theme.snow)drawIce(cx,tx,end,waveTop);
     // La fermă, gropile sunt iazuri
-    if(theme.farm){let s=tx;while(s>0&&grid[12][s-1]==='.')s--;let e2=end;while(e2<cols-1&&grid[12][e2+1]==='.')e2++;drawPond(cx,s,e2);}
+    if(theme.farm){let s=tx;while(s>0&&grid[12][s-1]==='.'&&waterCol(s-1))s--;let e2=end;while(e2<cols-1&&grid[12][e2+1]==='.'&&waterCol(e2+1))e2++;drawPond(cx,s,e2);}
     tx=end;
   }
 }
 // Fundul opac al lacurilor înghețate
 function drawLakeBase(cx){
   const x0=Math.max(0,Math.floor(cx/TS)),x1=Math.min(cols-1,Math.floor((cx+W)/TS));
-  for(let tx=x0;tx<=x1;tx++){const c=grid[12][tx];if(c==='.'||c==='I')ctx.drawImage(pickVar(tiles.Lv,tx,13),tx*TS-cx,WATER_Y);}
+  for(let tx=x0;tx<=x1;tx++){if(waterCol(tx))ctx.drawImage(pickVar(tiles.Lv,tx,13),tx*TS-cx,WATER_Y);}
 }
 // Iazul fermei
 function drawPond(cx,s,e){

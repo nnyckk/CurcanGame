@@ -130,6 +130,23 @@ function getTiles(ti){
   [c,g]=mkCanvas(16,16);
   for(let s=0;s<2;s++){const cx=s*8+4;for(let r=0;r<13;r++){const hw=Math.floor(r*4/13);g.fillStyle='#2a2a38';g.fillRect(cx-hw-1,3+r,hw*2+3,1);g.fillStyle=r<2?'#ffffff':'#d8dce6';g.fillRect(cx-hw,3+r,hw*2+1,1);g.fillStyle='#9aa0b0';g.fillRect(cx,3+r,hw+1,1);}}
   g.fillStyle='#4a4a5a';g.fillRect(0,15,16,1);T['^']=c;
+  // Pământ moale: pete neregulate, firimituri, rar o pietricică (se repetă fără cusături)
+  const ink='#120810';
+  const earth=(seed,base,lite,dark)=>{const [c,g]=mkCanvas(16,16),R=rng(seed);g.fillStyle=base;g.fillRect(0,0,16,16);
+    const wrap=(x,y,w,h)=>{for(const ox of [0,-16,16])for(const oy of [0,-16,16])g.fillRect(x+ox,y+oy,w,h);};
+    for(let i=0;i<6;i++){const x=R()*16|0,y=R()*16|0,w=3+(R()*3|0);g.fillStyle=i%2?lite:dark;g.globalAlpha=0.45;
+      wrap(x,y,w,2);wrap(x+1,y-1,w-2,1);wrap(x+1,y+2,w-2,1);}
+    g.globalAlpha=1;
+    for(let i=0;i<16;i++){g.fillStyle=R()<0.6?dark:lite;wrap(R()*16|0,R()*16|0,1,1);}
+    if(R()<0.4){const x=2+(R()*11|0),y=2+(R()*11|0);g.fillStyle=mixHex(lite,'#ffffff',0.15);g.fillRect(x,y,2,1);g.fillStyle=dark;g.fillRect(x,y+1,2,1);}
+    return c;};
+  // Pământul din spate: același pământ, mai deschis sus și tot mai închis în jos
+  const ZA=[0.22,0.37,0.5,0.62];
+  const dim=(img,a,y0=0)=>{const [c,g]=mkCanvas(16,16);g.drawImage(img,0,0);g.fillStyle='rgba(18,8,16,'+a+')';g.fillRect(0,y0,16,16-y0);return c;};
+  T.Zd=ZA.map(a=>(T.Dv||[T.D]).map(d=>dim(d,a)));T.Z=T.Zd[1][0];
+  T.ZG=dim(T.G,ZA[0],6);{const g=T.ZG.getContext('2d');g.fillStyle='rgba(0,0,0,0.25)';g.fillRect(0,6,16,1);}   // iarba de sus, aprinsă: pe ea poți sta
+  // Interiorul unui pasaj prin deal: pământ foarte închis
+  T.Yv=[3,17,29].map(s=>earth(s,mixHex(th.dirtD,ink,0.62),mixHex(th.dirt,ink,0.5),mixHex(th.dirtD,ink,0.8)));T.Y=T.Yv[0];
   return tileCache[ti]=T;
 }
 // Număr pseudo-aleator stabil pentru un tile

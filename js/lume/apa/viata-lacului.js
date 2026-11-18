@@ -20,7 +20,7 @@ const POND_MIN=7;
 function initLakeLife(){
   const full=!!theme.lake,wet=c=>c==='.'||c==='I';
   const L={full,spans:[],ducks:[],shadows:[],flies:[],fish:[],ripples:[],frogs:[],fishT:60,quackT:600,rippleT:40};
-  for(let x=0;x<cols;x++){if(!wet(grid[12][x]))continue;let e=x;while(e+1<cols&&wet(grid[12][e+1]))e++;
+  for(let x=0;x<cols;x++){if(!waterCol(x))continue;let e=x;while(e+1<cols&&waterCol(e+1))e++;
     if(full||e-x+1>=POND_MIN)L.spans.push({a:x*TS,b:(e+1)*TS,n:e-x+1});x=e;}
   if(!L.spans.length)return null;
   const frogOn=(s,wx,px)=>L.frogs.push({s,wx,px,st:0,t:0,croak:0,croakT:rnd(60,300),x:0,y:0,vx:0,vy:0});

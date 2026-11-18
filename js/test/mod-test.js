@@ -7,7 +7,10 @@ const TEST_LEVEL={theme:0,tip:'',arena:true,build(){const m=newMap(64);m.g(0,63)
   m.r(22,8,'======');m.c(23,7,4);
   // Groapa cu apă e pe primul ecran
   if(THEMES[TEST_LEVEL.theme].snow){m.lake(19,28);m.pit(23,24);}else m.pit(20,22);
-  m.e('bomb',17);m.c(20,9,3);m.e('boy',30);m.e('bomb',38);m.e('man',44);
+  m.e('bomb',17);m.c(20,9,3);m.e('boy',30);
+  // Deal cu pasaj în trepte, deal mare în spate și un bloc sus
+  m.hill(32,[4,4,4,4,4,4,4,4,4,4,4,4]);m.tunnel(32,10,12,2);m.tunnel(34,9,8,1);m.c(35,9,6);m.e('bomb',38);
+  m.back(40,[6,6,6,6,6,6,6]);m.c(41,5,3);m.e('man',45,5);m.r(43,2,'M');
   m.st(50,3,1);
   m.sp(56,2);
   return m.done();}};
@@ -19,7 +22,7 @@ const ARENA=TEST?LEVELS.push(TEST_LEVEL)-1:-1;
 function testLoad(lv,cp){
   const alive=player&&!player.dead;
   G.carryBig=alive&&player.big;G.carryFire=alive&&player.fire;G.carryIce=alive&&player.ice;
-  G.level=lv;G.slotUsed=null;G.bossMet=false;G.goldLv=-1;G.cafeSeen=false;
+  G.level=lv;G.slotUsed=null;G.bossMet=false;G.goldLv=-1;G.cafeSeen=false;G.underOpen=-1;
   G.lvlHurt=false;G.lvlSeen=false;G.fullRun=false;   // achievements: nivelul ales e luat de la început
   const x=cp>0?LEVELS[lv].build().cps[cp-1]:undefined;
   G.cp=x===undefined?null:{level:lv,x};
@@ -28,7 +31,7 @@ function testLoad(lv,cp){
 // Rândul pe care se poate sta în coloana x
 function standRow(x){
   for(let y=0;y<ROWS;y++){const t=tileAt(x,y);if(t==='K')continue;
-    if(solid(t)||t==='=')return y<2||t==='^'||(t==='I'&&iceHole[x]>0)?-1:y;}
+    if(solid(t)||ledge(x,y))return y<2||t==='^'||(t==='I'&&iceHole[x]>0)?-1:y;}
   return -1;
 }
 // Mută curcanul pe coloana tx
@@ -42,6 +45,7 @@ function testTeleport(tx){
     feathers=[];cam.x=clamp(p.x+p.w/2-W*0.42,0,cols*TS-W);
     // În nivelul bonus
     G.inCafe=!!cafe&&p.x>=cafe.a*TS;if(G.inCafe)cam.x=cafe.a*TS+CAFE_CAMX;
+    G.inUnder=!!under&&p.x>=under.a*TS;if(G.inUnder)cam.x=underCam();   // în peștera de sub pământ
     dust(p.x+p.w/2,p.y+p.h,6);
     return;
   }
@@ -60,7 +64,7 @@ function testSpawn(type){
   if(G.state!=='play'||player.dead)return null;
   const tx=clamp(Math.floor((player.x+player.w/2+player.face*96)/TS),1,cols-2);
   let ty=Math.max(0,Math.floor(player.y/TS));
-  while(ty<ROWS&&!solid(tileAt(tx,ty))&&tileAt(tx,ty)!=='=')ty++;   // și pe scânduri
+  while(ty<ROWS&&!solid(tileAt(tx,ty))&&!ledge(tx,ty))ty++;   // și pe scânduri / iarba din spate
   if(ty>=ROWS)return null;
   const e=makeEnemy(type,tx,ty-1);e.active=true;e.dir=-player.face;enemies.push(e);
   return e;

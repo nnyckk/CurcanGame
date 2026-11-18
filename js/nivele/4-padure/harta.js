@@ -13,8 +13,8 @@ LEVELS.push({id:'padure',theme:1,song:'winter',tip:'PE GHEAȚĂ NU STA PE LOC, F
   m.e('man',90);
   m.r(103,8,'BHB');m.e('man',109);m.e('bomb',114);
   // Lacul 3: două copci late, platforme deasupra
-  m.lake(119,142);m.pit(125,127);m.pit(134,136);m.r(122,8,'===');m.r(130,7,'====');m.e('boy',131,6);m.c(122,7,3);m.c(138,10,3);
-  m.pana(133,3,'hidden');   // pana 1: invizibilă
+  m.lake(119,142);m.pit(125,127);m.pit(134,136);m.r(122,8,'===');m.r(130,7,'BMMB');m.e('boy',131,6);m.c(122,7,3);m.c(138,10,3);
+  m.pana(104,4,'hidden');   // pana 1: invizibilă, deasupra blocului din mijloc al BHB
   m.cp(145);   // punctul de salvare 1
   m.e('bomb',150);m.r(152,8,'BBMBB');m.e('man',156);
   m.sp(161,2);
@@ -35,11 +35,11 @@ LEVELS.push({id:'padure',theme:1,song:'winter',tip:'PE GHEAȚĂ NU STA PE LOC, F
   // LACUL CEL MARE: două copci late
   m.lake(296,341);m.pit(310,312);m.pit(326,328);
   m.r(300,9,'===');m.r(314,9,'===');m.e('boy',315,8);m.r(330,9,'===');
-  m.r(304,6,'======');m.e('man',306,5);m.c(305,5,2);
-  m.r(318,6,'======');m.e('man',321,5);m.r(319,2,'BMB');
+  m.r(304,6,'BBMMBB');m.e('man',306,5);m.c(305,5,2);
+  m.r(318,6,'BMBBMB');m.e('man',321,5);m.r(319,2,'BMB');
   m.pana(320,1);   // pana 2: deasupra blocurilor de sus
 
-  m.r(334,6,'======');m.e('bomb',337,5);m.c(335,5,2);
+  m.r(334,6,'BBMBBB');m.e('bomb',337,5);m.c(335,5,2);
   m.c(298,10,2);m.c(320,10,4);m.c(336,10,4);
   m.e('man',345);m.e('bomb',350);m.e('man',355);
   // Lacul 6: blocuri deasupra unei copci
