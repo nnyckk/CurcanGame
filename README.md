@@ -17,7 +17,7 @@ Deschide `index.html` în orice browser modern. Nu e nevoie de instalare sau ser
 | P | Pauză |
 | M | Muzică pornită / oprită |
 
-Pe telefon apar butoane pe ecran (▲ apare doar cât stai în fața unei uși).
+Pe telefon și tabletă apar butoane pe ecran (▲ apare doar cât stai în fața unei uși). Pe desktop nu apar, nici dacă ecranul e tactil.
 
 ## Meniul
 
@@ -25,15 +25,15 @@ Pe ecranul de titlu sunt trei butoane, iar jos două insigne:
 
 - **JOACĂ** pornește jocul.
 - **SETĂRI**: muzică (DA/NU), efecte sonore (DA/NU), ecran complet (dacă browserul îl permite), **CURCAN DE AUR** (DA/NU, apare doar după ce ai găsit toate penele de aur) și **CONTROALE** (lista tastelor). Setările se țin minte în browser. ESC sau ÎNAPOI te duce o pagină înapoi.
-- Jos, lângă record, insigna **PENE** arată câte pene de aur ai găsit din câte sunt în joc. E și un buton (dai click pe ea sau o atingi; se luminează doar cât ții mouse-ul pe ea, nu rămâne aleasă): deschide pagina **PENE DE AUR**, care explică ce ai de făcut. Îți spune pe scurt că în fiecare nivel se ascund 3 pene de aur, că o pană contează doar dacă ajungi cu ea la final și „ADUNĂ-LE PE TOATE. MERITĂ.” (fără să spună ce primești). După ce le ai pe toate, îți spune că surpriza te așteaptă în SETĂRI. Jos arată câte pene ai găsit în fiecare nivel.
-- Lângă ea, insigna **ACHIEVEMENTS** arată câte ai deblocat din 13 (la fel, un buton luminat doar la hover): deschide pagina **ACHIEVEMENTS** (vezi mai jos).
+- Jos, lângă record, insigna **PENE** arată câte pene de aur ai găsit din câte sunt în joc. E și un buton (dai click pe ea sau o atingi; se luminează doar cât ții mouse-ul pe ea, nu rămâne aleasă): deschide pagina **PENE DE AUR**, care explică ce ai de făcut. Îți spune pe scurt că în fiecare nivel se ascund 3 pene de aur, că o pană contează doar dacă ajungi cu ea la final și „ADUNĂ-LE PE TOATE. MERITĂ.” (fără să spună ce primești). După ce le ai pe toate, îți spune că surpriza te așteaptă în SETĂRI. Jos are câte un cartonaș pentru fiecare nivel: numărul nivelului și cele 3 pene mari; cele găsite sunt aurii și sclipesc din când în când, cele negăsite sunt doar o umbră; un nivel cu toate penele are cartonașul auriu. Butonul ÎNAPOI stă imediat sub casetă.
+- Lângă ea, insigna **ACHIEVEMENTS** arată câte ai deblocat din 16 (la fel, un buton luminat doar la hover): deschide pagina **ACHIEVEMENTS** (vezi mai jos).
 - **MOD TEST** deschide `test.html` (vezi mai jos).
 
 Recordul apare în colțul din stânga jos al meniului principal.
 
 ## Achievements
 
-13 lucruri de făcut, doar de colecționat (nu dau nimic în plus). 10 se văd de la început, 3 sunt secrete:
+16 lucruri de făcut, doar de colecționat (nu dau nimic în plus). 11 se văd de la început, 5 sunt secrete:
 
 | Achievement | Ce trebuie să faci |
 |---|---|
@@ -47,12 +47,15 @@ Recordul apare în colțul din stânga jos al meniului principal.
 | NEMURITOR | termini tot jocul, de la primul nivel, fără să pierzi nicio viață |
 | UMBRĂ ÎN NOAPTE | termini Ora de culcare fără să te vadă vreun fermier cu felinar |
 | OCHI DE VULTUR | nimerești 2UP la blocul-slot din cafenea |
+| PIROMAN | dobori 100 de dușmani cu penele de foc (se adună de la un joc la altul) |
+| *secret:* ERA GLACIARĂ | îl îngheți pe Fermierul-Șef cu penele de gheață |
+| *secret:* NEPOT ASCULTĂTOR | ajungi de 10 ori în cafeneaua lui Moș Curcan (o dată pe joc) |
 | *secret:* CAP TARE | dai de 30 de ori cu capul în blocul gol din cafenea |
 | *secret:* CURCANII NU ÎNOATĂ | cazi în apă de 10 ori (se adună de la un joc la altul) |
 | *secret:* AUTOGOL | te prinde explozia unei bombe pe care ai așezat-o sau împins-o chiar tu |
 
-- Când deblochezi unul, sus pe ecran coboară o casetă aurie cu o cupă, „ACHIEVEMENT!” și numele lui, cu o mică fanfară; jocul nu se oprește. Dacă deblochezi mai multe deodată, vin una după alta.
-- Pagina **ACHIEVEMENTS** din meniu are câte o căsuță pentru fiecare, pe două coloane: aurie, cu cupa aprinsă, dacă l-ai deblocat; gri, dacă nu; cele secrete nedeblocate apar ca „???”. Sub ele scrie ce înseamnă cel ales (cu săgețile sau cu mouse-ul); la cele secrete nedeblocate scrie doar că sunt secrete.
+- Când deblochezi unul, sus pe ecran coboară o casetă aurie cu iconița lui, „ACHIEVEMENT!” și numele lui, cu o mică fanfară; jocul nu se oprește. Dacă deblochezi mai multe deodată, vin una după alta.
+- Pagina **ACHIEVEMENTS** din meniu are câte un cartonaș pentru fiecare, câte 8 pe pagină (2 rânduri de câte 4, cu spațiu între ele; deci 2 pagini pline), cu o iconiță simplă (o formă mare, cu contur, direct pe cartonaș, fără ramă) și numele scris mărunt dedesubt, pe o fâșie mai închisă, despărțită de iconiță printr-o linie (iconița stă fix la mijlocul părții de sus): clopotul de servit, pana de aur, cuibul cu bani (cu bănuțul din joc), scutul cu bifă, confetti de petrecere, steaua cu „X4”, fulgerul, inima cu aripi în spate, luna, ținta, flacăra, fulgul de zăpadă, ceașca de cafea cu aburi, cărămida spartă, colacul de salvare pe apă, bomba din joc (furioasă, cu picioarele strânse), cu fitilul aprins. Deblocat: cartonaș auriu, iconiță colorată, din când în când sclipește. Blocat: iconița stinsă, cu un lacăt. Cele secrete nedeblocate au un „?” și „???”. Cartonașul ales (cu săgețile sau cu mouse-ul) se face roșu și se ridică puțin. Pagina se schimbă din săgețile ◀ ▶ de pe margini sau cu ← → când treci de marginea rândului (și de pe ÎNAPOI); sub cartonașe sunt bulinele paginilor, apoi ce înseamnă cel ales; la cele secrete nedeblocate scrie doar că sunt secrete.
 - Se țin minte în browser (în modul de test, separat). Ce ai făcut deja înainte să existe achievements (toate penele, ai ajuns la MESOPOTAMIA) se deblochează singur, fără casetă. Cât timp muzica e oprită, în colțul din dreapta jos apare „MUZICĂ OFF”.
 
 ## Ce găsești în joc
@@ -123,7 +126,7 @@ Deschide `test.html` (sau apasă MOD TEST în meniu). E un laborator: fără cro
 - **Nivel:** carduri mici, cu numărul, un pătrățel în culorile decorului (cer și iarbă) și numele fiecărui nivel; click pe unul și îl joci. Arena de test se poate juca în oricare dintre cele 5 decoruri (Zi, Noapte, Iarnă, Iarnă noapte și Deșert, păstrat pentru viitor). Dacă termini un nivel, treci la următorul, ca în joc.
 - **Pornește de la:** începutul nivelului sau unul dintre punctele de salvare. „Repornește de aici” (sau tasta **R**) reia nivelul de unde ai reapărea dacă ai muri.
 - **Harta de sub joc:** tot nivelul în mic, cu ce se vede acum pe ecran, punctele de salvare, ținta, penele de aur (romburi aurii: pline = luate acum, doar contur = găsite altă dată), mobii și curcanul. Dacă dai click sau tragi pe hartă, curcanul se mută acolo.
-- **Curcanul:** îl faci mic, mare, de foc sau de gheață. Butonul **Curcan de aur** (pornit de la început) arată curcanul de aur și fără pene, doar în modul de test; în joc apare abia după ce găsești toate penele.
+- **Curcanul:** îl faci mic, mare, de foc sau de gheață. Butonul **Curcan de aur** (oprit la început; nu pornește singur) arată curcanul de aur și fără pene, doar în modul de test; în joc apare abia după ce găsești toate penele.
 - **Mobi:** ucenic, fermier, bombă sau bombă în fund, care apar în fața curcanului; îi poți și șterge pe toți.
 - **Unelte:** invincibil, hitbox-uri (cu legenda culorilor), viteză 1× / ½× / ¼×, pauză și avans cu un singur cadru. Butoanele aprinse (alese) sunt galbene, cu o lumină în jur. În modul de test, penele de aur se salvează separat, deci nu se amestecă cu jocul adevărat.
 

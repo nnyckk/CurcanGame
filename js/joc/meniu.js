@@ -24,14 +24,15 @@ const MENU={
     {label:'SETĂRI',sub:true,act:()=>openMenu('settings')},
     {label:'MOD TEST',act:()=>{location.href='test.html';}},
     {label:'PENE',badge:'pene',act:()=>openMenu('pene')},
-    {label:'ACHIEVEMENTS',badge:'ach',act:()=>openMenu('ach')}],
+    {label:'ACHIEVEMENTS',badge:'ach',act:()=>{G.achPage=0;openMenu('ach');}}],
   settings:[],   // vezi settingsItems
   controls:[
     {label:'ÎNAPOI',act:()=>menuBack()}],
   pene:[
     {label:'ÎNAPOI',act:()=>menuBack()}],
-  // Pagina ACHIEVEMENTS: câte o căsuță pentru fiecare
-  ach:ACH.map(a=>({label:a.name,ach:a.id,info:true,act:()=>{}})).concat([{label:'ÎNAPOI',act:()=>menuBack()}]),
+  // Pagina ACHIEVEMENTS: cartonașele, ÎNAPOI, săgețile paginilor
+  ach:ACH.map(a=>({label:a.name,ach:a.id,info:true,act:()=>{}})).concat([{label:'ÎNAPOI',act:()=>menuBack()},
+    {label:'<',pg:-1,act:()=>{}},{label:'>',pg:1,act:()=>{}}]),
 };
 // Înapoi: o pagină mai sus
 function menuBack(){
@@ -44,7 +45,7 @@ const goldBadgeRect=()=>{const s=goldFound()+'/'+goldTotal();return {x:106,y:H-1
 function menuRects(){
   const m=G.menu,items=MENU[m],h=15;
   if(m==='ach')return achRects(items);
-  const L=m==='main'?{w:96,gap:5,y0:102}:m==='settings'?{w:168,gap:4,y0:54}:m==='pene'?{w:96,gap:0,y0:186}:{w:96,gap:0,y0:142};
+  const L=m==='main'?{w:96,gap:5,y0:102}:m==='settings'?{w:168,gap:4,y0:54}:m==='pene'?{w:96,gap:0,y0:152}:{w:96,gap:0,y0:142};
   return items.map((it,i)=>it.badge?Object.assign({it},it.badge==='ach'?achBadgeRect():goldBadgeRect())
     :{it,x:W/2-L.w/2,y:L.y0+i*(h+L.gap)+(m==='settings'&&i===items.length-1?6:0),w:L.w,h});
 }
@@ -52,9 +53,9 @@ function menuHit(e){
   const r=cv.getBoundingClientRect(),x=(e.clientX-r.left)/r.width*W,y=(e.clientY-r.top)/r.height*H;
   return menuRects().findIndex(b=>x>=b.x&&x<b.x+b.w&&y>=b.y&&y<b.y+b.h);
 }
-function menuPick(i){const it=MENU[G.menu][i];if(!it.badge)G.sel=i;if(it.info){sfx.blip();return;}it.act();sfx.coin();}
+function menuPick(i){const it=MENU[G.menu][i];if(it.pg){achFlip(it.pg,0,false);return;}if(!it.badge)G.sel=i;if(it.info){sfx.blip();return;}it.act();sfx.coin();}
 // Mouse-ul peste un buton
-function menuHover(i){G.hover=i;if(i>=0&&!MENU[G.menu][i].badge)G.sel=i;}
+function menuHover(i){G.hover=i;const it=MENU[G.menu][i];if(it&&!it.badge&&!it.pg)G.sel=i;}
 function menuKey(code){
   if(G.menu==='ach'&&code.startsWith('Arrow')){achMenuKey(code);return;}
   // Săgețile trec doar prin butoanele obișnuite

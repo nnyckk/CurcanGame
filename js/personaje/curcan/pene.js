@@ -35,8 +35,8 @@ function updateFeathers(){
     for(const e of enemies){
       if(!e.active||e.dead||e.remove||e.sink||offstage(e)||!overlap(f,e))continue;
       if(f.ice)freeze(e);   // pana de gheață îngheață
-      else if(e.frozen)shatter(e,200);   // pana de foc topește gheața cu el
-      else if(e.type==='man'){killMan(e,2,200);sfx.burn();}
+      else if(e.frozen){shatter(e,200);achBurn();}   // pana de foc topește gheața cu el
+      else if(e.type==='man'){killMan(e,2,200);sfx.burn();achBurn();}
       else if(!e.sit)sitBomb(e);
       puffFeather(f);break;
     }

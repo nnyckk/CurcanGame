@@ -83,7 +83,7 @@ const TEST_CMDS={
   bomb(){testSpawn('bomb');},
   sitbomb(){const e=testSpawn('bomb');if(e)sitBomb(e);},
   clear(){enemies=[];},
-  goldskin(){G.testGold=G.testGold===false;},   // curcanul de aur, pornit / oprit
+  goldskin(){G.testGold=!G.testGold;},   // curcanul de aur, pornit / oprit
   god(){G.god=!G.god;},
   hitbox(){G.showHB=!G.showHB;},
   speed(d){G.speed=[1,0.5,0.25].includes(d.v)?d.v:1;},
@@ -120,7 +120,7 @@ function testStatus(){
   if(!player)return;
   const p=player,r1=v=>Math.round(v*10)/10;
   toParent({status:{level:G.level,state:G.state,form:!p.big?'small':p.fire?'fire':p.ice?'ice':'big',
-    god:!!G.god,hitbox:!!G.showHB,goldskin:G.testGold!==false,speed:G.speed||1,paused:!!G.paused,
+    god:!!G.god,hitbox:!!G.showHB,goldskin:!!G.testGold,speed:G.speed||1,paused:!!G.paused,
     px:r1((p.x+p.w/2)/TS),py:r1((p.y+p.h)/TS),cam:r1(cam.x/TS),view:W/TS,
     cp:G.cp&&G.cp.level===G.level?cps.findIndex(c=>c.tx===G.cp.x)+1:0,cpOn:cps.map(c=>c.on),
     gold:golds.map(g=>g.taken?2:g.ghost?1:0),

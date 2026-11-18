@@ -111,7 +111,7 @@ const sheenPx=(top,skip)=>{const o=[];top.forEach((r,y)=>{for(let x=0;x<r.length
 const TKG_SHEEN=sheenPx(TK_TOP,'.kl'),TKGS_SHEEN=sheenPx(TKS_TOP,'.kl');
 const TKGF_SHEEN=sheenPx(TKF_TOP,'.klBDE'),TKGI_SHEEN=sheenPx(TKI_TOP,'.klBDESsIF');
 // Seturile de desene ale curcanului: cele de aur
-const goldSkinOn=()=>(TEST&&G.testGold!==false)||(!!G.goldSkin&&goldOK());
+const goldSkinOn=()=>TEST?!!G.testGold:!!G.goldSkin&&goldOK();   // în test: doar din panou
 const tkBig=()=>goldSkinOn()?TKG:TK,tkSmall=()=>goldSkinOn()?TKGS:TKS;
 const tkFire=()=>goldSkinOn()?TKGF:TKF,tkIce=()=>goldSkinOn()?TKGI:TKI;
 const HEAD_ROWS=["...rr...","..krrk..",".kWWWWk.","kWWWWkWy","kWWWWkyo","kWWpWrr.",".kWkWkr.","..kkkkR."];

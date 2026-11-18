@@ -16,7 +16,7 @@ function drawTitle(){
   if(G.menu==='settings'){txtCute('SETĂRI',W/2,20,3,'#e8323e','#000000');drawMenuButtons();return;}
   if(G.menu==='controls'){txtCute('CONTROALE',W/2,20,3,'#e8323e','#000000');drawControls();drawMenuButtons();return;}
   if(G.menu==='pene'){txtCute('PENE DE AUR',W/2,14,3,'#e8323e','#000000');drawGoldInfo();drawMenuButtons();return;}
-  if(G.menu==='ach'){txtCute('ACHIEVEMENTS',W/2,8,3,'#e8323e','#000000');drawMenuButtons();drawAchInfo();return;}
+  if(G.menu==='ach'){txtCute('ACHIEVEMENTS',W/2,5,3,'#e8323e','#000000');drawMenuButtons();drawAchInfo();return;}
   txtCute('CURCANUL',W/2,18,4,'#e8323e','#000000');
   txtCute('ÎN FUGĂ',W/2,59,3,'#e8323e','#000000');
   txt('DRUMUL SPRE MESOPOTAMIA',W/2,88,'#ffffff',1,'c','#2a6aa0');
@@ -31,7 +31,8 @@ function drawMenuButtons(){
     const on=i===G.sel,it=b.it,ty=b.y+4;
     // Insignele de jos: luminate doar cât e mouse-ul pe ele
     if(it.badge){(it.badge==='ach'?drawAchBadge:drawGoldBadge)(b,i===G.hover);return;}
-    if(it.ach){drawAchCell(b,on);return;}   // căsuțele din pagina ACHIEVEMENTS
+    if(it.ach){drawAchCell(b,on);return;}   // cartonașele din pagina ACHIEVEMENTS
+    if(it.pg){drawAchArrow(b,i===G.hover);return;}
     if(on)uiBox(b.x,b.y,b.w,b.h,'#e8323e','#ffffff','#ff6a72','#a01822');else uiBox(b.x,b.y,b.w,b.h);
     const tc=on?'#ffffff':'#d8e4f0',sh=on?'#7a0a10':null;
     if(it.val){
@@ -82,18 +83,27 @@ function drawGoldInfo(){
     won?['LE AI PE TOATE. SURPRIZA TE AȘTEAPTĂ ÎN SETĂRI.','#7fff7f']
        :['ADUNĂ-LE PE TOATE. MERITĂ.','#ffd23f']];
   const rows=paras.map(([t,c])=>[wrapWords(t,52),c]),n=rows.reduce((k,[l])=>k+l.length,0);
-  const h=8+n*lh+(rows.length-1)*4+26;
+  const h=8+n*lh+rows.length*4+34;
   uiBox(x,y0,w,h);
   let y=y0+8;
   for(const [lines,c] of rows){for(const l of lines){txt(l,x+10,y,c,1,'l',null);y+=lh;}y+=4;}
-  // Câte pene ai găsit în fiecare nivel
   ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(x+8,y-2,w-16,1);
-  const lv=LEVELS.map((d,i)=>[d,i]).filter(([d,i])=>!d.arena&&(goldCounts()[i]||0)>0),gw=36,gap=12;
-  let gx=Math.round(W/2-(lv.length*gw+(lv.length-1)*gap)/2);
-  for(const [d,i] of lv){txt(String(levelNum(i)),gx,y+5,'#9fe8ff',1,'l',null);
-    for(let j=0;j<goldCounts()[i];j++)drawGoldMini(gx+10+j*8,y+4,goldSaved(d.id,j)?'got':'empty',0);
-    gx+=gw+gap;}
+  // Câte un cartonaș pe nivel: numărul și cele 3 pene
+  const lv=LEVELS.map((d,i)=>[d,i]).filter(([d,i])=>!d.arena&&(goldCounts()[i]||0)>0),cw=56,ch=24,gap=8,cy=y+4;
+  let cx=Math.round(W/2-(lv.length*cw+(lv.length-1)*gap)/2);
+  for(const [d,i] of lv){
+    const k=goldCounts()[i],all=goldFoundIn(i)>=k;
+    if(all)uiBox(cx,cy,cw,ch,'#3a2c0c','rgba(255,210,63,0.9)','#4a3a12','#1a1206');else uiBox(cx,cy,cw,ch,'#262040','rgba(255,255,255,0.3)','#302a4c','#18142a');
+    txt(String(levelNum(i)),cx+7,cy+9,all?'#ffd23f':'#9fe8ff',1,'l',null);
+    for(let j=0;j<k;j++){const fx=cx+18+j*12,fy=cy+5;
+      if(!goldSaved(d.id,j)){ctx.drawImage(GOLD_PANA_DIM,fx,fy);continue;}
+      ctx.drawImage(GOLD_PANA,fx,fy);
+      if((G.t+i*23+j*41)%90<8){ctx.fillStyle='#ffffff';ctx.fillRect(fx+4,fy+2,3,1);ctx.fillRect(fx+5,fy+1,1,3);}}   // sclipește
+    cx+=cw+gap;}
 }
+// Pana negăsită: doar umbra ei
+const GOLD_PANA_DIM=(()=>{const [c,g]=mkCanvas(GOLD_PANA.width,GOLD_PANA.height);g.drawImage(GOLD_PANA,0,0);
+  g.globalCompositeOperation='source-in';g.fillStyle='#3a3456';g.fillRect(0,0,c.width,c.height);return c;})();
 function drawMusicOff(){
   const w=80,h=15,x=W-4-w,y=H-4-h,ty=y+5,ix=x+5;
   uiBox(x,y,w,h);icon(NOTE_ICON,ix,ty,'#d8e4f0');

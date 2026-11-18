@@ -21,7 +21,9 @@ const upPressed=()=>pressed.ArrowUp||pressed.KeyW||pressed.TouchUp;
 // O apăsare scurtă pe X aruncă o pană de foc
 const firePressed=()=>pressed.KeyX||pressed.TouchRun;
 const startPressed=()=>pressed.Enter||pressed.Space||pressed.TouchJump||pressed.Tap;
-if('ontouchstart' in window||navigator.maxTouchPoints>0){document.getElementById('touch').classList.add('on');document.getElementById('pauseBtn').classList.add('on');}
+// Butoanele de atingere: doar pe telefon / tabletă, nu pe desktop cu ecran tactil
+const TOUCH_DEV=matchMedia('(pointer: coarse)').matches&&matchMedia('(hover: none)').matches;
+if(TOUCH_DEV){document.getElementById('touch').classList.add('on');document.getElementById('pauseBtn').classList.add('on');}
 const TOUCH_UI=document.getElementById('touch').classList.contains('on')?document.getElementById('touch'):null;
 document.querySelectorAll('[data-k]').forEach(b=>{
   const k=b.dataset.k;

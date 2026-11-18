@@ -85,7 +85,7 @@ function bossIceHit(){
   const b=boss;if(!bossFighting()||b.st==='frozen'||b.st==='hurt')return;
   for(let i=0;i<6;i++)parts.push({x:b.x+Math.random()*b.w,y:b.y+4+Math.random()*(b.h-8),vx:(Math.random()-0.5)*0.6,vy:-0.3-Math.random()*0.4,g:0,life:18,max:18,col:i%2?'#ffffff':'#bfe8ff',s:1});
   if(++b.ice<BOSS_ICE_HITS){sfx.fwipIce();return;}
-  b.ice=0;b.st='frozen';b.t=0;b.raise=false;b.vx=0;b.vy=0;sfx.freezeHit();
+  b.ice=0;b.st='frozen';b.t=0;b.raise=false;b.vx=0;b.vy=0;sfx.freezeHit();achUnlock('glaciara');
 }
 // De la 2 inimi: cheamă 2 sau 3 mobi
 function bossSummon(){
