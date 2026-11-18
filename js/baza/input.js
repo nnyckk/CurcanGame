@@ -18,6 +18,8 @@ const inRun=()=>keys.KeyX||touch.run;
 const jumpPressed=()=>pressed.Space||pressed.TouchJump;
 // ↑: intri / ieși din cafeneaua din nivelul bonus
 const upPressed=()=>pressed.ArrowUp||pressed.KeyW||pressed.TouchUp;
+// ↓ în aer: lovitura în pământ
+const downPressed=()=>pressed.ArrowDown||pressed.KeyS||pressed.TouchDown;
 // O apăsare scurtă pe X aruncă o pană de foc
 const firePressed=()=>pressed.KeyX||pressed.TouchRun;
 const startPressed=()=>pressed.Enter||pressed.Space||pressed.TouchJump||pressed.Tap;
@@ -27,7 +29,7 @@ if(TOUCH_DEV){document.getElementById('touch').classList.add('on');document.getE
 const TOUCH_UI=document.getElementById('touch').classList.contains('on')?document.getElementById('touch'):null;
 document.querySelectorAll('[data-k]').forEach(b=>{
   const k=b.dataset.k;
-  const down=e=>{e.preventDefault();initAudio();if(k==='pause'){pressed.KeyP=true;return;}touch[k]=1;if(k==='jump')pressed.TouchJump=true;if(k==='run')pressed.TouchRun=true;if(k==='up')pressed.TouchUp=true;};
+  const down=e=>{e.preventDefault();initAudio();if(k==='pause'){pressed.KeyP=true;return;}touch[k]=1;if(k==='jump')pressed.TouchJump=true;if(k==='run')pressed.TouchRun=true;if(k==='up')pressed.TouchUp=true;if(k==='down')pressed.TouchDown=true;};
   const up=e=>{e.preventDefault();if(k!=='pause')touch[k]=0;};
   b.addEventListener('pointerdown',down);b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('pointerleave',up);
   b.addEventListener('contextmenu',e=>e.preventDefault());

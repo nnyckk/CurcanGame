@@ -46,9 +46,9 @@ function drawMenuButtons(){
   });
 }
 // Pagina CONTROALE: tasta într-o „clapă” în stânga
-const CONTROLS=[['← →','MERGI'],['SPACE','SARI (ȚINE: MAI SUS)'],['X','ȚINUT: FUGI, SCURT: FOC'],null,['P','PAUZĂ'],['M','MUZICĂ PORNITĂ/OPRITĂ']];
+const CONTROLS=[['← →','MERGI'],['SPACE','SARI (ȚINE: MAI SUS)'],['X','ȚINUT: FUGI, SCURT: FOC'],['↓','ÎN AER: LOVEȘTE PĂMÂNTUL'],null,['P','PAUZĂ'],['M','MUZICĂ PORNITĂ/OPRITĂ']];
 function drawControls(){
-  const x=100,w=200,y0=50;uiBox(x,y0,w,84);
+  const x=100,w=200,y0=50;uiBox(x,y0,w,98);
   let y=y0+8,sys=false;
   for(const row of CONTROLS){
     if(!row){ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(x+8,y-3,w-16,1);y+=4;sys=true;continue;}

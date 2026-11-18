@@ -45,7 +45,7 @@ const goldBadgeRect=()=>{const s=goldFound()+'/'+goldTotal();return {x:106,y:H-1
 function menuRects(){
   const m=G.menu,items=MENU[m],h=15;
   if(m==='ach')return achRects(items);
-  const L=m==='main'?{w:96,gap:5,y0:102}:m==='settings'?{w:168,gap:4,y0:54}:m==='pene'?{w:96,gap:0,y0:152}:{w:96,gap:0,y0:142};
+  const L=m==='main'?{w:96,gap:5,y0:102}:m==='settings'?{w:168,gap:4,y0:54}:m==='pene'?{w:96,gap:0,y0:152}:{w:96,gap:0,y0:156};
   return items.map((it,i)=>it.badge?Object.assign({it},it.badge==='ach'?achBadgeRect():goldBadgeRect())
     :{it,x:W/2-L.w/2,y:L.y0+i*(h+L.gap)+(m==='settings'&&i===items.length-1?6:0),w:L.w,h});
 }

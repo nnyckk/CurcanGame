@@ -10,6 +10,9 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges;display:block;backg
 /* ▲: apare deasupra lui ◀ ▶ doar cât stai în fața unei uși */
 #touch .upk{display:none;position:absolute;left:57px;bottom:98px}
 #touch.door .upk{display:block}
+/* ▼ (lovitura în pământ) stă în același loc ca ▲; în fața ușii apare ▲ în locul lui */
+#touch .downk{position:absolute;left:57px;bottom:98px}
+#touch.door .downk{display:none}
 #pauseBtn{position:fixed;top:10px;right:10px;width:40px;height:40px;border-radius:8px;border:2px solid rgba(255,255,255,.5);
   background:rgba(0,0,0,.35);color:#fff;font:bold 14px monospace;display:none}
 #pauseBtn.on{display:block}

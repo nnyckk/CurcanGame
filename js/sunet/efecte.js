@@ -79,6 +79,9 @@ const sfx={
   // Boss-ul: răcnet gros, bubuitură, „au” când e lovit
   roar(){if(!AC)return;const t=AC.currentTime;tone('sawtooth',140,t,0.5,0.14,sfxG,70);tone('square',95,t,0.5,0.08,sfxG,60);noise(t,0.45,0.25,sfxG,500,'lowpass');},
   thud(){if(!AC)return;const t=AC.currentTime;tone('sine',90,t,0.3,0.5,sfxG,35);noise(t,0.25,0.35,sfxG,400,'lowpass');},
+  // Lovitura în pământ: se ghemuiește în aer (un „fâșș” care urcă), apoi bufnitura la aterizare
+  poundUp(){if(!AC)return;const t=AC.currentTime;tone('pulse',300,t,0.12,0.09,sfxG,900);noise(t,0.1,0.08,sfxG,2500);},
+  pound(){if(!AC)return;const t=AC.currentTime;tone('sine',110,t,0.25,0.45,sfxG,40);tone('square',180,t,0.08,0.1,sfxG,60);noise(t,0.2,0.3,sfxG,700,'lowpass');},
   bossHurt(){if(!AC)return;const t=AC.currentTime;tone('sawtooth',300,t,0.3,0.12,sfxG,90);noise(t,0.15,0.2,sfxG,1200);},
   bossDown(){arp([62,66,69,74,69,74,78,81,86],0.07,0.11);},
   // Fluierat care coboară

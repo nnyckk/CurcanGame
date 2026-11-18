@@ -14,8 +14,11 @@ const holesOpen=()=>!!under&&grid[12][under.x]==='Y';
 function openHoles(u=under){for(const x of [u.x,u.x2])for(let j=12;j<14;j++)for(let i=0;i<SUB_SHAFT;i++)grid[j][x+i]='Y';SHADE.grid=null;}
 // Pământul se surpă / sare în aer: bulgări de pământ
 function holeBurst(x,up){for(let i=0;i<16;i++)parts.push({x:x*TS+Math.random()*SUB_SHAFT*TS,y:12*TS-2+Math.random()*4,vx:(Math.random()-0.5)*2.2,vy:up?-2-Math.random()*2.5:-0.5-Math.random(),g:0.2,life:26,max:26,col:i%3?theme.dirt:theme.dirtD,s:i%3?1:2});G.shake=5;sfx.brk();}
-// ↓ sau S: te apleci
-const inDown=()=>keys.ArrowDown||keys.KeyS;
+// Pe pământul crăpat: doar lovitura în pământ (săritură + ↓) îl surpă. Întoarce true dacă s-a deschis.
+function poundHole(){
+  const p=player;if(!under||G.inUnder||holesOpen()||holeUnder(p)!=='in')return false;
+  openHoles();G.underOpen=G.level;holeBurst(under.x,false);p.x=under.x*TS+(SUB_SHAFT*TS-p.w)/2;return true;
+}
 // Camera în peșteră: nu iese din pereți
 const underCam=()=>clamp(player.x+player.w/2-W*0.42,under.a*TS,(under.a+under.w)*TS-W);
 // Ce gaură e sub curcan
@@ -40,8 +43,7 @@ function subTeleport(){
 function updateUnder(){
   const p=player;if(!under||p.dead||G.subT>0)return;
   if(!G.inUnder){
-    // Pe pământul crăpat: dacă te apleci, se surpă
-    if(!holesOpen()&&p.onGround&&inDown()&&holeUnder(p)==='in'){openHoles();G.underOpen=G.level;holeBurst(under.x,false);p.x=under.x*TS+(SUB_SHAFT*TS-p.w)/2;p.vx=0;p.onGround=false;p.vy=1;}
+    // (pământul crăpat se surpă doar sub lovitura în pământ, vezi poundHole)
     const h=holeUnder(p);if(h&&holesOpen()&&p.y>12*TS)subGo('down',h);return;}
   const c=Math.floor((p.x+p.w/2)/TS);
   if(c>=under.ex&&c<under.ex+SUB_SHAFT&&p.y<6*TS&&p.vy<0)subGo('up');   // doar când sari în sus, nu când cazi prin puț
