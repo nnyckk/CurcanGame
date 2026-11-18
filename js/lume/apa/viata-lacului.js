@@ -1,11 +1,6 @@
 'use strict';
-// ================= APA: viața lacului (rațe, pești, broaște) =================
-// Doar decor, fără efect asupra jocului:
-// - rațe albe cu boboci galbeni care înoată încet de la un mal la altul (bobocii se țin după mamă); din când în când
-//   rața se scufundă cu coada în sus; dacă pleoscăie ceva lângă ele sau trece curcanul jos, pe lângă ele, fug măcăind;
-// - pești care sar din apă (cu cercuri și stropi), umbre de pești sub apă și cercuri care apar pe apă;
-// - libelule care zboară deasupra apei;
-// - broaște pe nuferi (aceiași nuferi ca în drawPond): orăcăie, iar când te apropii sar în apă și revin mai târziu.
+// ===== APA: viața lacului =====
+// Doar decor, fără efect asupra jocului
 const DUCK_PAL={k:'#4a4a5a',W:'#ffffff',g:'#cfd6e2',e:'#14121c',o:'#ff9a1a'};
 const DUCK=spr(["........kkk...",".......kWWWk..",".......kWWeWoo",".......kWWWWoo","........kWWk..",
   "kk.....kWWWk..","kWkkkkkWWWWWk.","kWWWWWWWWWgWk.",".kWWWWWWWgggk.","..kkkkkkkkkk.."],DUCK_PAL);
@@ -18,11 +13,9 @@ const FISH=spr(["...kkk..","k.kOOOek","kkOOOOOk","k..kkkk."],{k:'#7a2a0a',O:'#ff
 const FROG=mkSprite([".kk...kk.","kwek.kwek","kGGGGGGGk","kGLLLLLGk","kGGkkkGGk","kk.....kk"],
   {k:'#1e4a1a',G:'#5ab83a',L:'#b8e070',w:'#ffffff',e:'#14121c'},false);
 let lakeLife=null;
-const lakeTop=wx=>WATER_Y+Math.round(Math.sin(wx*0.3+G.t*0.07)*1.2);   // suprafața apei, cu valuri (ca în drawWater)
+const lakeTop=wx=>WATER_Y+Math.round(Math.sin(wx*0.3+G.t*0.07)*1.2);   // suprafața apei, cu valuri
 const lakeSeen=x=>x>cam.x-16&&x<cam.x+W+16;
-// În celelalte niveluri, apele de cel puțin POND_MIN tile-uri (iazuri, lacurile înghețate) au și ele umbre de pești,
-// iar la fermă câte un locuitor: ziua o rață, noaptea o broască pe un nufăr. Iarna și în deșert nu sunt nuferi, deci
-// doar umbrele (iarna, pe sub gheață). Peștii care sar, libelulele și cercurile întâmplătoare sunt doar pe LAC (full).
+// În celelalte niveluri
 const POND_MIN=7;
 function initLakeLife(){
   const full=!!theme.lake,wet=c=>c==='.'||c==='I';
@@ -36,7 +29,7 @@ function initLakeLife(){
       L.shadows.push({s,x:rnd(s.a+8,s.b-8),y:rnd(WATER_Y+9,H-6),dir:Math.random()<0.5?1:-1,sp:rnd(0.15,0.35)});
     if(full)for(let i=0;i<Math.floor(s.n/14);i++){const hx=rnd(s.a+16,s.b-16);L.flies.push({s,hx,hy:rnd(145,182),x:hx,y:170,ph:Math.random()*TAU,t:rnd(60,200),dir:1});}
     else if(theme.farm){
-      if(theme.night){                                              // broasca, pe nufărul cel mai apropiat de mijloc
+      if(theme.night){   // broasca, pe nufărul cel mai apropiat de mijloc
         let best=null;const mid=(s.a+s.b)/2;
         for(let wx=s.a+10;wx<s.b-12;wx+=19){const h=vhash(wx,7);if(h%3&&(!best||Math.abs(wx-mid)<Math.abs(best-mid)))best=wx;}
         if(best!==null)frogOn(s,best,best+(vhash(best,7)>>>4)%6);
@@ -44,13 +37,13 @@ function initLakeLife(){
     }
   }
   if(!full)return L;
-  // 3 familii de rațe (mama și 2-3 boboci), câte una pe cele mai lungi trei ape — câte una în fiecare parte a nivelului.
+  // 3 familii de rațe, câte una pe cele mai lungi trei ape
   for(const s of [...L.spans].sort((a,b)=>b.n-a.n).slice(0,3)){
     const h=vhash(s.a,41),x=(s.a+s.b)/2,dir=h%2?1:-1,kid=[];
     for(let j=0;j<2+h%2;j++)kid.push({x:x-dir*(j+1)*11,dir});
     L.ducks.push({s,x,dir,kid,dive:0,diveT:200+h%400,flee:0});
   }
-  // 4 broaște, pe nuferi aleși la distanțe cam egale de-a lungul lacului (nuferii sunt cei din drawPond).
+  // 4 broaște, pe nuferi aleși la distanțe cam egale de-a lungul lacului
   const pads=[];
   for(const s of L.spans)for(let wx=s.a+10;wx<s.b-12;wx+=19){const h=vhash(wx,7);if(h%3)pads.push({s,wx,px:wx+(h>>>4)%6});}
   for(let i=0;i<4&&pads.length;i++){const pd=pads[Math.floor((i+0.5)/4*pads.length)];frogOn(pd.s,pd.wx,pd.px);}
@@ -58,7 +51,7 @@ function initLakeLife(){
 }
 function lakeRipple(x){lakeLife.ripples.push({x,t:0});if(lakeLife.ripples.length>24)lakeLife.ripples.shift();}
 function lakeDrops(x,n){for(let i=0;i<n;i++)parts.push({x:x+(Math.random()-0.5)*4,y:WATER_Y-1,vx:(Math.random()-0.5)*1.2,vy:-0.8-Math.random()*1.2,g:0.15,life:18,max:18,col:theme.water.foam,s:1});}
-// Ceva a pleoscăit în x (splash) sau trece curcanul pe lângă: rațele din apropiere fug (măcăie una singură).
+// Ceva a pleoscăit în x sau trece curcanul
 function scareDucks(x){
   if(!lakeLife)return;let q=false;
   for(const d of lakeLife.ducks)if(Math.abs(d.x-x)<64&&d.flee<=0){d.flee=90;d.dive=0;d.dir=Math.sign(d.x-x)||1;if(lakeSeen(d.x))q=true;}
@@ -75,8 +68,7 @@ function updateLakeLife(){
       d.x+=d.dir*(d.flee>0?1.1:0.18);
       if(d.x<s.a+14){d.x=s.a+14;d.dir=1;}else if(d.x>s.b-14){d.x=s.b-14;d.dir=-1;}
     }
-    // Bobocii: fiecare se ține la ~10 px de cel din fața lui (primul, de mamă); când mama se întoarce, trece pe lângă
-    // ei și apoi o iau după ea.
+    // Bobocii: fiecare se ține la ~10 px de cel din fața
     let lead=d;
     for(const k of d.kid){const dx=lead.x-k.x;
       if(Math.abs(dx)>10){k.x+=Math.sign(dx)*Math.min(d.flee>0?1.2:0.3,Math.abs(dx)-10);k.dir=Math.sign(dx);}
@@ -89,7 +81,7 @@ function updateLakeLife(){
     const tx=f.hx+Math.sin(G.t*0.03+f.ph)*10,ty=f.hy+Math.sin(G.t*0.07+f.ph)*4,nx=f.x+(tx-f.x)*0.06;
     if(Math.abs(nx-f.x)>0.05)f.dir=Math.sign(nx-f.x);f.x=nx;f.y+=(ty-f.y)*0.06;
   }
-  // Un pește sare din când în când, doar pe apa de pe ecran, destul de departe de mal ca să cadă tot în apă (doar pe LAC).
+  // Un pește sare din când în când, doar pe apa de pe ecran
   if(L.full&&--L.fishT<=0){L.fishT=rnd(70,180);
     const vis=L.spans.filter(s=>s.n>=8&&s.b-56>cam.x&&s.a+56<cam.x+W);
     if(vis.length){const s=vis[Math.random()*vis.length|0],a=Math.max(s.a+56,cam.x+10),b=Math.min(s.b-56,cam.x+W-10);
@@ -103,10 +95,10 @@ function updateLakeLife(){
   for(const r of L.ripples)r.t++;
   L.ripples=L.ripples.filter(r=>r.t<40);
   for(const f of L.frogs){const fx=f.px+4;
-    if(f.st===0){                                                   // stă pe nufăr și orăcăie din când în când
+    if(f.st===0){   // stă pe nufăr și orăcăie
       if(f.croak>0)f.croak--;
       else if(--f.croakT<=0){f.croak=36;f.croakT=rnd(180,420);if(lakeSeen(fx)&&Math.random()<0.4)sfx.croak();}
-      if(p&&!p.dead&&Math.abs(px-fx)<44&&p.y+p.h>WATER_Y-90){      // te-ai apropiat: sare în apă (spre larg)
+      if(p&&!p.dead&&Math.abs(px-fx)<44&&p.y+p.h>WATER_Y-90){   // te-ai apropiat: sare în apă
         let dir=px<fx?1:-1;if(fx-f.s.a<48)dir=1;else if(f.s.b-fx<48)dir=-1;
         f.st=1;f.x=f.px-1;f.y=lakeTop(f.wx)-7;f.vx=dir*rnd(0.8,1.2);f.vy=-2.4;}
     }else if(f.st===1){f.vy+=0.18;f.x+=f.vx;f.y+=f.vy;
@@ -114,20 +106,20 @@ function updateLakeLife(){
     else if(--f.t<=0&&Math.abs(px-fx)>90){f.st=0;lakeRipple(fx);}   // revine pe nufăr după câteva secunde
   }
 }
-// Se desenează după apă (drawWater): ce e pe suprafață stă „în” apă (rândurile de jos ale rațelor nu se văd).
+// Se desenează după apă: ce e pe suprafață stă „în” apă
 function drawLakeLife(cx){
   const L=lakeLife,w=theme.water,on=x=>x>cx-24&&x<cx+W+24;
-  ctx.fillStyle='rgba(14,34,84,0.3)';                               // umbrele peștilor, sub apă
+  ctx.fillStyle='rgba(14,34,84,0.3)';   // umbrele peștilor, sub apă
   for(const s of L.shadows)if(on(s.x)){const x=Math.round(s.x-cx),y=Math.round(s.y);ctx.fillRect(x-3,y,7,2);ctx.fillRect(s.dir>0?x-5:x+4,y,2,1);}
-  for(const r of L.ripples)if(on(r.x)){                              // cercurile de pe apă: două liniuțe care se depărtează
+  for(const r of L.ripples)if(on(r.x)){   // cercurile de pe apă
     const k=r.t/40,rad=Math.round(2+k*9),x=Math.round(r.x-cx),y=WATER_Y+1;
     ctx.globalAlpha=1-k;ctx.fillStyle=w.foam;ctx.fillRect(x-rad-2,y,3,1);ctx.fillRect(x+rad,y,3,1);if(r.t<10)ctx.fillRect(x-1,y-1,2,1);ctx.globalAlpha=1;}
   for(const f of L.frogs){
     if(f.st===0&&on(f.px)){const x=Math.round(f.px-cx)-1,y=lakeTop(f.wx)-7;ctx.drawImage(FROG,x,y);
-      if(f.croak>0&&(f.croak>>3)%2===0)pcirc(ctx,x+4,y+4,2,'#e8f8c0');}       // gușa umflată, când orăcăie
+      if(f.croak>0&&(f.croak>>3)%2===0)pcirc(ctx,x+4,y+4,2,'#e8f8c0');}   // gușa umflată, când orăcăie
     else if(f.st===1&&on(f.x))ctx.drawImage(FROG,Math.round(f.x-cx),Math.round(f.y));
   }
-  // Rațele și bobocii: rândurile de jos sunt în apă (nu se desenează), cu o dungă luminoasă pe apă, lângă ei.
+  // Rațele și bobocii: rândurile de jos sunt în apă
   const swim=(img,x,crop)=>{const top=lakeTop(x+cx),ih=img.height-crop;
     ctx.drawImage(img,0,0,img.width,ih,x,top-ih,img.width,ih);
     ctx.fillStyle=w.top;ctx.fillRect(x+1,top,img.width-2,1);ctx.fillStyle='rgba(255,255,255,0.3)';ctx.fillRect(x+2,top+1,img.width-4,1);};
@@ -139,7 +131,7 @@ function drawLakeLife(cx){
     if(d.flee>0&&(G.t>>2)%2)ctx.drawImage(DUCK_WING[d.dir>0?'r':'l'],d.dir>0?x+1:x+7,lakeTop(x+cx)-5);   // bate din aripi
   }
   for(const f of L.fish)if(on(f.x))ctx.drawImage(FISH[f.dir>0?'r':'l'],Math.round(f.x-cx)-4,Math.round(f.y)-2);
-  for(const f of L.flies){if(!on(f.x))continue;                      // libelula: corp albastru, cap închis, aripi care vibrează
+  for(const f of L.flies){if(!on(f.x))continue;   // libelula: corp albastru
     const x=Math.round(f.x-cx),y=Math.round(f.y);
     ctx.fillStyle='#3a9ae8';ctx.fillRect(x-3,y,7,1);
     ctx.fillStyle='#1a3a8a';ctx.fillRect(f.dir>0?x+2:x-3,y-1,2,2);

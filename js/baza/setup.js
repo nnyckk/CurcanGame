@@ -1,18 +1,15 @@
 'use strict';
-// ================= SETUP: ecranul, constantele de bază, utilitare =================
+// ===== SETUP: ecranul, constantele de bază, utilitare =====
 const GAME_VERSION='0.9.8.4';
-// Modul de test (index.html?test): arenă de test, comenzi din test.html. Pentru jucători nu se schimbă nimic.
+// Modul de test: arenă de test, comenzi din test.html
 const TEST=/[?&]test\b/.test(location.search);
 const W=400,H=224,TS=16,ROWS=14,TAU=Math.PI*2;
 const cv=document.getElementById('game');
-// „let”: noaptea, lumea de joc se desenează întâi pe un canvas separat (shade), primește umbra albastră,
-// apoi se pune peste fundal — vezi drawWorld.
+// „let”: noaptea
 let ctx=cv.getContext('2d');
 const [shadeCv,shadeCtx]=mkCanvas(W,H);
 cv.width=W;cv.height=H;ctx.imageSmoothingEnabled=false;
-// Versiunea jocului (în meniu) stă jos, în colțul din dreapta al ferestrei, în spațiul negru de lângă joc: un canvas
-// mic, desenat cu același font pixel și mărit cu un factor întreg. Dacă nu încape acolo la cel puțin 2x (să se poată
-// citi), se desenează în joc. (Controalele și recordul sunt în meniu: SETĂRI → CONTROALE și insigna RECORD.)
+// Versiunea jocului stă jos
 const INFO_VW=[...('V'+GAME_VERSION)].length*6,INFO_VH=8;
 const INFO={V:document.getElementById('infoV'),out:false,shown:false};
 INFO.V.width=INFO_VW;INFO.V.height=INFO_VH;

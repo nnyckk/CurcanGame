@@ -1,7 +1,6 @@
 'use strict';
-// ================= FERMIERUL: felinarul (noaptea te vede doar în lumina lui) =================
-// Felinarul (noaptea): conul de lumină din fața fermierului — lung de ~7 tile-uri, deschis la ±17°.
-// Te vede dacă vârful, mijlocul sau picioarele curcanului intră în con. LOST_T = cât te mai caută după ce ieși.
+// ===== FERMIERUL: felinarul =====
+// Felinarul: conul de lumină din fața fermierului
 const LANTERN_LEN=110,LANTERN_HALF=0.3,LOST_T=150;
 function lanternPos(e){return {x:e.x+5+e.dir*6,y:e.y+11};}
 function lanternSees(e){

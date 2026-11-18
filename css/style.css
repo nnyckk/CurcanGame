@@ -7,7 +7,7 @@ canvas{image-rendering:pixelated;image-rendering:crisp-edges;display:block;backg
 #touch button{width:68px;height:68px;border-radius:50%;border:3px solid rgba(255,255,255,.55);background:rgba(0,0,0,.35);
   color:#fff;font:bold 15px monospace;touch-action:none;-webkit-tap-highlight-color:transparent}
 #touch button:active{background:rgba(255,210,63,.45)}
-/* ▲ (intri / ieși din cafenea): apare deasupra lui ◀ ▶ doar cât stai în fața unei uși. */
+/* ▲: apare deasupra lui ◀ ▶ doar cât stai în fața unei uși */
 #touch .upk{display:none;position:absolute;left:57px;bottom:98px}
 #touch.door .upk{display:block}
 #pauseBtn{position:fixed;top:10px;right:10px;width:40px;height:40px;border-radius:8px;border:2px solid rgba(255,255,255,.5);

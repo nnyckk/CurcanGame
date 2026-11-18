@@ -1,8 +1,6 @@
 'use strict';
-// ================= IARNA: lacurile înghețate (gheața care crapă) =================
-// Fiecare tile de gheață strânge „crăpături” cât timp curcanul stă pe el și se vindecă încet când pleacă — așa
-// că mersul peste lac nu o crapă, dar dacă stai ~2 s pe același loc, crăpăturile cresc (cu trosnete) și gheața de
-// sub tine se sparge: devine apă și cazi. După ~5 s gaura îngheață la loc.
+// ===== IARNA: lacurile înghețate =====
+// Fiecare tile de gheață strânge „crăpături” cât timp
 const ICE_CRACK_T=120,ICE_HEAL=0.6,ICE_REFREEZE_T=300,ICE_ACC=0.2,ICE_FRICTION=0.1;
 let iceCrack=new Float32Array(0),iceHole=new Int16Array(0),iceTouch=new Int32Array(0);
 function onIce(e){return e.onGround&&tileAt(Math.floor((e.x+e.w/2)/TS),Math.floor((e.y+e.h+1)/TS))==='I';}
@@ -14,10 +12,10 @@ function stepOnIce(under){
   for(const tx of under){const s0=iceStage(tx);iceCrack[tx]++;iceTouch[tx]=G.frame;
     if(iceStage(tx)>s0)sfx.crack();
     if(iceCrack[tx]>=ICE_CRACK_T)brk=true;}
-  // Se sparge tot ce e sub picioare deodată, ca să cazi sigur (nu să rămâi sprijinit pe tile-ul vecin).
+  // Se sparge tot ce e sub picioare deodată
   if(brk){for(const tx of under)breakIce(tx,true);sfx.iceBreak();}
 }
-// quiet: fără sunet (când se sparg mai multe tile-uri deodată, sunetul se pune o singură dată).
+// quiet: fără sunet
 function breakIce(tx,quiet){
   grid[12][tx]='.';iceCrack[tx]=0;iceHole[tx]=ICE_REFREEZE_T;
   for(let i=0;i<7;i++)parts.push({x:tx*TS+2+Math.random()*12,y:12*TS+1,vx:(Math.random()-0.5)*2.4,vy:-1.5-Math.random()*2,g:0.25,life:30,max:30,col:i%2?'#ffffff':'#bfe6f8',s:2,edge:'#7ab0d0'});
@@ -27,8 +25,7 @@ function updateIce(){
   for(let tx=0;tx<cols;tx++){
     if(iceCrack[tx]>0&&iceTouch[tx]!==G.frame)iceCrack[tx]=Math.max(0,iceCrack[tx]-ICE_HEAL);
     if(iceHole[tx]>0&&--iceHole[tx]===0){
-      // Nu îngheață peste curcan cât timp e chiar în gaură (căzând) — mai așteaptă puțin. Ce s-a scufundat
-      // rămâne sub gheață, în lac.
+      // Nu îngheață peste curcan cât timp e chiar în gaură
       const box={x:tx*TS,y:12*TS,w:TS,h:ICE_SLAB};
       if(!player.dead&&overlap(player,box))iceHole[tx]=1;
       else{grid[12][tx]='I';
@@ -37,8 +34,7 @@ function updateIce(){
     }
   }
 }
-// Placa de gheață a lacului (s..e = coloanele lacului de pe ecran), peste apă și peste ce cade în ea:
-// crăpăturile, marginea zimțată spre apa deschisă și bucăți de gheață care plutesc pe valuri în copci și găuri.
+// Placa de gheață a lacului
 const ICE_TEETH=[1,2,1,2,2,1,0];
 function drawIce(cx,s,e,waveTop){
   for(let tx=s;tx<=e;tx++){const x=tx*TS-cx,y=12*TS;

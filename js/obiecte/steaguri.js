@@ -1,5 +1,5 @@
 'use strict';
-// ================= SEMNUL DE FINAL ȘI PUNCTELE DE SALVARE =================
+// ===== SEMNUL DE FINAL ȘI PUNCTELE DE SALVARE =====
 function drawSign(cx){
   const x=goal.x*TS-cx;
   ctx.fillStyle='#5a3510';ctx.fillRect(x+33,150,6,42);ctx.fillStyle='#8a5a2a';ctx.fillRect(x+34,150,2,42);

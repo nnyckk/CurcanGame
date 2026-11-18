@@ -1,6 +1,6 @@
 'use strict';
-// ================= EXPLOZIILE (cadrele animației) =================
-// --- Explosion frames ---
+// ===== EXPLOZIILE =====
+// --- Explosion frames
 const BOOM=[];
 [10,20,28,34,36,34].forEach((R,f)=>{
   const [c,g]=mkCanvas(84,84);

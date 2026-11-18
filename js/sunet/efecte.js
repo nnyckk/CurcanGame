@@ -1,5 +1,5 @@
 'use strict';
-// ================= SUNET: Web Audio și efectele sonore =================
+// ===== SUNET: Web Audio și efectele sonore =====
 let AC=null,master,musicG,sfxG,noiseBuf,pulseW,pulse12;
 function mkPulse(d){const n=32,re=new Float32Array(n),im=new Float32Array(n);for(let k=1;k<n;k++)re[k]=2/(k*Math.PI)*Math.sin(k*Math.PI*d);return AC.createPeriodicWave(re,im);}
 function initAudio(){
@@ -43,8 +43,10 @@ const sfx={
   tick(){if(!AC)return;tone('square',1500,AC.currentTime,0.025,0.05,sfxG);},
   fuse(){if(!AC)return;noise(AC.currentTime,0.25,0.12,sfxG,3500);},
   cp(){arp([69,74,78,81,86],0.06,0.1);},
-  // Pana de aur: o scară strălucitoare care urcă, cu un clinchet sus la capăt.
+  // Pana de aur: o scară strălucitoare care urcă
   gold(){arp([79,83,86,91,95,98],0.055,0.1,'triangle');arp([91,98,103],0.09,0.06);},
+  // Achievement deblocat: o mică fanfară care urcă
+  ach(){arp([72,76,79,84,88],0.07,0.1,'triangle');arp([84,91],0.16,0.07);},
   alert(){if(!AC)return;const t=AC.currentTime;tone('square',880,t,0.05,0.07,sfxG);tone('square',1175,t+0.06,0.09,0.07,sfxG);},
   windup(){if(!AC)return;tone('triangle',150,AC.currentTime,0.16,0.2,sfxG,110);},
   stab(){if(!AC)return;const t=AC.currentTime;noise(t,0.14,0.22,sfxG,2200);tone('square',240,t,0.1,0.07,sfxG,760);},
@@ -52,16 +54,15 @@ const sfx={
   fwip(){if(!AC)return;const t=AC.currentTime;noise(t,0.1,0.12,sfxG,3000);tone('pulse',600,t,0.08,0.07,sfxG,1500);},
   splash(){if(!AC)return;const t=AC.currentTime;noise(t,0.4,0.4,sfxG,1400,'lowpass');tone('sine',620,t,0.18,0.14,sfxG,140);},
   hiss(){if(!AC)return;noise(AC.currentTime,0.5,0.18,sfxG,4000);},
-  // „Toc” scurt și ușor.
+  // „Toc” scurt și ușor
   kick(){if(!AC)return;const t=AC.currentTime;tone('square',260,t,0.06,0.12,sfxG,520);noise(t,0.04,0.12,sfxG,2500);},
   burn(){if(!AC)return;const t=AC.currentTime;noise(t,0.25,0.25,sfxG,1400,'lowpass');tone('square',420,t,0.18,0.09,sfxG,70);},
   blip(){if(!AC)return;tone('pulse',1700,AC.currentTime,0.03,0.05,sfxG);},
-  // Gheața: trosnet scurt când mai crapă un pic, spargere cu cioburi, clinchet când gaura îngheață la loc.
+  // Gheața: trosnet scurt când mai crapă un pic
   crack(){if(!AC)return;const t=AC.currentTime;noise(t,0.09,0.3,sfxG,3200);tone('square',1400,t,0.05,0.05,sfxG,500);},
   iceBreak(){if(!AC)return;const t=AC.currentTime;noise(t,0.45,0.4,sfxG,2600);tone('triangle',1200,t,0.3,0.12,sfxG,180);},
   freeze(){arp([86,93,98],0.05,0.05,'triangle');},
-  // Puterea de gheață: urcare cristalină la afină, „fiu” subțire la aruncarea penei, clinchet când îngheață
-  // un dușman, spargere de gheață când moare înghețat.
+  // Puterea de gheață: urcare cristalină la afină
   iceUp(){arp([72,76,79,84,79,84,88,91,88,91,96],0.04,0.09,'triangle');},
   fwipIce(){if(!AC)return;const t=AC.currentTime;noise(t,0.08,0.1,sfxG,6000);tone('sine',1200,t,0.1,0.08,sfxG,2600);},
   freezeHit(){arp([84,91,96,103],0.03,0.07,'triangle');},
@@ -69,22 +70,22 @@ const sfx={
   hurry(){arp([74,75,74,75,74,75],0.07,0.09);},
   pause(){arp([74,69,74],0.05,0.08);},
   pop(){if(!AC)return;const t=AC.currentTime;noise(t,0.3,0.15,sfxG,2000);tone('square',300+Math.random()*400,t,0.25,0.05,sfxG,1200);},
-  // Scârțâit de lemn vechi: platforma care cade, când te urci pe ea.
+  // Scârțâit de lemn vechi: platforma care cade
   creak(){if(!AC)return;const t=AC.currentTime;tone('sawtooth',190,t,0.24,0.06,sfxG,92);noise(t,0.18,0.14,sfxG,700,'lowpass');},
-  // Lacul: „mac-mac” de rață, „plici” de pește (sau de broască) care intră în apă, „oac-oac” de broască. Toate încet.
+  // Lacul: „mac-mac” de rață
   quack(){if(!AC)return;const t=AC.currentTime;tone('sawtooth',560,t,0.08,0.045,sfxG,420);tone('sawtooth',540,t+0.12,0.09,0.045,sfxG,400);},
   plip(){if(!AC)return;tone('sine',700,AC.currentTime,0.07,0.05,sfxG,1500);},
   croak(){if(!AC)return;const t=AC.currentTime;tone('square',120,t,0.09,0.04,sfxG,95);tone('square',110,t+0.13,0.11,0.04,sfxG,85);},
-  // Boss-ul: răcnet gros, bubuitură (izbit de margine / baloții de fân care cad), „au” când e lovit, fanfară când e învins.
+  // Boss-ul: răcnet gros, bubuitură, „au” când e lovit
   roar(){if(!AC)return;const t=AC.currentTime;tone('sawtooth',140,t,0.5,0.14,sfxG,70);tone('square',95,t,0.5,0.08,sfxG,60);noise(t,0.45,0.25,sfxG,500,'lowpass');},
   thud(){if(!AC)return;const t=AC.currentTime;tone('sine',90,t,0.3,0.5,sfxG,35);noise(t,0.25,0.35,sfxG,400,'lowpass');},
   bossHurt(){if(!AC)return;const t=AC.currentTime;tone('sawtooth',300,t,0.3,0.12,sfxG,90);noise(t,0.15,0.2,sfxG,1200);},
   bossDown(){arp([62,66,69,74,69,74,78,81,86],0.07,0.11);},
-  // Fluierat care coboară, cât boss-ul e în aer și vine peste tine.
+  // Fluierat care coboară
   dive(){if(!AC)return;tone('sine',1500,AC.currentTime,0.55,0.06,sfxG,420);},
-  // Clopoțelul de la ușa cafenelei (intri / ieși) și „nimic” la blocul-slot (trei note care coboară).
+  // Clopoțelul de la ușa cafenelei și „nimic” la blocul-slot
   bell(){if(!AC)return;const t=AC.currentTime;tone('triangle',1568,t,0.3,0.12,sfxG);tone('triangle',2093,t+0.11,0.4,0.1,sfxG);},
-  // „Bla-bla”-ul bătrânelului, cât îi apar literele în caseta de dialog: un sunet scurt, jos, cu înălțimea la întâmplare.
+  // „Bla-bla”-ul bătrânelului
   talk(){if(!AC)return;tone('triangle',230+Math.random()*90,AC.currentTime,0.05,0.07,sfxG);},
   nope(){if(!AC)return;const t=AC.currentTime;tone('square',330,t,0.17,0.07,sfxG,310);tone('square',262,t+0.19,0.17,0.07,sfxG,247);tone('square',196,t+0.38,0.45,0.07,sfxG,175);},
 };

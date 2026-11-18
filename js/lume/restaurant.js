@@ -1,5 +1,5 @@
 'use strict';
-// ================= RESTAURANTUL MESOPOTAMIA (finalul jocului) =================
+// ===== RESTAURANTUL MESOPOTAMIA =====
 const RW=192,RH=136;
 const REST=(()=>{const [c,g]=mkCanvas(RW,RH);
   g.fillStyle='#5a5a6a';g.fillRect(44,26,4,14);g.fillRect(144,26,4,14);
@@ -34,7 +34,7 @@ function doorRect(){return {x:goal.x*TS+83,y:192-RH+93,w:26,h:43};}
 function drawRestaurant(cx){
   const x=goal.x*TS-cx,y=192-RH;
   if(x>W+60||x<-RW-60)return;
-  // Iarna: brazi înzăpeziți în loc de palmieri și câte un troian lângă ziduri.
+  // Iarna: brazi înzăpeziți în loc de palmieri și câte un troian lângă ziduri
   if(theme.snow){fir(ctx,x-16,193,48,'#2b5a4a','#f4f8fc','#c4d4e2','#4a3a30');fir(ctx,x+RW+15,193,40,'#24503f','#f4f8fc','#c4d4e2','#4a3a30');
     pcirc(ctx,x+8,193,6,'#f4f8fc');pcirc(ctx,x+RW-8,193,5,'#f4f8fc');}
   else{ctx.drawImage(PALM,x-34,192-50);ctx.drawImage(PALM,x+RW+2,192-50);}
@@ -43,24 +43,23 @@ function drawRestaurant(cx){
   if(theme.snow)restSnow(x,y);
   restNeon(x,y);restDoor(cx);
 }
-// Luminițele de neon din jurul firmei, care se aprind pe rând (galben, roz, albastru).
+// Luminițele de neon din jurul firmei
 function restNeon(x,y){
   const NEON=['#ffe24a','#ff5ac8','#5ae8ff'];let i=0;
   const dot=(dx,dy)=>{ctx.fillStyle=NEON[(i+(G.t>>3))%3];ctx.fillRect(x+dx,y+dy,2,2);i++;};
   for(let dx=14;dx<176;dx+=6)dot(dx,0);for(let dy=6;dy<26;dy+=6)dot(176,dy);for(let dx=176;dx>14;dx-=6)dot(dx,26);for(let dy=26;dy>0;dy-=6)dot(14,dy);
 }
-// Ușa luminată, când ai ajuns.
+// Ușa luminată, când ai ajuns
 function restDoor(cx){
   if(G.state==='clear'&&G.final||G.state==='win'){const d=doorRect();ctx.fillStyle='#ffe9a0';ctx.fillRect(d.x-cx,d.y,d.w,d.h);ctx.fillStyle='#ffd060';ctx.fillRect(d.x-cx,d.y+d.h-6,d.w,6);}
 }
-// Zăpada de pe restaurant (iarna): pe firmă, pe tabla FAST FOOD și pe marchiză, cu țurțuri mici de zăpadă.
+// Zăpada de pe restaurant: pe firmă
 function restSnow(x,y){
   const cap=(sx,sy,w)=>{ctx.fillStyle='#c4d4e2';ctx.fillRect(sx,sy+1,w,2);ctx.fillStyle='#f4f8fc';ctx.fillRect(sx,sy,w,2);ctx.fillRect(sx+1,sy-1,w-2,1);
     for(let i=3;i<w-2;i+=7){ctx.fillRect(sx+i,sy+2,1,1+(i*7)%3);}};
   cap(x+13,y-2,166);cap(x+35,y+36,122);cap(x+19,y+48,154);
 }
-// Noaptea (după umbra de noapte): firma și ferestrele se văd luminate, cu o strălucire caldă în jur, iar neonul și
-// zăpada de pe restaurant rămân luminoase.
+// Noaptea: firma și ferestrele se văd luminate
 function drawRestaurantLights(cx){
   if(!goal||goal.type!=='restaurant')return;
   const x=goal.x*TS-cx,y=192-RH;if(x>W+90||x<-RW-90)return;

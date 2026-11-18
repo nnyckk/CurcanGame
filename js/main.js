@@ -1,5 +1,5 @@
 'use strict';
-// ================= BUCLA PRINCIPALĂ ȘI PORNIREA JOCULUI =================
+// ===== BUCLA PRINCIPALĂ ȘI PORNIREA JOCULUI =====
 let last=performance.now(),acc=0;
 const STEP=1000/60;
 function frame(now){
@@ -7,6 +7,7 @@ function frame(now){
   while(acc>=STEP){update();acc-=STEP;}
   render();requestAnimationFrame(frame);
 }
+achRetro();   // achievements pentru ce ai făcut
 if(TEST){G.level=ARENA;startLevel();}
 else playSong('title');
 requestAnimationFrame(frame);

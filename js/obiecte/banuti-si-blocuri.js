@@ -1,6 +1,6 @@
 'use strict';
-// ================= BĂNUȚI ȘI BLOCURI =================
-// --- Coin with M ---
+// ===== BĂNUȚI ȘI BLOCURI =====
+// --- Coin with M
 const COIN=mkSprite([
 "...oooooo...",
 ".ooyyyyyyoo.",
@@ -17,7 +17,7 @@ const COIN=mkSprite([
 ],{o:'#a8641a',y:'#f5c030',Y:'#fff0a0',m:'#6a2a0a'},false);
 function sparkle(x,y){for(let i=0;i<6;i++){const a=i/6*TAU;parts.push({x,y,vx:Math.cos(a)*1.4,vy:Math.sin(a)*1.4,g:0,life:16,max:16,col:i%2?'#fff':'#ffd23f',s:2});}}
 function addCoin(x,y){
-  G.coins++;addScore(100);sfx.coin();
+  G.coins++;G.lvlCoins=(G.lvlCoins||0)+1;addScore(100);sfx.coin();   // lvlCoins: bănuții din nivelul ăsta
   if(G.coins>=50){G.coins-=50;G.lives++;sfx.oneup();popup('1 VIAȚĂ!',x,y-10,'#7fff7f');}
 }
 function hitBlock(tx,ty){
@@ -25,14 +25,14 @@ function hitBlock(tx,ty){
   if(c==='M'||c==='H'||c==='A'){
     grid[ty][tx]='U';bumps.push({tx,ty,t:0});
     if(c==='M'){parts.push({type:'coin',x:tx*TS+8,y:ty*TS-6,vx:0,vy:-5.5,g:0.35,life:26,max:26});addCoin(tx*TS+8,ty*TS);}
-    // Blocul de gheață (doar înaintea boss-ului): mereu afina înghețată; mic, te face direct mare și de gheață.
+    // Blocul de gheață: mereu afina înghețată
     else if(c==='A'){items.push({type:'ice',x:tx*TS+3,y:ty*TS,w:10,h:11,vx:0,vy:0,rise:11,dir:1});sfx.sprout();}
-    // Curcan mic → grăunte auriu; curcan deja mare → boabă roșie de foc (iarna: afină înghețată).
+    // Curcan mic → grăunte auriu
     else{items.push({type:player.big?(theme.snow?'ice':'berry'):'grain',x:tx*TS+3,y:ty*TS,w:10,h:11,vx:0,vy:0,rise:11,dir:player.x<tx*TS?1:-1});sfx.sprout();}
   }else if(c==='B'||c==='P'){if(player.big)breakBrick(tx,ty);else{bumps.push({tx,ty,t:0});sfx.bump();}}
   else if(c==='V'){grid[ty][tx]='U';bumps.push({tx,ty,t:0});sfx.bump();goldFromTile(tx,ty);}   // blocul invizibil apare
-  else if(c==='S')slotHit();                      // blocul-slot din cafenea (vezi CAFENEAUA)
-  else if(c==='E'){sfx.bump();cafeBonk();}        // blocul-slot gol: bătrânelul se supără dacă tot dai în el
+  else if(c==='S')slotHit();   // blocul-slot din cafenea
+  else if(c==='E'){sfx.bump();cafeBonk();}   // blocul-slot gol
   else sfx.bump();
   for(const e of enemies){if(e.dead||e.remove||!e.active)continue;
     if(overlap(e,{x:tx*TS,y:ty*TS-4,w:TS,h:5})){if(e.frozen)shatter(e,200);else if(e.type==='man')killMan(e,2,200);else lightBomb(e);}}

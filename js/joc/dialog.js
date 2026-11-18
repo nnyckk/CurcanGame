@@ -1,16 +1,13 @@
 'use strict';
-// ================= DIALOGUL: caseta cu cine vorbește (Moș Curcan, Fermierul-Șef) =================
-// Ce spune apare jos, într-o casetă (lower third), cu fața lui în stânga și numele deasupra textului. Literele apar
-// pe rând, cu un „bla-bla” încet; SPACE / ENTER / ↑ (pe telefon: atingi ecranul sau SARI) arată tot rândul, apoi trece
-// la următorul, iar după ultimul închide caseta. Cât e deschisă, jocul stă (curcanul nu se mișcă, timpul nu curge).
+// ===== DIALOGUL: caseta cu cine vorbește =====
+// Ce spune apare jos, într-o casetă
 const TALK_WRAP=44,TALK_LIFT=28;
-// Cine vorbește: numele de pe etichetă și bustul din ramă (22 × 20, desenat cu colțul din stânga sus în x, y).
-// Același design de casetă pentru toți; se schimbă doar numele și portretul.
+// Cine vorbește: numele de pe etichetă și bustul din ramă
 const TALK_WHO={
   old:{name:'MOȘ CURCAN',bust:(x,y)=>ctx.drawImage(OLD.r,6,0,22,20,x,y,22,20)},
   boss:{name:'FERMIERUL-ȘEF',bust:(x,y)=>ctx.drawImage(bossBust(),3,0,22,20,x,y,22,20)},
 };
-// Litere mici (3 × 5, M și N mai late), doar pentru numele de pe eticheta casetei de dialog; Ș are virgulă dedesubt.
+// Litere mici, doar pentru numele de pe eticheta casetei de dialog
 const TINY={A:[".#.","#.#","###","#.#","#.#"],C:[".##","#..","#..","#..",".##"],E:["###","#..","##.","#..","###"],
   F:["###","#..","##.","#..","#.."],I:["#","#","#","#","#"],L:["#..","#..","#..","#..","###"],M:["#...#","##.##","#.#.#","#...#","#...#"],
   N:["#..#","##.#","#.##","#..#","#..#"],O:[".#.","#.#","#.#","#.#",".#."],R:["##.","#.#","##.","#.#","#.#"],
@@ -32,27 +29,24 @@ function updateTalk(){
 }
 function drawTalk(){
   const T=G.talk;if(!T||G.state!=='play')return;
-  // O casetă mică, jos la mijloc (320 × 40), ca să nu acopere camera.
+  // O casetă mică, jos la mijloc, ca să nu acopere camera
   const line=T.lines[T.i];
   drawTalkBox((W-TALK_BOX_W)/2,H-TALK_BOX_H-4,T.who||TALK_WHO.old,line,T.n,T.n>=[...line].length);
 }
-// Caseta de dialog (și pe ecranul dinaintea nivelului, unde Moș Curcan îți dă sfatul): who = cine vorbește,
-// n = câte litere s-au scris, next = arată triunghiul de „mai departe”.
+// Caseta de dialog: who = cine vorbește
 const TALK_BOX_W=320,TALK_BOX_H=40;
 function drawTalkBox(x,y,who,line,n,next){
   const w=TALK_BOX_W,h=TALK_BOX_H;
   uiBox(x,y,w,h);
-  // Numele, cu litere mici (3 × 5), într-o etichetă mică lipită deasupra casetei, chiar deasupra portretului.
+  // Numele, cu litere mici
   const tw=tinyW(who.name)+8;uiBox(x+6,y-10,tw,11);tinyTxt(who.name,x+10,y-7,'#ffd23f');
-  // Bustul celui care vorbește (la Moș Curcan: pălăria, capul, ochelarii, ciocul, pipa, gulerul și vesta), la mărimea
-  // lui, cât rama de alamă (tăietura cade chiar pe ramă), la mijlocul casetei pe înălțime.
+  // Bustul celui care vorbește, la mărimea
   ctx.fillStyle='#c8962c';ctx.fillRect(x+8,y+9,24,22);ctx.fillStyle='#e8c060';ctx.fillRect(x+8,y+9,24,1);
   ctx.fillStyle='#4a2228';ctx.fillRect(x+9,y+10,22,20);who.bust(x+9,y+10);
-  // Textul, în dreapta portretului, la mijlocul casetei; literele apar pe rând (rândurile se rup o dată, pe tot
-  // textul, ca să nu sară cuvintele).
+  // Textul, în dreapta portretului, la mijlocul casetei
   const rows=wrapWords(line,TALK_WRAP),ty=y+Math.round((h-(rows.length*12-5))/2);let left=Math.floor(n);
   rows.forEach((l,i)=>{const s=[...l].slice(0,Math.max(0,left)).join('');left-=[...l].length+1;
     if(s)txt(s,x+38,ty+i*12,'#ffffff',1,'l',null);});
-  // După ce s-a scris tot rândul: un triunghi mic, gri și fix, jos în dreapta (apeși ca să continui).
+  // După ce s-a scris tot rândul: un triunghi mic
   if(next){ctx.fillStyle='#8a84a8';ctx.fillRect(x+w-11,y+h-9,5,1);ctx.fillRect(x+w-10,y+h-8,3,1);ctx.fillRect(x+w-9,y+h-7,1,1);}
 }

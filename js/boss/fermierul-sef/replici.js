@@ -1,7 +1,6 @@
 'use strict';
-// ================= FERMIERUL-ȘEF: ce spune (și bustul din caseta de dialog) =================
-// Bustul Fermierului-Șef pentru caseta de dialog: desenul lui, încruntat, cu furca ținută drept în sus (ca în drawBoss),
-// făcut o singură dată. Tăietura (coloanele 3-24, rândurile 0-19) prinde pălăria, fața, barba și pieptul.
+// ===== FERMIERUL-ȘEF: ce spune =====
+// Bustul Fermierului-Șef pentru caseta de dialog
 let BOSS_BUST=null;
 function bossBust(){
   if(BOSS_BUST)return BOSS_BUST;
@@ -12,8 +11,7 @@ function bossBust(){
   bossSleeve(R,20,15,2,6,'#c8302a','#ece6d8');RO(21,21,2,2,'#f0b088');
   return BOSS_BUST=c;
 }
-// Ce îți spune Fermierul-Șef când îl vezi prima dată (după ce cad baloții de fân în spatele tău, înainte să răcnească).
-// O singură dată pe joc: dacă pierzi o viață și te întorci, nu mai vorbește (vezi G.bossMet).
+// Ce îți spune Fermierul-Șef când îl vezi prima dată
 const BOSS_HELLO=['STAI PE LOC, CURCANULE! DE AICI NU MAI SCAPI!',
   'TE-AM FUGĂRIT PRIN TOATĂ FERMA, PRIN PĂDURE ȘI PRIN ZĂPADĂ!',
   'VREI LA RESTAURANT? AJUNGI, NU-ȚI FACE GRIJI... PE MENIU!'];

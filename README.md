@@ -21,14 +21,39 @@ Pe telefon apar butoane pe ecran (▲ apare doar cât stai în fața unei uși).
 
 ## Meniul
 
-Pe ecranul de titlu sunt trei butoane:
+Pe ecranul de titlu sunt trei butoane, iar jos două insigne:
 
 - **JOACĂ** pornește jocul.
 - **SETĂRI**: muzică (DA/NU), efecte sonore (DA/NU), ecran complet (dacă browserul îl permite), **CURCAN DE AUR** (DA/NU, apare doar după ce ai găsit toate penele de aur) și **CONTROALE** (lista tastelor). Setările se țin minte în browser. ESC sau ÎNAPOI te duce o pagină înapoi.
-- Jos, lângă record, insigna **PENE** arată câte pene de aur ai găsit din câte sunt în joc. E și un buton (o alegi cu ↓ după MOD TEST, cu mouse-ul sau cu degetul): deschide pagina **PENE DE AUR**, care explică ce ai de făcut. Îți spune pe scurt că în fiecare nivel se ascund 3 pene de aur, că o pană contează doar dacă ajungi cu ea la final și „ADUNĂ-LE PE TOATE. MERITĂ.” (fără să spună ce primești). După ce le ai pe toate, îți spune că surpriza te așteaptă în SETĂRI. Jos arată câte pene ai găsit în fiecare nivel.
+- Jos, lângă record, insigna **PENE** arată câte pene de aur ai găsit din câte sunt în joc. E și un buton (dai click pe ea sau o atingi; se luminează doar cât ții mouse-ul pe ea, nu rămâne aleasă): deschide pagina **PENE DE AUR**, care explică ce ai de făcut. Îți spune pe scurt că în fiecare nivel se ascund 3 pene de aur, că o pană contează doar dacă ajungi cu ea la final și „ADUNĂ-LE PE TOATE. MERITĂ.” (fără să spună ce primești). După ce le ai pe toate, îți spune că surpriza te așteaptă în SETĂRI. Jos arată câte pene ai găsit în fiecare nivel.
+- Lângă ea, insigna **ACHIEVEMENTS** arată câte ai deblocat din 13 (la fel, un buton luminat doar la hover): deschide pagina **ACHIEVEMENTS** (vezi mai jos).
 - **MOD TEST** deschide `test.html` (vezi mai jos).
 
-Recordul apare în colțul din stânga jos al meniului principal. Cât timp muzica e oprită, în colțul din dreapta jos apare „MUZICĂ OFF”.
+Recordul apare în colțul din stânga jos al meniului principal.
+
+## Achievements
+
+13 lucruri de făcut, doar de colecționat (nu dau nimic în plus). 10 se văd de la început, 3 sunt secrete:
+
+| Achievement | Ce trebuie să faci |
+|---|---|
+| POFTĂ BUNĂ! | ajungi la restaurantul MESOPOTAMIA |
+| PANĂ PESTE PANĂ | strângi toate cele 15 pene de aur |
+| BOGĂTAȘ | iei toți cei 50 de bănuți din nivelul bonus (într-o singură trecere) |
+| FĂRĂ ZGÂRIETURĂ | termini un nivel fără să fii lovit (nici după o viață pierdută acolo) |
+| ZIUA CURCANULUI | îl învingi pe Fermierul-Șef fără să te lovească în toată lupta |
+| COMBO DE CURCAN | sari în cap la 4 dușmani la rând, fără să atingi solul |
+| FULGER | termini un nivel cu cel puțin 200 de secunde rămase |
+| NEMURITOR | termini tot jocul, de la primul nivel, fără să pierzi nicio viață |
+| UMBRĂ ÎN NOAPTE | termini Ora de culcare fără să te vadă vreun fermier cu felinar |
+| OCHI DE VULTUR | nimerești 2UP la blocul-slot din cafenea |
+| *secret:* CAP TARE | dai de 30 de ori cu capul în blocul gol din cafenea |
+| *secret:* CURCANII NU ÎNOATĂ | cazi în apă de 10 ori (se adună de la un joc la altul) |
+| *secret:* AUTOGOL | te prinde explozia unei bombe pe care ai așezat-o sau împins-o chiar tu |
+
+- Când deblochezi unul, sus pe ecran coboară o casetă aurie cu o cupă, „ACHIEVEMENT!” și numele lui, cu o mică fanfară; jocul nu se oprește. Dacă deblochezi mai multe deodată, vin una după alta.
+- Pagina **ACHIEVEMENTS** din meniu are câte o căsuță pentru fiecare, pe două coloane: aurie, cu cupa aprinsă, dacă l-ai deblocat; gri, dacă nu; cele secrete nedeblocate apar ca „???”. Sub ele scrie ce înseamnă cel ales (cu săgețile sau cu mouse-ul); la cele secrete nedeblocate scrie doar că sunt secrete.
+- Se țin minte în browser (în modul de test, separat). Ce ai făcut deja înainte să existe achievements (toate penele, ai ajuns la MESOPOTAMIA) se deblochează singur, fără casetă. Cât timp muzica e oprită, în colțul din dreapta jos apare „MUZICĂ OFF”.
 
 ## Ce găsești în joc
 
@@ -138,7 +163,7 @@ js/
                            iarna/ (zăpadă, gheață, brazi), apa/ (gropi, lacuri, rațe și pești)
   obiecte/                 bănuți și blocuri, power-up-uri, pene de aur, semnul de final și salvările
   animatii/                explozii, particule și texte plutitoare
-  joc/                     starea jocului, fizica, pornirea nivelului, update, meniul, dialogul
+  joc/                     starea jocului, fizica, pornirea nivelului, update, meniul, dialogul, achievements
   desen/                   ordinea desenării: fundal, lume, HUD, ecrane, render
   test/                    modul de test (folosit de test.html)
   main.js                  bucla principală (ultimul script)

@@ -1,5 +1,5 @@
 'use strict';
-// ================= FONTUL PIXEL (5×7, cu diacritice) =================
+// ===== FONTUL PIXEL =====
 const FONT={
 A:"EHHVHHH",B:"UHHUHHU",C:"EHGGGHE",D:"UHHHHHU",E:"VGGUGGV",F:"VGGUGGG",G:"EHGNHHF",H:"HHHVHHH",I:"E44444E",J:"72222IC",
 K:"HIKOKIH",L:"GGGGGGV",M:"HRLLHHH",N:"HHPLJHH",O:"EHHHHHE",P:"UHHUGGG",Q:"EHHHLID",R:"UHHUKIH",S:"FGGE11U",T:"V444444",
@@ -29,14 +29,12 @@ function txt(s,x,y,col='#fff',sc=1,al='l',sh='#000',g=ctx){
   if(sh)txtRaw(g,s,x+sc,y+sc,sh,sc);
   txtRaw(g,s,x,y,col,sc);
 }
-// Titlu "drăguț": litere care se leagănă, contur alb, umbră moale și luciu pe partea de sus.
-// Litere distanțate, contur alb subțire (1px) și umbră mică, ca să rămână lizibile.
-// Literele sunt îngroșate cu b pixeli și desenate o singură dată (cache), apoi refolosite.
+// Titlu "drăguț": litere care se leagănă, contur alb
 const cuteCache={};
 function cuteLetter(ch,sc,fill,shadow){
   const k=ch+'|'+sc+fill+shadow;if(cuteCache[k])return cuteCache[k];
   const b=Math.floor(sc/2),ox=2,oy=3*sc+2;
-  // Destul de înalt și pentru virgula de sub Ș și Ț (altfel, la literele mari, se tăia).
+  // Destul de înalt și pentru virgula de sub Ș și Ț
   const [c,g]=mkCanvas(5*sc+b+7,13*sc+b+8);
   const bold=(col,dx,dy)=>{for(let i=0;i<=b;i++)for(let j=0;j<=b;j++)txtRaw(g,ch,ox+dx+i,oy+dy+j,col,sc);};
   bold(shadow,2,3);

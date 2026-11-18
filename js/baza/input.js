@@ -1,8 +1,7 @@
 'use strict';
-// ================= INPUT: tastatură, mouse, butoanele de pe telefon =================
+// ===== INPUT: tastatură, mouse, butoanele de pe telefon =====
 const keys={},pressed={},touch={left:0,right:0,jump:0,run:0};
-// Browserele nu pornesc sunetul până la prima apăsare, așa că orice tastă/atingere îl pornește (și muzica de meniu).
-// În meniu, tastele se tratează chiar aici, în eveniment (vezi menuKey), nu în bucla jocului.
+// Browserele nu pornesc sunetul până la prima apăsare
 addEventListener('keydown',e=>{
   if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space'].includes(e.code))e.preventDefault();
   initAudio();
@@ -11,15 +10,15 @@ addEventListener('keydown',e=>{
 });
 addEventListener('keyup',e=>{keys[e.code]=false;});
 addEventListener('blur',()=>{for(const k in keys)keys[k]=false;for(const k in touch)touch[k]=0;});
-// Controale: ← → merge, SPACE sare, X (ținut apăsat) fuge.
+// Controale: ← → merge, SPACE sare, X fuge
 const inLeft=()=>keys.ArrowLeft||touch.left;
 const inRight=()=>keys.ArrowRight||touch.right;
 const inJump=()=>keys.Space||touch.jump;
 const inRun=()=>keys.KeyX||touch.run;
 const jumpPressed=()=>pressed.Space||pressed.TouchJump;
-// ↑ (sau butonul ▲ de pe ecran, care apare doar în fața unei uși): intri / ieși din cafeneaua din nivelul bonus.
+// ↑: intri / ieși din cafeneaua din nivelul bonus
 const upPressed=()=>pressed.ArrowUp||pressed.KeyW||pressed.TouchUp;
-// O apăsare scurtă pe X (sau pe FUGI) aruncă o pană de foc; ținut apăsat, X rămâne fugă.
+// O apăsare scurtă pe X aruncă o pană de foc
 const firePressed=()=>pressed.KeyX||pressed.TouchRun;
 const startPressed=()=>pressed.Enter||pressed.Space||pressed.TouchJump||pressed.Tap;
 if('ontouchstart' in window||navigator.maxTouchPoints>0){document.getElementById('touch').classList.add('on');document.getElementById('pauseBtn').classList.add('on');}
@@ -31,9 +30,9 @@ document.querySelectorAll('[data-k]').forEach(b=>{
   b.addEventListener('pointerdown',down);b.addEventListener('pointerup',up);b.addEventListener('pointercancel',up);b.addEventListener('pointerleave',up);
   b.addEventListener('contextmenu',e=>e.preventDefault());
 });
-// În meniu, butoanele se apasă la „click” (abia acolo browserul dă voie la ecran complet și pe telefon), și doar
-// dacă apăsarea a început tot în meniu — altfel atingerea care închide ecranul de final ar apăsa și un buton din meniu.
+// În meniu, butoanele se apasă la „click”
 let downOnTitle=false;
 cv.addEventListener('pointerdown',()=>{initAudio();downOnTitle=G.state==='title';if(!downOnTitle)pressed.Tap=true;});
 cv.addEventListener('click',e=>{initAudio();if(G.state!=='title'||!downOnTitle)return;const i=menuHit(e);if(i>=0)menuPick(i);});
-cv.addEventListener('pointermove',e=>{const i=G.state==='title'?menuHit(e):-1;if(i>=0)G.sel=i;cv.style.cursor=i>=0?'pointer':'';});
+cv.addEventListener('pointermove',e=>{const i=G.state==='title'?menuHit(e):-1;menuHover(i);cv.style.cursor=i>=0?'pointer':'';});
+cv.addEventListener('pointerleave',()=>{G.hover=-1;});

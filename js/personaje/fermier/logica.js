@@ -1,8 +1,8 @@
 'use strict';
-// ================= FERMIERUL ȘI UCENICUL: comportamentul =================
-// Zona în care lovește furca, în fața fermierului, la înălțimea pieptului.
+// ===== FERMIERUL ȘI UCENICUL: comportamentul =====
+// Zona în care lovește furca, în fața fermierului
 function forkBox(e){return {x:e.dir>0?e.x+e.w:e.x-MAN_REACH,y:e.y+7,w:MAN_REACH,h:8};}
-// pts = punctele fermierului cu furcă (200 sărit în cap); ucenicul dă jumătate (100).
+// pts = punctele fermierului cu furcă
 function killMan(e,mode,pts){
   e.dead=mode;e.deadT=mode===1?30:120;e.frozen=0;
   if(mode===2){e.vy=-4.5;e.vx=(Math.random()<0.5?-1:1)*1.2;}
@@ -11,15 +11,13 @@ function killMan(e,mode,pts){
 function updateMan(e){
   if(e.dead){e.deadT--;
     if(e.dead===2){e.vy+=0.35;e.y+=e.vy;e.x+=e.vx;
-      // Fermierul aruncat de pe ecran face pleosc doar dacă trece de nivelul apei chiar deasupra unei gropi cu apă.
-      // (Se verifică o singură dată: dacă a căzut prin pământ, nu mai face pleosc când ajunge pe sub un lac vecin.)
+      // Fermierul aruncat de pe ecran face pleosc doar
       if(!e.wet&&e.y+e.h>WATER_Y){e.wet=true;if(overPit(e))splash(e.x+e.w/2);}}
     if(e.deadT<=0)e.remove=true;return;}
   if(e.sink){sinkStep(e);return;}
   if(e.frozen){updateFrozen(e);return;}
   const dx=(player.x+player.w/2)-(e.x+5),dy=(player.y+player.h)-(e.y+e.h);
-  // Chemat de boss (vezi bossSummon): intră pe jos în poiană, de după una dintre stivele de fân. Când a trecut și
-  // de felinar, se întoarce spre tine și se poartă ca orice mob.
+  // Chemat de boss: intră pe jos în poiană
   if(e.enter){
     const b=boss;
     if(!b||(e.enter>0?e.x>=b.a0+16:e.x+e.w<=b.a1-16)){e.enter=0;e.dir=Math.sign(dx)||e.dir;e.cd=30;}
@@ -27,13 +25,11 @@ function updateMan(e){
   }
   if(e.cd>0)e.cd--;
   if(e.boy){
-    // Ucenicul nu te urmărește și nu atacă: se plimbă încet înainte și înapoi și se întoarce
-    // la marginea gropilor, în fața țepilor și la pereți (hitWall, mai jos).
+    // Ucenicul nu te urmărește și nu atacă
     e.vx=e.dir*BOY_SPEED;
     if(e.onGround&&(!groundAhead(e,e.dir)||spikeAhead(e,e.dir))){e.dir*=-1;e.vx=e.dir*BOY_SPEED;}
   }else if(e.atk){
-    // Atac cu furca: trage furca înapoi (avertizare), apoi împunge și face un pas în față.
-    // Direcția rămâne fixă — dacă sari peste el în timpul avertizării, împunge în gol.
+    // Atac cu furca: trage furca înapoi
     e.atk++;e.vx=0;
     const st=e.atk-MAN_WIND_T;
     if(st===1)sfx.stab();
@@ -41,25 +37,25 @@ function updateMan(e){
     if(st>0&&st<=10&&!player.dead&&overlap(player,forkBox(e)))hurt(e.dir);
     if(st>=MAN_STAB_T){e.atk=0;e.cd=50;}
   }else{
-    // Ziua te vede de departe. Noaptea doar în conul de lumină al felinarului (din fața lui); dacă ieși din lumină,
-    // mai aleargă puțin spre locul unde te-a văzut ultima dată, apoi se oprește nedumerit („?”) și se uită în jur.
+    // Ziua te vede de departe
     let see,tdx=dx;
     if(theme.night){
       if(!player.dead&&lanternSees(e)){see=true;e.lastX=player.x+player.w/2;e.lost=0;}
       else if(e.chasing){e.lost=(e.lost||0)+1;tdx=e.lastX-(e.x+5);see=e.lost<LOST_T&&Math.abs(tdx)>6;if(!see)e.puzzled=70;}
       else see=false;
     }else see=!player.dead&&Math.abs(dx)<140&&Math.abs(dy)<56;
+    if(see&&theme.night)G.lvlSeen=true;   // te-a văzut un fermier cu felinar
     if(see&&!e.chasing){e.alert=28;e.puzzled=0;if(G.t-G.lastAlert>30){sfx.alert();G.lastAlert=G.t;}}
     e.chasing=see;
     if(e.puzzled>0){e.puzzled--;e.vx=0;if(e.puzzled===35)e.dir*=-1;}
     else if(e.alert>0){e.alert--;e.vx=0;if(Math.abs(dx)>2)e.dir=Math.sign(dx);}
     else if(e.chasing&&!(e.lost>0)&&!e.cd&&e.onGround&&Math.abs(dx)<30&&Math.abs(dy)<12){
-      // Curcanul e foarte aproape și la aceeași înălțime: începe atacul.
+      // Curcanul e foarte aproape și la aceeași înălțime
       e.atk=1;e.vx=0;e.dir=Math.sign(dx)||e.dir;sfx.windup();
     }else{
       if(e.chasing&&Math.abs(tdx)>6)e.dir=Math.sign(tdx);
       const sp=e.chasing?0.8:0.35;e.vx=e.dir*sp;
-      // La marginea unei gropi sau în fața țepilor: când te urmărește se oprește (nu sare), altfel se întoarce.
+      // La marginea unei gropi sau în fața țepilor
       if(e.onGround&&(!groundAhead(e,e.dir)||spikeAhead(e,e.dir))){if(e.chasing)e.vx=0;else{e.dir*=-1;e.vx=e.dir*sp;}}
     }
   }
@@ -68,7 +64,7 @@ function updateMan(e){
   moveX(e);if(e.hitWall&&!e.atk){if(e.chasing&&e.onGround)e.vy=-5.6;else if(!e.chasing)e.dir*=-1;}
   moveY(e);
   if(e.y+e.h>WATER_Y&&overPit(e)){enterWater(e);return;}
-  // Ajuns totuși cu picioarele pe țepi (de exemplu căzând de sus): moare și zboară de pe ecran.
+  // Ajuns totuși cu picioarele pe țepi
   if(e.onGround&&standsOnSpikes(e)){killMan(e,2,200);sfx.stomp();return;}
   if(moving)e.anim+=e.chasing?1.6:1;
   if(e.y>H+20)e.remove=true;

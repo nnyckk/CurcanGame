@@ -1,63 +1,61 @@
 'use strict';
-// ================= BOMBA: comportamentul (fitil, stat în fund, alunecare, explozie) =================
+// ===== BOMBA: comportamentul =====
 function lightBomb(e){if(e.type!=='bomb'||e.frozen)return;if(!e.lit){e.lit=96;sfx.fuse();}}
-// Bomba lovită de un dușman înghețat: e aruncată de pe ecran ca fermierii (întoarsă, cu fitilul stins, fără explozie).
+// Bomba lovită de un dușman înghețat
 function knockBomb(e){
   e.dead=2;e.deadT=120;e.lit=0;e.sit=false;e.slideDir=0;e.vy=-4.5;e.vx=(Math.random()<0.5?-1:1)*1.2;
   addScore(100,e.x+6,e.y-4);
 }
-// Lovită (sărită în cap sau de o pană), bomba se așază în fund pe loc și se aprinde.
-// Prima dată primește fitil nou, ca să ai timp s-o împingi; apelată din nou (bomba alunecă), doar o oprește.
+// Lovită, bomba se așază în fund pe loc și se aprinde
 function sitBomb(e){
   if(!e.sit){addScore(100,e.x+6,e.y-4);e.lit=BOMB_SIT_FUSE;sfx.fuse();}
   e.sit=true;e.slideDir=0;e.vx=0;
 }
-// Bomba care stă în fund e solidă din lateral: curcanul se oprește lângă ea (nu intră în ea) și o împinge.
+// Bomba care stă în fund e solidă din lateral
 function pushBomb(e,box){
   const p=player,d=Math.sign((e.x+e.w/2)-(p.x+p.w/2))||p.face;
-  // Scoate curcanul din bombă ca dintr-un perete (moveX ține cont de pereții din spatele lui).
+  // Scoate curcanul din bombă ca dintr-un perete
   const pen=d>0?(p.x+p.w)-box.x:(box.x+box.w)-p.x;
   if(pen>0){const vx=p.vx;p.vx=-d*pen;moveX(p);p.vx=vx;}
   if(!e.kickT)kickBomb(e,d);
 }
-// Pornește bomba din nou cu viteză maximă — și când e oprită, și când o ajungi din urmă sau vine spre tine.
+// Pornește bomba din nou cu viteză maximă
 function kickBomb(e,d){
   e.slideDir=d;e.slideT=0;e.dir=d;e.kickT=12;sfx.kick();dust(e.x+6,e.y+e.h,2);
 }
 function explode(e){
   const cx=e.x+6,cy=e.y+6,R=38;booms.push({x:cx,y:cy,t:0});sfx.boom();G.shake=14;
   for(let i=0;i<22;i++){const a=Math.random()*TAU,s=1+Math.random()*2.5;parts.push({x:cx,y:cy,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1,g:0.08,life:30+Math.random()*20|0,max:50,col:['#fff3a0','#ffb02a','#ff5a1a','#6a5a62'][i%4],s:3});}
-  if(!player.dead){const dx=player.x+player.w/2-cx,dy=player.y+player.h/2-cy;if(dx*dx+dy*dy<R*R)hurt(Math.sign(dx)||1);}
+  // Te prinde explozia unei bombe pe care ai așezat-o / împins-o chiar tu
+  if(!player.dead){const dx=player.x+player.w/2-cx,dy=player.y+player.h/2-cy;
+    if(dx*dx+dy*dy<R*R){if(e.byPlayer&&player.inv<=0&&!G.god&&G.state==='play')achUnlock('autogol');hurt(Math.sign(dx)||1);}}
   for(const o of enemies){if(o===e||o.dead||o.remove||o.sink)continue;const dx=o.x+o.w/2-cx,dy=o.y+o.h/2-cy;
     if(dx*dx+dy*dy<R*R){if(o.frozen)shatter(o,300);else if(o.type==='man')killMan(o,2,300);else o.lit=o.lit?Math.min(o.lit,12):12;}}
-  // Boss-ul e mare: îl prinde explozia dacă e cât de cât aproape (o lovitură).
-  // Orice explozie îl rănește dacă e lângă el (de aceea nu-și aruncă niciodată bombele aproape de el).
+  // Boss-ul e mare
   if(bossFighting()){const dx=boss.x+boss.w/2-cx,dy=boss.y+boss.h/2-cy;if(dx*dx+dy*dy<(R+14)*(R+14))bossHit(Math.sign(dx)||1);}
   const t0=Math.floor((cy-R)/TS),t1=Math.floor((cy+R)/TS),l0=Math.floor((cx-R)/TS),l1=Math.floor((cx+R)/TS);
   for(let ty=t0;ty<=t1;ty++)for(let tx=l0;tx<=l1;tx++){if(tileAt(tx,ty)!=='B'&&tileAt(tx,ty)!=='P')continue;const dx=tx*TS+8-cx,dy=ty*TS+8-cy;if(dx*dx+dy*dy<R*R)breakBrick(tx,ty);}
-  // Explozia sparge și gheața lacurilor pe care o atinge (gaura îngheață la loc după câteva secunde, ca de obicei).
+  // Explozia sparge și gheața lacurilor pe care o atinge
   let ice=false;
   for(let tx=l0;tx<=l1;tx++){if(tileAt(tx,12)!=='I')continue;const dx=tx*TS+8-cx,dy=12*TS+3-cy;if(dx*dx+dy*dy<R*R){breakIce(tx,true);ice=true;}}
   if(ice)sfx.iceBreak();
 }
 function updateBomb(e){
-  // Aruncată de pe ecran (knockBomb): cade ca fermierii, cu pleosc doar dacă trece de nivelul apei deasupra unei gropi.
+  // Aruncată de pe ecran: cade ca fermierii
   if(e.dead){e.deadT--;e.vy+=0.35;e.y+=e.vy;e.x+=e.vx;
     if(!e.wet&&e.y+e.h>WATER_Y){e.wet=true;if(overPit(e))splash(e.x+e.w/2);}
     if(e.deadT<=0)e.remove=true;return;}
   if(e.sink){sinkStep(e);return;}
   if(e.frozen){updateFrozen(e);return;}
   if(e.kickT>0)e.kickT--;
-  // Încruntată când curcanul e în fața ei, destul de aproape (aprinsă e oricum furioasă — vezi drawEnemy).
+  // Încruntată când curcanul e în fața
   const sdx=(player.x+player.w/2)-(e.x+6),sdy=(player.y+player.h)-(e.y+e.h);
   e.angry=!player.dead&&Math.sign(sdx)===e.dir&&Math.abs(sdx)<120&&Math.abs(sdy)<48;
   if(e.sit){
-    // Stă în fund: nu mai fuge după curcan. Împinsă, alunecă (ricoșează din pereți, cade de pe margini)
-    // și trece pe lângă mobi; explodează doar când i se termină fitilul, luând cu ea pe cei din jur.
-    // Aruncată de boss: zboară în arc (păstrează viteza) până atinge solul, apoi stă în fund.
+    // Stă în fund: nu mai fuge după curcan
     if(e.thrown){if(e.onGround){e.thrown=false;e.vx=0;sfx.bump();}}
     else if(e.slideDir){
-      e.slideT+=onIce(e)?0.5:1;  // pe gheață alunecă de două ori mai mult
+      e.slideT+=onIce(e)?0.5:1;   // pe gheață alunecă de două ori mai mult
       if(e.slideT>=BOMB_SLIDE_T){e.slideDir=0;e.vx=0;}
       else{e.vx=e.slideDir*bombSlideSpeed(e.slideT);if(e.onGround&&G.t%3===0&&Math.abs(e.vx)>0.8)dust(e.x+6,e.y+e.h,1);}
     }else e.vx=0;

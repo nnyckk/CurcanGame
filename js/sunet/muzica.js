@@ -1,16 +1,15 @@
 'use strict';
-// ================= MUZICA: melodiile și sequencer-ul =================
-// --- Music sequencer ---
+// ===== MUZICA: melodiile și sequencer-ul =====
+// --- Music sequencer
 const NOTE={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
 function P(str){return str.trim().split(/\s+/).map(t=>{if(t==='-')return 0;if(t==='.')return -1;const m=t.match(/^([A-G])(b|#)?(\d)$/);return 12*(+m[3]+1)+NOTE[m[1]]+(m[2]==='#'?1:m[2]==='b'?-1:0);});}
 function bassBars(bars){const out=[];for(const b of bars)for(let h=0;h<2;h++){const r=b[h]??b[0];for(let e=0;e<4;e++)out.push(e%2?r+12:r,0);}return out;}
-// Piesa cafenelei e în swing: 3 pași pe timp (optimi de triolet), 12 pe măsură. Basul „walking” = o notă pe fiecare
-// timp; acordurile = câte o listă de [pasul din măsură, acordul, câți pași ține] pentru fiecare măsură.
+// Piesa cafenelei e în swing: 3 pași pe timp
 function walkBass(bars){const out=[];for(const b of bars)for(const n of b)out.push(n,0,0);return out;}
 function chordTrack(bars){const out=[];for(const bar of bars){const a=new Array(12).fill(0);for(const [st,n,d] of bar)a[st]={n,d};out.push(...a);}return out;}
-// Acordurile, fără fundamentală (o cântă basul), cu note apropiate de la unul la altul, ca la pian.
+// Acordurile, fără fundamentală
 const JZ={F:[57,60,64,67],D7:[54,57,60,64],Gm:[58,62,65,69],C7:[58,62,64,69],Am:[55,60,64,67],Bb:[57,62,65,69],Bbm:[56,61,65,68],Eb7:[55,58,61,65]};
-// Ritmul acordurilor: o măsură cu un acord = pe 1 și pe „și”-ul lui 2 (ritmul Charleston); cu două = câte unul pe jumătate.
+// Ritmul acordurilor
 const comp1=c=>[[0,JZ[c],2],[5,JZ[c],7]],comp2=(a,b)=>[[0,JZ[a],5],[6,JZ[b],6]];
 const SONGS={
   main:{bpm:120,loop:true,drums:'k.h.s.h.k.khs.h.',
@@ -29,7 +28,7 @@ const SONGS={
             D5 - Eb5 - F#5 - Eb5 D5 C5 - D5 - Bb4 - A4 -
             G4 A4 Bb4 A4 G4 F#4 Eb4 F#4 D4 - - - . . . .`),
     bass:bassBars([[38],[39,38],[38],[43,38]])},
-  // Noaptea la fermă: aceeași gamă, dar o octavă mai jos, mai lent, cu un sunet moale (triunghi) și tobe rare.
+  // Noaptea la fermă: aceeași gamă, dar o octavă mai jos
   night:{bpm:92,loop:true,leadType:'triangle',leadVol:0.17,drums:'k.......h...h...',
     lead:P(`D4 - - - A3 - - - Bb3 - A3 - G3 - - -
             F#3 - - - G3 - A3 - Bb3 - - - A3 - - -
@@ -40,8 +39,7 @@ const SONGS={
             G3 - - - Bb3 - A3 - G3 - F#3 - Eb3 - - -
             D3 - - - - - - - . . . . . . . .`),
     bass:bassBars([[38],[43,38],[39],[36,38],[38],[43],[39,36],[38,45]])},
-  // Iarna în pădurea de brazi: aceeași gamă, dar sus, cu note scurte și moi (sinus, leadMax = cel mult 3 pași),
-  // ca niște clopoței; tobe rare, cu „zurgălăi” (hi-hat).
+  // Iarna în pădurea de brazi: aceeași gamă, dar sus
   winter:{bpm:104,loop:true,leadType:'sine',leadVol:0.13,leadMax:3,drums:'k...h.h.h...h.h.',
     lead:P(`D5 - F#5 - A5 - G5 F#5 Eb5 - D5 - A4 - - -
             Bb4 - D5 - G5 - F#5 Eb5 D5 - C5 - D5 - - -
@@ -52,9 +50,7 @@ const SONGS={
             Bb4 - C5 - D5 - Eb5 - F#5 - G5 - A5 - - -
             G5 - F#5 - Eb5 - C5 - D5 - - - . . . .`),
     bass:bassBars([[38],[46,45],[38],[43,38],[45],[43],[46,48],[38]])},
-  // MesoCafe (cafeneaua din nivelul bonus): jazz lent și liniștit, în Fa major, în swing (bpm 66 × 3 pași pe timp =
-  // ~88 de timpi pe minut). Melodie moale (triunghi), acorduri de pian electric, bas walking, ride și perii. 16 măsuri:
-  // F | D7 | Gm | C7 | Am | D7 | Gm C7 | F || Bb | Bbm Eb7 | Am | D7 | Gm | C7 | F D7 | Gm C7.
+  // MesoCafe: jazz lent și liniștit, în Fa major, în swing
   cafe:{bpm:66,loop:true,leadType:'triangle',leadVol:0.18,bassVol:0.36,chordVol:0.055,drums:'q..R.rr..R.r',
     lead:P(`. . . . . C5 E5 - - D5 - C5     A4 - - - - . F#4 - A4 C5 - -
             Bb4 - - - - A4 Bb4 - D5 F5 - -   E5 - - - - . D5 - C5 Bb4 - G4
@@ -68,7 +64,7 @@ const SONGS={
       [46,50,53,47],[46,49,51,46],[45,48,52,51],[50,42,45,44],[43,46,50,49],[48,46,43,40],[41,45,50,44],[43,50,48,40]]),
     chords:chordTrack([comp1('F'),comp1('D7'),comp1('Gm'),comp1('C7'),comp1('Am'),comp1('D7'),comp2('Gm','C7'),comp1('F'),
       comp1('Bb'),comp2('Bbm','Eb7'),comp1('Am'),comp1('D7'),comp1('Gm'),comp1('C7'),comp2('F','D7'),comp2('Gm','C7')])},
-  // Lupta cu Fermierul-Șef: aceeași gamă, rapid și apăsat, cu tobe dese și basul care nu se oprește.
+  // Lupta cu Fermierul-Șef: aceeași gamă, rapid și apăsat
   boss:{bpm:152,loop:true,drums:'k.hsk.hsk.hsk.ss',
     lead:P(`D5 - D5 Eb5 D5 - C5 - D5 - A4 - - - - -
             D5 - D5 Eb5 F#5 - Eb5 - D5 - - - . . . .
@@ -98,13 +94,13 @@ function sched(){
     const li=i%s.lead.length,L=s.lead[li];
     if(L>0){let n=1;while(n<16&&s.lead[(li+n)%s.lead.length]===0&&(s.loop||li+n<s.lead.length))n++;if(s.leadMax)n=Math.min(n,s.leadMax);tone(s.leadType||'pulse',mtof(L),seq.next,sd*n*0.95,s.leadVol||0.1,musicG);}
     if(s.bass&&s.bass.length){const bi=i%s.bass.length,B=s.bass[bi];if(B>0){let n=1;while(n<16&&s.bass[(bi+n)%s.bass.length]===0)n++;tone('triangle',mtof(B),seq.next,sd*n*0.9,s.bassVol||0.3,musicG);}}
-    // Acordurile (doar la piesa cafenelei): {n: notele, d: câți pași țin}, ca un pian electric moale.
+    // Acordurile: {n: notele, d: câți pași țin}
     if(s.chords){const c=s.chords[i%s.chords.length];if(c)for(const m of c.n)tone('sine',mtof(m),seq.next,sd*c.d,s.chordVol||0.04,musicG);}
     if(s.drums){const d=s.drums[i%s.drums.length],t=seq.next;
       if(d==='k')tone('sine',160,t,0.12,0.5,musicG,40);
       else if(d==='s')noise(t,0.12,0.22,musicG,1800);
       else if(d==='h')noise(t,0.03,0.1,musicG,7000);
-      // Jazz: r = ride (un „țss” moale și lung), R = ride + perie pe tobă, q = ride + o tobă mare abia atinsă.
+      // Jazz: r = ride, R = ride + perie pe tobă
       else if(d==='r'||d==='R'||d==='q'){noise(t,0.22,0.06,musicG,6500);
         if(d==='R')noise(t,0.16,0.1,musicG,2600,'bandpass');
         if(d==='q')tone('sine',105,t,0.16,0.26,musicG,52);}}

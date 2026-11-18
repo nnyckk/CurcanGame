@@ -1,7 +1,6 @@
 'use strict';
-// ================= DEȘERTUL (scos din joc, păstrat pentru mai târziu): harta =================
-// Deșertul (fostul nivel 5, noaptea): scos din joc deocamdată, păstrat pentru mai târziu. Tema lui (THEMES[2]) a rămas
-// și se poate vedea în arena din modul de test. Ca să revină, se pune DESERT_LEVEL înapoi în LEVELS.
+// ===== DEȘERTUL: harta =====
+// Deșertul: scos din joc deocamdată
 const DESERT_LEVEL=
  {theme:2,tip:'MESOPOTAMIA E APROAPE. DAR NU EȘTI SINGUR PE DRUM, FIULE...',build(){const m=newMap(250);m.g(0,249);
   m.c(6,10,4);m.r(12,8,'MBHBM');

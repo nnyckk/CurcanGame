@@ -1,14 +1,13 @@
 'use strict';
-// ================= TEMELE NIVELURILOR, TILE-URILE, FUNDALURILE =================
-// Placa de gheață a lacurilor: 7 rânduri (alb sus, apoi tot mai albastru), de la nivelul solului în jos.
+// ===== TEMELE NIVELURILOR, TILE-URILE, FUNDALURILE =====
+// Placa de gheață a lacurilor: 7 rânduri
 const ICE_SLAB=7,ICE_ROWS=['#ffffff','#e6f6fe','#e6f6fe','#c4e6f6','#c4e6f6','#c4e6f6','#a6d2ea'];
 const THEMES=[
  {name:'AVENTURA ÎNCEPE',farm:true,sky:['#4fb4f0','#6cc6f6','#8ed6fa','#b4e6fc'],sun:{x:330,y:42,r:14,c:'#fff6b0',c2:'#ffe070'},far:'#9ac4dc',farL:'#b4d6e8',
   mid:'hills',midC:'#5cae48',midL:'#7ccc5c',midD:'#3e8a36',clouds:true,cloudC:'#ffffff',cloudS:'#cfe8f4',
   grass:'#5cc23a',grassL:'#8ae060',grassD:'#3a8a28',dirt:'#9a5a2a',dirtD:'#6e3c18',dirtL:'#b87440',
   water:{body:'#3a8ee8',deep:'#2662b8',top:'#a8e0ff',foam:'#ffffff',glint:'#ffffff'}},
- // Pădurea de brazi iarna (nivelul 4): munți înzăpeziți în spate, dealuri albe cu brazi, zăpadă pe jos și pe blocuri,
- // fulguire ușoară și lacuri înghețate. „grass” e aici zăpada de deasupra solului, „dirt” pământul înghețat.
+ // Pădurea de brazi iarna: munți înzăpeziți în spate
  {name:'ALUNECUȘ',snow:true,sky:['#94bee2','#acd0ec','#c4def2','#dae9f6'],sun:{x:318,y:40,r:11,c:'#fffdf2',c2:'#f4eccc'},
   far:'#a9bcd2',farL:'#bfcfe0',farHill:'#c8d7e6',farHillL:'#e4ecf4',
   mid:'forest',midC:'#dbe7f1',midL:'#f6f9fc',midD:'#bccdde',clouds:true,cloudN:3,cloudC:'#ffffff',cloudS:'#cfdbe8',
@@ -18,23 +17,19 @@ const THEMES=[
   mid:'dunes',midC:'#2c2848',midL:'#3c3660',midD:'#1c1830',clouds:false,stars:true,
   grass:'#e8c47a',grassL:'#f8dc98',grassD:'#c8a058',dirt:'#b8864a',dirtD:'#8a5e30',dirtL:'#d0a060',
   water:{body:'#1c2c64',deep:'#0e1640',top:'#6a8ad0',foam:'#c8d8ff',glint:'#f0f4ff'}},
- // Ferma noaptea (nivelul 2). Fundalul are culori de noapte; solul, apa și personajele folosesc culorile de zi,
- // iar umbra albastră de noapte se pune peste ele la desenare (night:true), ca toată lumea să arate la fel.
+ // Ferma noaptea
  {name:'ORA DE CULCARE',farm:true,night:true,sky:['#070a1c','#0c1230','#141c44','#1e2a58'],moon:{x:300,y:38,r:10},stars:true,
   far:'#1c2448',farL:'#2c3864',mid:'hills',midC:'#1c3a30',midL:'#2a5444',midD:'#12281f',
   clouds:true,cloudN:3,cloudC:'#2e3862',cloudS:'#1e2648',
   grass:'#5cc23a',grassL:'#8ae060',grassD:'#3a8a28',dirt:'#9a5a2a',dirtD:'#6e3c18',dirtL:'#b87440',
   water:{body:'#3a8ee8',deep:'#2662b8',top:'#a8e0ff',foam:'#ffffff',glint:'#ffffff'}},
 ];
-// Lacul (nivelul 3): tot ferma ziua, cu alt nume. Fiind altă temă, fundalul iese aranjat altfel (alt rng).
-// lake = pe lac e viață: rațe, pești, libelule, broaște (vezi VIAȚA LACULUI).
+// Lacul: tot ferma ziua, cu alt nume
 THEMES.push(Object.assign({},THEMES[0],{name:'MARELE ALBASTRU',lake:true}));
-// Noaptea de iarnă (nivelul 5): pădurea de brazi noaptea. Cerul are culori de noapte, lună și stele; munții, brazii și
-// norii din fundal se desenează ca ziua și apoi se întunecă (vezi getBG); solul, gheața și personajele primesc umbra
-// de noapte la desenare (night:true), ca la ferma noaptea — deci și felinarele fermierilor.
+// Noaptea de iarnă: pădurea de brazi noaptea
 THEMES.push(Object.assign({},THEMES[1],{name:'MINUS GRADE',night:true,sun:null,moon:{x:92,y:42,r:10},stars:true,
   sky:['#070a1c','#0b1230','#121c44','#1c2a58']}));
-// Popasul la MesoCafe (nivelul bonus, la începutul iernii): pădurea de brazi ziua, cu alt nume (alt rng la fundal).
+// Popasul la MesoCafe: pădurea de brazi ziua, cu alt nume
 THEMES.push(Object.assign({},THEMES[1],{name:'BONUS'}));
 const tileCache={},bgCache={};
 function getTiles(ti){
@@ -47,51 +42,47 @@ function getTiles(ti){
   for(let x=0;x<16;x++){if((x*5+3)%4<2)g.fillRect(x,4,1,1);if((x*7)%5===0)g.fillRect(x,5,1,1);}
   g.fillStyle=th.grassL;g.fillRect(0,0,16,1);g.fillStyle=th.grassD;[2,6,9,13].forEach(x=>g.fillRect(x,2,1,1));T.G=c;
   if(th.farm){
-    // Variante de iarbă și pământ (alese după poziție în drawTiles), ca solul să nu arate repetitiv.
+    // Variante de iarbă și pământ
     const stone=(g,x,y,small)=>{const w=small?2:3;g.fillStyle='#7a6a5a';g.fillRect(x,y,w,2);g.fillStyle='#a8988a';g.fillRect(x,y,w-1,1);g.fillStyle='#4a3a2a';g.fillRect(x,y+2,w,1);};
     const from=base=>{const [c,g]=mkCanvas(16,16);g.drawImage(base,0,0);return [c,g];};
     T.Gv=[T.G];T.Dv=[T.D];
     [c,g]=from(T.G);[[3,1,'#ffffff'],[11,2,'#ffe14a'],[7,0,'#ff8ac0']].forEach(([x,y,col])=>{g.fillStyle=col;g.fillRect(x,y,1,1);});T.Gv.push(c);   // flori mici
     [c,g]=from(T.G);g.fillStyle=th.grassD;[[1,1],[4,2],[5,1],[10,1],[14,2]].forEach(([x,y])=>g.fillRect(x,y,1,2));
-    g.fillStyle=th.grassL;g.fillRect(4,0,3,1);g.fillRect(12,0,2,1);T.Gv.push(c);                                                                      // smocuri
-    [c,g]=from(T.G);stone(g,10,10);T.Gv.push(c);                                                                                                        // pietricică
-    [c,g]=from(T.D);stone(g,4,5);T.Dv.push(c);                                                                                                          // piatră
-    [c,g]=from(T.D);g.fillStyle=th.dirtD;[[2,3],[3,4],[4,4],[5,5],[6,5],[7,6],[6,7],[8,6],[9,7]].forEach(([x,y])=>g.fillRect(x,y,1,1));T.Dv.push(c); // rădăcină
-    [c,g]=from(T.D);stone(g,11,3,true);stone(g,3,11,true);T.Dv.push(c);                                                                                // pietricele
+    g.fillStyle=th.grassL;g.fillRect(4,0,3,1);g.fillRect(12,0,2,1);T.Gv.push(c);   // smocuri
+    [c,g]=from(T.G);stone(g,10,10);T.Gv.push(c);   // pietricică
+    [c,g]=from(T.D);stone(g,4,5);T.Dv.push(c);   // piatră
+    [c,g]=from(T.D);g.fillStyle=th.dirtD;[[2,3],[3,4],[4,4],[5,5],[6,5],[7,6],[6,7],[8,6],[9,7]].forEach(([x,y])=>g.fillRect(x,y,1,1));T.Dv.push(c);   // rădăcină
+    [c,g]=from(T.D);stone(g,11,3,true);stone(g,3,11,true);T.Dv.push(c);   // pietricele
   }
   if(th.snow){
-    // Solul de iarnă: un strat de zăpadă de 5-7 px, cu marginea de jos neregulată și umbrită, peste pământ înghețat.
-    // Variante: sclipiri, o piatră și o crenguță care ies din zăpadă; pământ cu pietre sau cu brumă.
+    // Solul de iarnă: un strat de zăpadă de 5-7 px
     const px=(g,x,y,w,h,col)=>{g.fillStyle=col;g.fillRect(x,y,w,h);};
     const mkG=extra=>{const [c,g]=mkCanvas(16,16);dirt(g,7);
       for(let x=0;x<16;x++){const d=5+((x*7+3)%5===0?1:0)+((x*3)%7===1?1:0);px(g,x,0,1,d,th.grass);px(g,x,d-1,1,1,th.grassD);}
       px(g,0,0,16,1,th.grassL);if(extra)extra(g);return c;};
     T.G=mkG();
     T.Gv=[T.G,
-      mkG(g=>{px(g,3,2,1,1,'#bfe8ff');px(g,11,1,1,1,'#ffffff');px(g,12,3,1,1,'#bfe8ff');px(g,7,3,1,1,'#dff4ff');}),        // sclipiri
-      mkG(g=>{px(g,9,1,4,3,'#7a7884');px(g,10,1,2,1,'#a4a2ae');px(g,9,0,4,1,th.grassL);px(g,9,3,4,1,'#55535e');}),          // piatră
-      mkG(g=>{[[3,3],[4,2],[5,2],[6,1],[7,0],[5,1]].forEach(([x,y])=>px(g,x,y,1,1,'#6a4a30'));})];                        // crenguță
+      mkG(g=>{px(g,3,2,1,1,'#bfe8ff');px(g,11,1,1,1,'#ffffff');px(g,12,3,1,1,'#bfe8ff');px(g,7,3,1,1,'#dff4ff');}),   // sclipiri
+      mkG(g=>{px(g,9,1,4,3,'#7a7884');px(g,10,1,2,1,'#a4a2ae');px(g,9,0,4,1,th.grassL);px(g,9,3,4,1,'#55535e');}),   // piatră
+      mkG(g=>{[[3,3],[4,2],[5,2],[6,1],[7,0],[5,1]].forEach(([x,y])=>px(g,x,y,1,1,'#6a4a30'));})];   // crenguță
     const mkD=extra=>{const [c,g]=mkCanvas(16,16);dirt(g,0);extra(g);return c;};
     T.D=mkD(()=>{});
     T.Dv=[T.D,
-      mkD(g=>{px(g,4,5,3,2,'#6e6c78');px(g,4,5,2,1,'#94929e');px(g,11,11,2,2,'#6e6c78');}),                                 // pietre
-      mkD(g=>{[[2,3],[9,6],[13,2],[6,12],[12,13]].forEach(([x,y])=>px(g,x,y,1,1,'#a8b8c8'));})];                            // brumă
+      mkD(g=>{px(g,4,5,3,2,'#6e6c78');px(g,4,5,2,1,'#94929e');px(g,11,11,2,2,'#6e6c78');}),   // pietre
+      mkD(g=>{[[2,3],[9,6],[13,2],[6,12],[12,13]].forEach(([x,y])=>px(g,x,y,1,1,'#a8b8c8'));})];   // brumă
   }
-  // Gheața lacurilor (I): doar o placă subțire de 7 px la suprafață; apa lacului de dedesubt e desenată în drawWater,
-  // la fel ca apa din copci, ca lacul să fie o singură apă. Crăpăturile (3 stadii) se pun peste placă.
+  // Gheața lacurilor
   {const w=th.water;
     T.Iv=[0,1].map(v=>{const [c,g]=mkCanvas(16,ICE_SLAB);
       ICE_ROWS.forEach((col,y)=>{g.fillStyle=col;g.fillRect(0,y,16,1);});
-      g.fillStyle='#ffffff';(v?[[9,2],[10,3],[11,4],[3,4],[4,5]]:[[2,2],[3,3],[4,4],[12,2],[13,3]]).forEach(([x,y])=>g.fillRect(x,y,1,1));  // luciu
+      g.fillStyle='#ffffff';(v?[[9,2],[10,3],[11,4],[3,4],[4,5]]:[[2,2],[3,3],[4,4],[12,2],[13,3]]).forEach(([x,y])=>g.fillRect(x,y,1,1));   // luciu
       return c;});
     T.I=T.Iv[0];
-    // Fundul lacului, opac (desenat înaintea personajelor), ca să nu se vadă fundalul prin apă: apă înghețată,
-    // tot mai închisă spre adânc, cu dungi deschise și bule prinse în gheață. Începe de la nivelul apei.
-    // (12*TS+5 = WATER_Y, care e declarat mai jos în fișier, după primul apel getTiles.)
+    // Fundul lacului, opac, ca să nu se vadă fundalul prin apă
     T.Lv=[0,1,2].map(v=>{const LH=H-(12*TS+5),[c,g]=mkCanvas(16,LH),r=rng(v*31+7);
       for(let y=0;y<LH;y++){g.fillStyle=y<7?'#5c9acb':y<13?'#4c8aba':y<19?'#3e78a8':'#305f8e';g.fillRect(0,y,16,1);}
-      g.fillStyle='#78b2da';for(let i=0;i<2;i++)g.fillRect(r()*10|0,4+(r()*12|0),3+(r()*5|0),1);                 // dungi
-      for(let i=0;i<3;i++){const bx=1+(r()*14|0),by=5+(r()*18|0);g.fillStyle='#a4d2ee';g.fillRect(bx,by,1,1);      // bule
+      g.fillStyle='#78b2da';for(let i=0;i<2;i++)g.fillRect(r()*10|0,4+(r()*12|0),3+(r()*5|0),1);   // dungi
+      for(let i=0;i<3;i++){const bx=1+(r()*14|0),by=5+(r()*18|0);g.fillStyle='#a4d2ee';g.fillRect(bx,by,1,1);   // bule
         if(i===0){g.fillStyle='#d8f0ff';g.fillRect(bx,by-1,1,1);}}
       return c;});
     const CR=[[[7,1],[8,2],[8,3],[9,4],[7,4],[6,5]],
@@ -99,10 +90,9 @@ function getTiles(ti){
               [[2,2],[1,2],[12,2],[13,3],[14,3],[6,1],[5,0],[13,6],[3,6],[2,5]]];
     T.Icrack=[1,2,3].map(n=>{const [c,g]=mkCanvas(16,7);
       for(let k=0;k<n;k++)CR[k].forEach(([x,y])=>{g.fillStyle='#4f86ac';g.fillRect(x,y,1,1);g.fillStyle='#ffffff';g.fillRect(x+1,y,1,1);});
-      if(n===3){g.fillStyle=w.body;[[8,3],[7,4],[10,4]].forEach(([x,y])=>g.fillRect(x,y,1,1));}                                 // apa se vede prin gheață
+      if(n===3){g.fillStyle=w.body;[[8,3],[7,4],[10,4]].forEach(([x,y])=>g.fillRect(x,y,1,1));}   // apa se vede prin gheață
       return c;});}
-  // Puțină zăpadă pe blocuri (iarna): un strat subțire, doar pe partea de sus a blocului (nu iese deasupra lui,
-  // ca să nu acopere ce iese din bloc), cu câteva picături de zăpadă pe muchie.
+  // Puțină zăpadă pe blocuri: un strat subțire
   T.cap=mkSprite([
     "WWWWWWWWWWWWWWWW",
     "wwwwwwwwwwwwwwww",
@@ -114,7 +104,7 @@ function getTiles(ti){
   g.fillRect(0,7,16,1);g.fillRect(0,15,16,1);g.fillRect(7,0,1,7);g.fillRect(15,0,1,7);g.fillRect(3,8,1,7);g.fillRect(11,8,1,7);
   g.fillStyle='#e6ae70';g.fillRect(0,0,7,1);g.fillRect(8,0,7,1);g.fillRect(0,8,3,1);g.fillRect(4,8,7,1);g.fillRect(12,8,4,1);
   g.fillStyle='#a86a34';g.fillRect(5,3,1,1);g.fillRect(12,4,1,1);g.fillRect(8,11,1,1);T.B=c;
-  // M block frames (galben); A = același bloc, albăstrui ca gheața, din care iese afina înghețată (doar înaintea boss-ului).
+  // M block frames
   const mBlock=(bases,o,hi,sh,dk)=>bases.map(base=>{const [c,g]=mkCanvas(16,16);
     g.fillStyle=o;g.fillRect(0,0,16,16);g.fillStyle=base;g.fillRect(1,1,14,14);
     g.fillStyle=hi;g.fillRect(1,1,14,1);g.fillRect(1,1,1,14);g.fillStyle=sh;g.fillRect(1,14,14,1);g.fillRect(14,1,1,14);
@@ -129,7 +119,7 @@ function getTiles(ti){
   [c,g]=mkCanvas(16,16);g.fillStyle='#3a3a48';g.fillRect(0,0,16,16);g.fillStyle='#8a8fa0';g.fillRect(1,1,14,14);
   g.fillStyle='#b8bccc';g.fillRect(1,1,14,2);g.fillRect(1,1,2,14);g.fillStyle='#5a5e6e';g.fillRect(1,13,14,2);g.fillRect(13,1,2,14);
   g.fillStyle='#6a6e7e';g.fillRect(6,5,1,3);g.fillRect(7,8,1,2);g.fillRect(8,10,2,1);T.X=c;
-  // Podeaua cafenelei (F, nivelul bonus): scânduri vechi de lemn închis, cu muchia de sus luminată și îmbinări.
+  // Podeaua cafenelei: scânduri vechi de lemn închis
   [c,g]=mkCanvas(16,16);g.fillStyle='#5a3a26';g.fillRect(0,0,16,16);g.fillStyle='#8a5c3a';g.fillRect(0,0,16,1);
   g.fillStyle='#6e4a30';g.fillRect(0,1,16,1);g.fillStyle='#462c1c';g.fillRect(0,6,16,1);g.fillRect(0,11,16,1);
   g.fillRect(9,2,1,4);g.fillRect(3,7,1,4);g.fillRect(12,12,1,4);
@@ -142,9 +132,9 @@ function getTiles(ti){
   g.fillStyle='#4a4a5a';g.fillRect(0,15,16,1);T['^']=c;
   return tileCache[ti]=T;
 }
-// Număr pseudo-aleator stabil pentru un tile (același de fiecare dată), folosit la variante și decor.
+// Număr pseudo-aleator stabil pentru un tile
 function vhash(x,y){let h=(x*374761393+y*668265263)|0;h=Math.imul(h^(h>>>13),1274126177);return (h^(h>>>16))>>>0;}
-// Jumătate din tile-uri sunt cele de bază, restul variante.
+// Jumătate din tile-uri sunt cele de bază
 function pickVar(arr,tx,ty){const h=vhash(tx,ty);return h%10<5?arr[0]:arr[1+((h>>>4)%(arr.length-1))];}
 function getBG(ti){
   if(bgCache[ti])return bgCache[ti];
@@ -156,20 +146,19 @@ function getBG(ti){
   if(th.stars){for(let i=0;i<90;i++){const x=R()*W|0,y=R()*150|0;sg.fillStyle=R()<0.2?'#ffe9a0':'#ffffff';sg.fillRect(x,y,1,1);if(R()<0.12){sg.fillRect(x-1,y,3,1);sg.fillRect(x,y-1,1,3);}}}
   if(th.sun){pcirc(sg,th.sun.x,th.sun.y,th.sun.r+3,th.sun.c2);pcirc(sg,th.sun.x,th.sun.y,th.sun.r,th.sun.c);}
   if(th.moon){const m=th.moon;pcirc(sg,m.x,m.y,m.r+4,'#2a3a7a');pcirc(sg,m.x,m.y,m.r,'#f4f0d8');sg.fillStyle='#d8d2b8';sg.fillRect(m.x-4,m.y-3,3,3);sg.fillRect(m.x+3,m.y+2,4,3);sg.fillRect(m.x-1,m.y+5,2,2);}
-  // far layer
-  // Iarna straturile sunt mai late (1200 px), ca munții să fie rari: între ei trec bucăți întregi de ecran fără munți.
+  // far layer Iarna straturile sunt mai late
   const FW=th.snow?1200:800,[far,fg]=mkCanvas(FW,H);
   const wrap=fn=>{fn(0);fn(-FW);fn(FW);};
   fg.fillStyle=th.far;
   const hill=x=>(148+Math.sin(x*TAU*2/FW)*9+Math.sin(x*TAU*5/FW)*4)|0;
   for(let x=0;x<FW;x++)fg.fillRect(x,hill(x),1,H);
-  // Ferma (nivelul 1): siluete de fermă în loc de ziguraturi și palmieri. Celelalte niveluri rămân cum erau.
+  // Ferma: siluete de fermă în loc de ziguraturi și palmieri
   let dyn=null;
   if(th.farm)dyn=farmFar(fg,th,R,hill,FW);
   else if(th.snow)snowFar(fg,th,R,hill,FW);
   else{
   [[170,150],[560,148]].forEach(([zx,base])=>wrap(o=>{const x0=zx+o,sh=11;
-    // fundație până jos, ca zigguratul să stea pe deal (nu să plutească)
+    // fundație până jos, ca zigguratul să stea pe deal
     fg.fillStyle=th.far;fg.fillRect(x0-59,base,118,H-base);
     for(let s=0;s<4;s++){const w=118-s*26,y=base-(s+1)*sh;fg.fillStyle=th.far;fg.fillRect(x0-w/2,y,w,sh);fg.fillStyle=th.farL;fg.fillRect(x0-w/2,y,w,1);}
     fg.fillStyle=th.farL;fg.fillRect(x0-5,base-4*sh,10,4*sh);fg.fillStyle=th.far;for(let y=base-4*sh;y<base;y+=3)fg.fillRect(x0-5,y,10,1);
@@ -184,7 +173,7 @@ function getBG(ti){
     mg.fillStyle=th.midD;for(let i=0;i<60;i++){const x=R()*FW|0;const h=(170+Math.sin(x*TAU*3/FW)*12+Math.sin(x*TAU*7/FW+1)*6)|0;mg.fillRect(x,h+6+(R()*14|0),2,2);}
     if(th.farm)farmTrees(mg,th,R,FW);}
   else if(th.mid==='forest'){
-    // Dealuri albe, line, și câteva pâlcuri de brazi înzăpeziți.
+    // Dealuri albe, line
     const mh=x=>(172+Math.sin(x*TAU*3/FW)*10+Math.sin(x*TAU*7/FW+1)*5)|0;
     for(let x=0;x<FW;x++){const h=mh(x);mg.fillStyle=th.midC;mg.fillRect(x,h,1,H);mg.fillStyle=th.midL;mg.fillRect(x,h,1,2);}
     forestFirs(mg,R,FW,mh);}
@@ -196,13 +185,13 @@ function getBG(ti){
     const blobs=[];for(let j=0;j<k;j++)blobs.push([cx+j*10-k*5,cy-(j%2?4:0)-(R()*4|0),7+(R()*5|0)]);
     blobs.forEach(([x,y,r])=>pcirc(cg,x,y+3,r,th.cloudS));blobs.forEach(([x,y,r])=>pcirc(cg,x,y,r,th.cloudC));cg.clearRect(0,cy+8,FW,0);}
     clouds=cl;}
-  // Iarna: încă un strat, mai aproape (paralaxă 0,7) — doi brazi mari, rari, ca și cum am fi chiar în pădure.
+  // Iarna: încă un strat, mai aproape — doi brazi mari, rari
   let near=null;
   if(th.snow){const [nc,ng]=mkCanvas(FW,H);
     for(let i=0;i<FW/400;i++){const x=150+i*400+(R()*90|0),hgt=64+(R()*22|0);
       for(const o of [0,-FW,FW])fir(ng,x+o,206,hgt,'#3d6a5c','#e8f0f6','#bccbd8','#4a3a30');}
     near=nc;}
-  // Iarna noaptea: munții, brazii și norii se întunecă cu albastru de noapte (doar pixelii lor, nu și cerul dintre ei).
+  // Iarna noaptea: munții
   if(th.snow&&th.night)for(const c of [far,mid,clouds,near])if(c){const g=c.getContext('2d');
     g.globalCompositeOperation='source-atop';g.fillStyle='rgba(8,14,44,0.6)';g.fillRect(0,0,c.width,c.height);g.globalCompositeOperation='source-over';}
   return bgCache[ti]={sky,far,mid,clouds,dyn,near,night:!!th.night};
