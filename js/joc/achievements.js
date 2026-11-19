@@ -11,18 +11,19 @@ const ACH=[
   {id:'fulger',name:'FULGER',desc:'TERMINI UN NIVEL CU CEL PUȚIN 200 DE SECUNDE RĂMASE.'},
   {id:'nemuritor',name:'NEMURITOR',desc:'TERMINI TOT JOCUL FĂRĂ SĂ PIERZI NICIO VIAȚĂ.'},
   {id:'umbra',name:'UMBRĂ ÎN NOAPTE',desc:'TERMINI ORA DE CULCARE FĂRĂ SĂ TE VADĂ VREUN FERMIER.'},
-  {id:'vultur',name:'OCHI DE VULTUR',desc:'NIMEREȘTI 2UP LA BLOCUL DIN CAFENEA.'},
   {id:'piroman',name:'PIROMAN',desc:'DOBORI 100 DE DUȘMANI CU PENELE DE FOC.'},
   {id:'glaciara',name:'ERA GLACIARĂ',desc:'L-AI ÎNGHEȚAT PE FERMIERUL-ȘEF CU PENELE DE GHEAȚĂ.',secret:true},
   {id:'nepot',name:'NEPOT ASCULTĂTOR',desc:'AI AJUNS DE 10 ORI LA CAFENEAUA LUI MOȘ CURCAN.',secret:true},
   {id:'cap',name:'CAP TARE',desc:'AI DAT DE 30 DE ORI CU CAPUL ÎN BLOCUL GOL.',secret:true},
   {id:'inot',name:'CURCANII NU ÎNOATĂ',desc:'AI CĂZUT ÎN APĂ DE 10 ORI.',secret:true},
   {id:'autogol',name:'AUTOGOL',desc:'TE-AI ARUNCAT ÎN AER CU PROPRIA BOMBĂ.',secret:true},
+  {id:'speleolog',name:'SPELEOLOG',desc:'AI DESCOPERIT TOATE PEȘTERILE DIN JOC.',secret:true},
 ];
 const ACH_KEY=TEST?'curcan_ach_test':'curcan_ach';
 let ACH_SAVE={},achToasts=[];   // achToasts = casetele de „deblocat”
 try{ACH_SAVE=JSON.parse(localStorage.getItem(ACH_KEY)||'{}')||{};}catch(e){}
-const achGot=id=>!!ACH_SAVE[id];
+const ACH_ALL=/[?&]achall\b/.test(location.search);   // ?achall: le arată pe toate deblocate, fără să salveze
+const achGot=id=>ACH_ALL||!!ACH_SAVE[id];
 const achCount=()=>ACH.filter(a=>achGot(a.id)).length;
 // quiet = fără casetă
 function achUnlock(id,quiet){
@@ -31,7 +32,12 @@ function achUnlock(id,quiet){
   if(!quiet)achToasts.push({id,t:0});
 }
 // La pornire: ce ai făcut deja în jocurile trecute
-function achRetro(){if(goldOK())achUnlock('pene',true);if(MOS.wins>0)achUnlock('pofta',true);if(MOS.cafe>=10)achUnlock('nepot',true);}
+function achRetro(){if(goldOK())achUnlock('pene',true);if(MOS.wins>0)achUnlock('pofta',true);if(MOS.cafe>=10)achUnlock('nepot',true);if(allCaves())achUnlock('speleolog',true);}
+// Peșterile: nivelurile care au una și cele în care ai intrat (ținute minte de la un joc la altul)
+let CAVE_LEVELS=null;
+const caveLevels=()=>CAVE_LEVELS||(CAVE_LEVELS=LEVELS.filter(d=>!d.arena&&d.build().underDef).map(d=>d.id));
+const allCaves=()=>caveLevels().every(id=>(MOS.caves||[]).includes(id));
+function achCave(){const id=LEVELS[G.level].id;MOS.caves=MOS.caves||[];if(!MOS.caves.includes(id)){MOS.caves.push(id);mosSave();}if(allCaves())achUnlock('speleolog');}
 // Dușmanii doborâți cu foc, adunați de la un joc la altul
 function achBurn(){MOS.burns=(MOS.burns||0)+1;mosSave();if(MOS.burns>=100)achUnlock('piroman');}
 // La finalul unui nivel

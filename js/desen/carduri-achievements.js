@@ -38,13 +38,16 @@ const ACH_DRAW={
     for(let y=1;y<27;y++)for(let x=1;x<27;x++){const a=u(x+0.5,y+0.5);   // tija
       if(Math.abs(v(x+0.5,y+0.5))<=0.6&&a>=-10&&a<=9)R(x,y,1,1,a<-5?'#e0b050':'#fff8e0');}
   },
-  bogatas(g,R){   // cuibul cu bani
+  bogatas(g,R){   // cuib scund de crenguțe, cu bani
     const coin={k:'#5a3008',f:'#f5c030',l:'#fff0a0',d:'#a8641a'};
-    artShape(g,inCirc(6.5,13.5,3.2),coin);artShape(g,inCirc(21.5,13.5,3.2),coin);
-    g.drawImage(COIN,8,4);   // bănuțul din joc
-    const twig=(x,y)=>Math.floor(x+y*2)%5===0||Math.floor(x-y*2+100)%5===0?'#7a4a1a':'#a0682a';   // crenguțe împletite
-    artShape(g,(x,y)=>y>=14&&inEll(14,15,12.5,9)(x,y),{k:'#2a1606',f:twig,l:'#c89050',d:'#5a3410'});
-    R(0,14,3,1,'#7a4a1a');R(25,13,3,1,'#7a4a1a');R(2,13,1,1,'#a0682a');R(25,15,2,1,'#a0682a');   // crenguțe care ies
+    artShape(g,inEll(14,15,11,2),{f:'#2a1606'});   // golul cuibului
+    artShape(g,inCirc(7,13,3.2),coin);artShape(g,inCirc(21,13,3.2),coin);
+    g.drawImage(COIN,8,5);   // bănuțul din joc
+    // Crenguțe curbate, în două nuanțe, cu câte o linie închisă între ele
+    const twig=(x,y)=>{const t=y-2.6*((x-14)/13)**2,band=Math.floor(t/2);
+      return t-band*2<0.7&&vhash(band,Math.floor((x+band*4)/5))%3?'#6a4020':band%2?'#b8824a':'#d8a868';};
+    artShape(g,(x,y)=>y>=15&&inEll(14,15,13,6.5)(x,y),{k:'#1e1006',f:twig,l:'#f0cc90',d:'#5a3418'});
+    for(const [x,y,c] of [[0,16,'#b8824a'],[1,17,'#b8824a'],[27,15,'#b8824a'],[26,16,'#b8824a'],[25,20,'#8e5c2e']])R(x,y,1,1,c);   // crenguțe care ies
     artStar(R,23,6,'#ffffff');
   },
   zgarietura(g,R){   // scutul
@@ -76,10 +79,6 @@ const ACH_DRAW={
   umbra(g,R){   // luna
     artShape(g,(x,y)=>inCirc(13,14,9)(x,y)&&!inCirc(18,10.5,7.5)(x,y),{k:'#1a0c30',f:'#b48ae8',l:'#e0c8ff',d:'#7a50b8'});
     artStar(R,19,11,'#ffffff');R(23,5,1,1,'#ffffff');R(15,6,1,1,'#e0c8ff');
-  },
-  vultur(g,R){   // ținta
-    artShape(g,(x,y)=>{const r=Math.hypot(x-14,y-14),ax=Math.abs(x-14),ay=Math.abs(y-14);
-      return (r>=6.5&&r<=9)||r<=1.6||(ax<=1&&ay>=5&&ay<=11)||(ay<=1&&ax>=5&&ax<=11);},{k:'#06222a',f:'#3ad0e0',l:'#a0f4ff',d:'#1a8aa0'});
   },
   piroman(g,R){   // flacăra
     artShape(g,inAny(inEll(14,18.5,7,6.5),inPoly([[7.2,17],[20.8,17],[16,2]]),inPoly([[7.5,16],[10.5,13],[6.5,8]])),{k:'#3a0a02',f:'#ff5a1a',l:'#ffa040',d:'#c02a0a'});
@@ -117,6 +116,13 @@ const ACH_DRAW={
     artShape(g,(x,y)=>pool(x,y)&&y>=15.5+1.6*Math.sin(x*0.7+1),{k:'#08183a',f:'#3a8ae8',l:'#9ad4ff',d:'#1e5ab8'});
     artShape(g,(x,y)=>pool(x,y)&&y>=20.5+1.2*Math.sin(x*0.7+3)&&inEll(14,17,11.5,7.5)(x,y),{f:'#2a6ad0'});
     for(const [bx,by,r] of [[23,4,1.8],[4,6,1.3]])artShape(g,(x,y)=>{const d=Math.hypot(x-bx,y-by);return d<=r&&d>=r-1.1;},{f:'#bfe8ff'});
+  },
+  speleolog(g,R){   // gura peșterii, cu cristale înăuntru
+    artShape(g,(x,y)=>inEll(14,17,12,12)(x,y)&&y<=25,{k:'#0c0a14',f:'#7a6a5a',l:'#a8988a',d:'#4a3e34'});
+    artShape(g,(x,y)=>inEll(14,19,7.5,9)(x,y)&&y<=25,{f:'#1a1424'});
+    const cr={k:'#2a1050',f:'#a070f0',l:'#e0c8ff',d:'#6a3ab8'},prism=(cx,w,top)=>inPoly([[cx-w,25],[cx-w,top+w],[cx,top],[cx+w,top+w],[cx+w,25]]);
+    artShape(g,prism(11,1.6,17),cr);artShape(g,prism(17,1.6,18),cr);artShape(g,prism(14,2.2,12),cr);
+    artStar(R,22,6,'#ffffff');
   },
   autogol(g,R){   // bomba din joc (culorile, ochii furioși, picioarele), cu fitilul aprins
     const P=BOMB_PAL;

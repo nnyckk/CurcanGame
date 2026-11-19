@@ -65,7 +65,6 @@ function slotHit(){
 function slotPrize(){
   const c=cafe,r=c.res,x=(c.sx+1)*TS,y=c.sy*TS;
   c.done=true;c.bump=0;c.react=r;c.reactT=55;setSlotTiles(c,'E');G.slotUsed={level:G.level,res:r};MOS.slot=r;mosSave();   // comentariul vine puțin
-  if(r===SLOT_2UP)achUnlock('vultur');   // OCHI DE VULTUR
   // Boaba de foc / afina: ți se pune direct
   if(r===SLOT_FIRE||r===SLOT_ICE){const p=player,px=p.x+p.w/2;sparkle(px,p.y+p.h/2);if(r===SLOT_FIRE)powerFire(px,p.y);else powerIce(px,p.y);}
   else if(r===SLOT_2UP){G.lives+=2;sfx.oneup();popup('+2 VIEȚI!',x,y-16,'#7fff7f');sparkle(x,y-6);}

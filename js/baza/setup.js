@@ -1,6 +1,6 @@
 'use strict';
 // ===== SETUP: ecranul, constantele de bază, utilitare =====
-const GAME_VERSION='0.9.8.7';
+const GAME_VERSION='0.9.9';
 // Modul de test: arenă de test, comenzi din test.html
 const TEST=/[?&]test\b/.test(location.search);
 const W=400,H=224,TS=16,ROWS=14,TAU=Math.PI*2;

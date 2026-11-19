@@ -32,7 +32,7 @@ function subGo(dir,at){const p=player;G.subT=DOOR_T;G.subDir=dir;G.subAt=at;p.vx
 function subTeleport(){
   const p=player,u=under;
   if(G.subDir==='down'){
-    G.inUnder=true;const c=G.subAt==='in'?u.a+2:u.ex;p.x=c*TS+(SUB_SHAFT*TS-p.w)/2;p.y=-p.h;p.vy=1;playSong('cave');
+    G.inUnder=true;achCave();const c=G.subAt==='in'?u.a+2:u.ex;p.x=c*TS+(SUB_SHAFT*TS-p.w)/2;p.y=-p.h;p.vy=1;playSong('cave');
     cam.x=underCam();
   }else{
     G.inUnder=false;holeBurst(u.x2,true);p.x=u.x2*TS+(SUB_SHAFT*TS-p.w)/2;p.y=12*TS-p.h;p.vy=-6.5;p.vx=1.6;p.face=1;p.pop=20;p.walkOff=false;p.airMax=WALK_AIR;playSong(LEVELS[G.level].song||'main');
