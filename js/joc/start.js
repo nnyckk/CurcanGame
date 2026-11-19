@@ -27,7 +27,9 @@ function startLevel(quiet){
   cps=m.cps.map(x=>{const done=atCp&&x<=G.cp.x;return {x:x*TS,tx:x,on:done,raise:done?1:0};});
   const sx=atCp?G.cp.x*TS+3:2*TS+3;
   const big=!!G.carryBig;
-  player={x:sx,y:12*TS-(big?20:13),w:big?12:10,h:big?20:13,big,fire:big&&!!G.carryFire,ice:big&&!!G.carryIce,vx:0,vy:0,face:1,onGround:false,coyote:0,jbuf:0,inv:0,anim:0,combo:0,dead:false,alpha:1};
+  // Pe sol, chiar dacă pământul de acolo e mai sus (insulă înălțată, deal)
+  let gy=12;const gx=[Math.floor(sx/TS),Math.floor((sx+11)/TS)];while(gy>0&&gx.some(c=>solid(tileAt(c,gy-1))))gy--;
+  player={x:sx,y:gy*TS-(big?20:13),w:big?12:10,h:big?20:13,big,fire:big&&!!G.carryFire,ice:big&&!!G.carryIce,vx:0,vy:0,face:1,onGround:false,coyote:0,jbuf:0,inv:0,anim:0,combo:0,dead:false,alpha:1};
   G.growT=0;
   G.time=300;G.frame=0;G.paused=false;G.tally=0;
   cam.x=clamp(player.x-W*0.4,0,cols*TS-W);

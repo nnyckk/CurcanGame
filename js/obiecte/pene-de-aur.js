@@ -81,7 +81,7 @@ function goldSaveLevel(){
   G.goldHeld=[];G.goldNow=[];
   if(!G.goldRun.length)return;
   GOLD_SAVE[def.id]=mask;goldStore();
-  if(!before&&goldOK()){G.goldUnlockNow=true;G.goldSkin=true;saveSettings();}
+  if(!before&&goldOK())G.goldUnlockNow=true;   // curcanul de aur se pornește doar din setări
 }
 // Penele din nivel: plutesc și strălucesc
 function drawGolds(cx){

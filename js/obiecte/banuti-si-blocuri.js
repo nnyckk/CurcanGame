@@ -35,6 +35,7 @@ function hitBlock(tx,ty,top){
   else if(c==='S')slotHit();   // blocul-slot din cafenea
   else if(c==='E'){sfx.bump();cafeBonk();}   // blocul-slot gol
   else sfx.bump();
+  if(!'MHABPVS'.includes(c))return;   // doar blocurile pline lovesc ce e deasupra; pământul și blocul gol nu
   for(const e of enemies){if(e.dead||e.remove||!e.active)continue;
     if(overlap(e,{x:tx*TS,y:ty*TS-4,w:TS,h:5})){if(e.frozen)shatter(e,200);else if(e.type==='man')killMan(e,2,200);else lightBomb(e);}}
 }

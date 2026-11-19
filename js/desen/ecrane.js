@@ -139,7 +139,7 @@ function drawClearCard(){
   // Tocmai ai strâns toate penele din joc
   if(G.goldUnlockNow){const uw=232,ux=W/2-uw/2,uy=y+h+6;
     uiBox(ux,uy,uw,30,'#3a2a08','#ffd23f','#5a4010','#1a1004');
-    txt('AI TOATE PENELE DE AUR!',W/2,uy+5,'#ffd23f',1,'c',null);txt('CURCANUL DE AUR E AL TĂU!',W/2,uy+17,'#ffffff',1,'c',null);}
+    txt('AI TOATE PENELE DE AUR!',W/2,uy+5,'#ffd23f',1,'c',null);txt('PORNEȘTE CURCANUL DE AUR DIN SETĂRI!',W/2,uy+17,'#ffffff',1,'c',null);}
   ctx.globalAlpha=1;
 }
 // Ecranul de dinaintea nivelului
