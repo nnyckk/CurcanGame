@@ -20,15 +20,16 @@ function addCoin(x,y){
   G.coins++;G.lvlCoins=(G.lvlCoins||0)+1;addScore(100);sfx.coin();   // lvlCoins: bănuții din nivelul ăsta
   if(G.coins>=50){G.coins-=50;G.lives++;sfx.oneup();popup('1 VIAȚĂ!',x,y-10,'#7fff7f');}
 }
-function hitBlock(tx,ty){
-  const c=tileAt(tx,ty);
+// top = lovit de sus (lovitura în pământ): ce iese din bloc iese pe dedesubt, dacă e loc
+function hitBlock(tx,ty,top){
+  const c=tileAt(tx,ty),dn=!!top&&!solid(tileAt(tx,ty+1)),iy=dn?ty*TS+5:ty*TS;
   if(c==='M'||c==='H'||c==='A'){
     grid[ty][tx]='U';bumps.push({tx,ty,t:0});
-    if(c==='M'){parts.push({type:'coin',x:tx*TS+8,y:ty*TS-6,vx:0,vy:-5.5,g:0.35,life:26,max:26});addCoin(tx*TS+8,ty*TS);}
+    if(c==='M'){parts.push(dn?{type:'coin',x:tx*TS+8,y:(ty+1)*TS+4,vx:0,vy:0.8,g:0.1,life:14,max:14}:{type:'coin',x:tx*TS+8,y:ty*TS-6,vx:0,vy:-3.6,g:0.35,life:16,max:16});addCoin(tx*TS+8,dn?(ty+1)*TS+8:ty*TS);}
     // Blocul de gheață: mereu afina înghețată
-    else if(c==='A'){items.push({type:'ice',x:tx*TS+3,y:ty*TS,w:10,h:11,vx:0,vy:0,rise:11,dir:1});sfx.sprout();}
+    else if(c==='A'){items.push({type:'ice',x:tx*TS+3,y:iy,w:10,h:11,vx:0,vy:0,rise:11,down:dn,dir:1});sfx.sprout();}
     // Curcan mic → grăunte auriu
-    else{items.push({type:player.big?(theme.snow?'ice':'berry'):'grain',x:tx*TS+3,y:ty*TS,w:10,h:11,vx:0,vy:0,rise:11,dir:player.x<tx*TS?1:-1});sfx.sprout();}
+    else{items.push({type:player.big?(theme.snow?'ice':'berry'):'grain',x:tx*TS+3,y:iy,w:10,h:11,vx:0,vy:0,rise:11,down:dn,dir:player.x<tx*TS?1:-1});sfx.sprout();}
   }else if(c==='B'||c==='P'){if(player.big)breakBrick(tx,ty);else{bumps.push({tx,ty,t:0});sfx.bump();}}
   else if(c==='V'){grid[ty][tx]='U';bumps.push({tx,ty,t:0});sfx.bump();goldFromTile(tx,ty);}   // blocul invizibil apare
   else if(c==='S')slotHit();   // blocul-slot din cafenea

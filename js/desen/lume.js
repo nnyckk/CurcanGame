@@ -2,7 +2,7 @@
 // ===== DESEN: lumea nivelului =====
 function drawWorld(){
   const sh=G.shake>0?Math.round((Math.random()-0.5)*4):0;
-  const cx=Math.round(cam.x)+sh;
+  const cx=clamp(Math.round(cam.x)+sh,0,cols*TS-W);   // zguduirea nu arată marginea hărții
   // În cafenea, camera dinăuntru ține loc de cer și fundal
   const lift=inCafe()?0:Math.round(G.lift||0),vy=inCafe()?CAFE_VY:-lift;ctx.save();ctx.translate(0,vy);
   if(inCafe())drawCafeRoom(cx);else if(inUnder())drawUnderBG(cx);else drawBG();

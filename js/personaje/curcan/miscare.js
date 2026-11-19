@@ -75,7 +75,7 @@ function poundLand(){
   if(poundHole()){p.pound=-1;p.vy=POUND_VY;p.onGround=false;return;}
   const ty=Math.floor((p.y+p.h+1)/TS),x0=Math.floor(p.x/TS),x1=Math.floor((p.x+p.w-1)/TS);
   let broke=false;
-  for(let tx=x0;tx<=x1;tx++)if('MHABP'.includes(tileAt(tx,ty))){hitBlock(tx,ty);if(tileAt(tx,ty)==='.')broke=true;}
+  for(let tx=x0;tx<=x1;tx++)if('MHABP'.includes(tileAt(tx,ty))){hitBlock(tx,ty,true);if(tileAt(tx,ty)==='.')broke=true;}
   const ice=iceUnder(p);ice.forEach(tx=>breakIce(tx));
   let free=!p.plat;for(let tx=x0;tx<=x1;tx++){const c=tileAt(tx,ty);if(solid(c)||c==='=')free=false;}
   if((broke||ice.length)&&free){p.pound=-1;p.vy=POUND_VY;p.onGround=false;}
