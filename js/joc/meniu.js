@@ -13,9 +13,14 @@ function settingsItems(){return [
   {label:'MUZICĂ',val:()=>G.music,act:toggleMusic},
   {label:'EFECTE SONORE',val:()=>G.sfx,act:()=>{G.sfx=!G.sfx;saveSettings();applyAudio();}},
   ...(FS_OK?[{label:'ECRAN COMPLET',val:isFS,act:toggleFS}]:[]),
-  ...(goldOK()?[{label:'CURCAN DE AUR',val:()=>!!G.goldSkin,act:()=>{G.goldSkin=!G.goldSkin;saveSettings();}}]:[]),
+  ...(goldOK()?[{label:'CURCAN DE AUR',gold:true,val:()=>!!G.goldSkin,act:()=>{G.goldSkin=!G.goldSkin;saveSettings();}}]:[]),
   {label:'CONTROALE',sub:true,act:()=>openMenu('controls')},
   {label:'ÎNAPOI',act:()=>menuBack()}];}
+// Meniul e deschis: pe ecranul de titlu sau pe pauză, în timpul jocului
+const menuOn=()=>G.state==='title'||(G.state==='play'&&G.paused&&!TEST);
+function pauseOpen(){G.paused=true;sfx.pause();applyAudio();openMenu('pause');}
+function pauseClose(){G.paused=false;sfx.pause();applyAudio();}
+function toMainMenu(){G.paused=false;applyAudio();G.state='title';stopSong();playSong('title');openMenu('main');}
 function openMenu(m,sel=0){if(m==='settings')MENU.settings=settingsItems();G.menu=m;G.sel=sel;G.hover=-1;}
 // Paginile meniului: principal → SETĂRI → CONTROALE
 const MENU={
@@ -26,6 +31,12 @@ const MENU={
     {label:'PENE',badge:'pene',act:()=>openMenu('pene')},
     {label:'ACHIEVEMENTS',badge:'ach',act:()=>{G.achPage=0;openMenu('ach');}}],
   settings:[],   // vezi settingsItems
+  // Pauza din joc (ESC)
+  pause:[
+    {label:'CONTINUĂ',act:()=>pauseClose()},
+    {label:'REIA NIVELUL',act:()=>{G.cp=null;startLevel();}},
+    {label:'SETĂRI',sub:true,act:()=>openMenu('settings')},
+    {label:'IEȘI LA MENIU',act:()=>toMainMenu()}],
   controls:[
     {label:'ÎNAPOI',act:()=>menuBack()}],
   pene:[
@@ -37,15 +48,18 @@ const MENU={
 // Înapoi: o pagină mai sus
 function menuBack(){
   if(G.menu==='controls')openMenu('settings',MENU.settings.findIndex(it=>it.label==='CONTROALE'));
-  else if(G.menu==='settings')openMenu('main',1);
+  else if(G.menu==='settings')openMenu(G.state==='play'?'pause':'main',G.state==='play'?2:1);
+  else if(G.menu==='pause')pauseClose();
   else if(G.menu==='pene'||G.menu==='ach')openMenu('main',0);
 }
 // Unde stă fiecare buton, în pixeli de joc
-const goldBadgeRect=()=>{const s=goldFound()+'/'+goldTotal();return {x:106,y:H-19,w:50+[...s].length*6,h:15,s};};
+// Insignele de jos, în dreapta recordului: PENE, ACHIEVEMENTS
+const BADGE_W=50;   // PENE și ACHIEVEMENTS: doar iconița și numărul
+const goldBadgeRect=()=>({x:106,y:H-19,w:BADGE_W,h:15,s:goldFound()+'/'+goldTotal()});
 function menuRects(){
   const m=G.menu,items=MENU[m],h=15;
   if(m==='ach')return achRects(items);
-  const L=m==='main'?{w:96,gap:5,y0:102}:m==='settings'?{w:168,gap:4,y0:54}:m==='pene'?{w:96,gap:0,y0:152}:{w:96,gap:0,y0:156};
+  const L=m==='main'?{w:96,gap:5,y0:102}:m==='settings'?{w:168,gap:4,y0:76}:m==='pause'?{w:120,gap:5,y0:78}:m==='pene'?{w:96,gap:0,y0:168}:{w:96,gap:0,y0:156};
   return items.map((it,i)=>it.badge?Object.assign({it},it.badge==='ach'?achBadgeRect():goldBadgeRect())
     :{it,x:W/2-L.w/2,y:L.y0+i*(h+L.gap)+(m==='settings'&&i===items.length-1?6:0),w:L.w,h});
 }
@@ -58,6 +72,7 @@ function menuPick(i){const it=MENU[G.menu][i];if(it.pg){achFlip(it.pg,0,false);r
 function menuHover(i){G.hover=i;const it=MENU[G.menu][i];if(it&&!it.badge&&!it.pg)G.sel=i;}
 function menuKey(code){
   if(G.menu==='ach'&&code.startsWith('Arrow')){achMenuKey(code);return;}
+  if(code==='KeyP'&&G.state==='play'){pauseClose();return;}   // P: înapoi în joc, din orice pagină
   // Săgețile trec doar prin butoanele obișnuite
   const idx=MENU[G.menu].map((it,i)=>it.badge?-1:i).filter(i=>i>=0),n=idx.length;
   if(code==='ArrowUp'||code==='ArrowDown'){const k=Math.max(0,idx.indexOf(G.sel));G.sel=idx[(k+(code==='ArrowUp'?-1:1)+n)%n];sfx.blip();}

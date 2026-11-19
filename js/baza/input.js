@@ -5,7 +5,7 @@ const keys={},pressed={},touch={left:0,right:0,jump:0,run:0};
 addEventListener('keydown',e=>{
   if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown','Space'].includes(e.code))e.preventDefault();
   initAudio();
-  if(!keys[e.code]){pressed[e.code]=true;if(G.state==='title')menuKey(e.code);}
+  if(!keys[e.code]){const m=menuOn();if(m)menuKey(e.code);if(!m||e.code==='KeyM')pressed[e.code]=true;}   // tastele meniului nu ajung și la joc
   keys[e.code]=true;
 });
 addEventListener('keyup',e=>{keys[e.code]=false;});
@@ -36,7 +36,7 @@ document.querySelectorAll('[data-k]').forEach(b=>{
 });
 // În meniu, butoanele se apasă la „click”
 let downOnTitle=false;
-cv.addEventListener('pointerdown',()=>{initAudio();downOnTitle=G.state==='title';if(!downOnTitle)pressed.Tap=true;});
-cv.addEventListener('click',e=>{initAudio();if(G.state!=='title'||!downOnTitle)return;const i=menuHit(e);if(i>=0)menuPick(i);});
-cv.addEventListener('pointermove',e=>{const i=G.state==='title'?menuHit(e):-1;menuHover(i);cv.style.cursor=i>=0?'pointer':'';});
+cv.addEventListener('pointerdown',()=>{initAudio();downOnTitle=menuOn();if(!downOnTitle)pressed.Tap=true;});
+cv.addEventListener('click',e=>{initAudio();if(!menuOn()||!downOnTitle)return;const i=menuHit(e);if(i>=0)menuPick(i);});
+cv.addEventListener('pointermove',e=>{const i=menuOn()?menuHit(e):-1;menuHover(i);cv.style.cursor=i>=0?'pointer':'';});
 cv.addEventListener('pointerleave',()=>{G.hover=-1;});

@@ -26,7 +26,8 @@ try{GOLD_SAVE=JSON.parse(localStorage.getItem(GOLD_KEY)||'{}')||{};}catch(e){}
 if(!GOLD_SAVE._v){const o=GOLD_SAVE.noapte||0;if(o)GOLD_SAVE.noapte=((o>>2)&1)|((o&1)<<1)|(((o>>1)&1)<<2);GOLD_SAVE._v=1;
   try{localStorage.setItem(GOLD_KEY,JSON.stringify(GOLD_SAVE));}catch(e){}}
 function goldStore(){GOLD_OK=null;try{localStorage.setItem(GOLD_KEY,JSON.stringify(GOLD_SAVE));}catch(e){}}
-const goldSaved=(id,i)=>!!((GOLD_SAVE[id]||0)&(1<<i));
+const GOLD_ALL=/[?&]penall\b/.test(location.search);   // ?penall: le arată pe toate găsite, fără să salveze
+const goldSaved=(id,i)=>GOLD_ALL||!!((GOLD_SAVE[id]||0)&(1<<i));
 // Câte pene are fiecare nivel
 const goldCounts=()=>GOLD_COUNTS||(GOLD_COUNTS=LEVELS.map(d=>d.arena?0:d.build().golds.length));
 const goldTotal=()=>goldCounts().reduce((a,b)=>a+b,0);
@@ -103,8 +104,7 @@ function drawGolds(cx){
 // Penița mică: st = 'got', 'ghost' sau 'empty'
 function drawGoldMini(x,y,st,flash){
   if(st==='empty'){icon(GOLD_MINI,x,y,'#4a4466');return;}
-  icon(GOLD_MINI,x+1,y+1,'#5a3a08');
   if(st==='ghost')ctx.globalAlpha=0.45;
-  icon(GOLD_MINI,x,y,flash&&(flash>>2)%2?'#ffffff':'#ffd23f');ctx.fillStyle='#fff3b0';ctx.fillRect(x+1,y+2,1,3);
+  if(flash&&(flash>>2)%2)icon(GOLD_MINI,x,y,'#ffffff');else drawPix(FEATHER_PIX,x,y);   // aceeași peniță peste tot
   ctx.globalAlpha=1;
 }

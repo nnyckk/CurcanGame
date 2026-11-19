@@ -23,7 +23,7 @@ function render(){
         if(G.stateT>120&&(G.t>>5)%2===0)txt('ENTER - JOACĂ DIN NOU',W/2,211,'#7fff7f',1,'c',null);}
       // În modul de test, pauza e doar o etichetă sus
       if(G.state==='play'&&G.paused){if(TEST)txt('PAUZĂ',W/2,20,'#ffd23f',1,'c','#000');
-        else{panel(130,80,140,50);txt('PAUZĂ',W/2,90,'#ffd23f',2,'c','#7a2a0a');txt('P - CONTINUĂ',W/2,112,'#fff',1,'c',null);}}
+        else drawPauseMenu();}
   }
   if(!G.music)drawMusicOff();
   drawAchToast();   // „ACHIEVEMENT!” deblocat

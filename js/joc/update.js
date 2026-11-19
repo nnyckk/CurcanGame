@@ -125,7 +125,7 @@ function update(){
       {const n=Math.floor(introTipN()),len=[...(G.tip||'')].length;if(n>0&&n<len&&G.stateT%3===0)sfx.talk();}   // Moș Curcan vorbește
       if(G.stateT>40&&startPressed())startLevel();break;
     case 'play':
-      if(pressed.KeyP||pressed.Escape){G.paused=!G.paused;sfx.pause();applyAudio();}
+      if(pressed.KeyP||pressed.Escape){if(TEST){G.paused=!G.paused;sfx.pause();applyAudio();}else if(G.paused)pauseClose();else pauseOpen();}
       // G.stepOnce: pe pauză, jocul avansează un singur cadru
       if(!G.paused||G.stepOnce){G.stepOnce=false;updatePlay();}break;
     case 'dying':updateDying();updateFx();break;

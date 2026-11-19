@@ -64,12 +64,19 @@ function drawAchToast(){
 }
 // ---- Pagina din meniu ----
 // Insigna din meniul principal, în dreapta celei cu penele
-function achBadgeRect(){const g=goldBadgeRect(),s=achCount()+'/'+ACH.length;return {x:g.x+g.w+4,y:H-19,w:99+[...s].length*6,h:15,s};}
+function achBadgeRect(){return {x:106+BADGE_W+4,y:H-19,w:BADGE_W,h:15,s:achCount()+'/'+ACH.length};}
+// Medalia: panglică sus, banul rotund jos
+const MEDAL_RIB=['#.....#','##...##','.##.##.'],MEDAL=['..###..','.#####.','###o###','.#####.','..###..'];
+function drawMedalIcon(x,y,on){
+  if(on)[...MEDAL_RIB,...MEDAL].forEach((r,j)=>{for(let i=0;i<7;i++)if(r[i]!=='.'){ctx.fillStyle='#5a1008';ctx.fillRect(x+i+1,y+j+1,1,1);}});   // umbra, doar la hover
+  MEDAL_RIB.forEach((r,j)=>{for(let i=0;i<7;i++)if(r[i]==='#'){ctx.fillStyle=i<3?'#e8323e':i>3?'#3a86e8':'#ffffff';ctx.fillRect(x+i,y+j,1,1);}});
+  MEDAL.forEach((r,j)=>{for(let i=0;i<7;i++)if(r[i]!=='.'){ctx.fillStyle=r[i]==='o'?(on?'#ffffff':'#fff3b0'):j<2&&i<4?'#fff0a0':'#ffd23f';ctx.fillRect(x+i,y+3+j,1,1);}});
+}
 function drawAchBadge(b,on){
   const {x,y,w,h,s}=b,ty=y+4;
   if(on)uiBox(x,y,w,h,'#e8323e','#ffffff','#ff6a72','#a01822');else uiBox(x,y,w,h);
-  icon(CUP_ICON,x+5,ty,on?'#ffffff':'#ffd23f');
-  txt('ACHIEVEMENTS',x+15,ty,on?'#ffffff':'#ffd23f',1,'l',on?'#7a0a10':null);txt(s,x+w-6,ty,'#ffffff',1,'r',on?'#7a0a10':null);
+  drawMedalIcon(x+5,y+3,on);
+  txt(s,x+w-6,ty,'#ffffff',1,'r',on?'#7a0a10':null);
 }
 // Cartonașele: câte 8 pe pagină, 4 pe rând
 const ACH_PER=8,ACH_ROW=4,CARD_W=50,CARD_H=54,CARD_GAP=30,CARD_VGAP=8,CARD_PIC=31;   // CARD_PIC = înălțimea părții cu iconița
