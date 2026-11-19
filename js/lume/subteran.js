@@ -1,13 +1,13 @@
 'use strict';
 // ===== CAMERA DE SUB PĂMÂNT =====
 // Intri printr-o gaură în sol; ecranul se întunecă și ajungi în peșteră
-const SUB_CEIL=7,SUB_SHAFT=2,WALK_AIR=2;
+let SUB_CEIL=7;const SUB_SHAFT=2,WALK_AIR=2;   // tavanul: setat de fiecare peșteră
 let under=null;
 const inUnder=()=>!!under&&!!G.inUnder;
 // Cafeneaua sau peștera: nu mai ești pe drumul nivelului
 const inRoom=()=>inCafe()||inUnder();
 // Peștera: x, x2 = găurile din sol; a = prima coloană a camerei; w = lățimea
-function makeUnder(d){const u={x:d.x,x2:d.x2,a:d.a,w:d.w,opt:d.opt,ex:d.a+d.w-4};   // ex = puțul de ieșire
+function makeUnder(d){SUB_CEIL=(d.opt&&d.opt.ceil)||7;const u={x:d.x,x2:d.x2,a:d.a,w:d.w,opt:d.opt,ex:d.a+d.w-4};   // ex = puțul de ieșire
   if(G.underOpen===G.level)openHoles(u);return u;}
 // Găurile sunt ascunse până le folosești prima dată; apoi rămân deschise în nivelul ăsta
 const holesOpen=()=>!!under&&grid[12][under.x]==='Y';
@@ -52,11 +52,11 @@ function updateUnder(){
 // ---- Viața din peșteră ----
 // Unde se termină tavanul / unde începe podeaua, pe coloana tx
 const ceilY=tx=>{let y=SUB_CEIL;while(y<12&&grid[y][tx]==='D')y++;return y*TS;};
-const floorY=tx=>{let y=SUB_CEIL;while(y<12&&grid[y][tx]!=='D')y++;return y*TS;};
+const floorY=tx=>{let y=ceilY(tx)/TS;while(y<12&&!'DX'.includes(grid[y][tx]))y++;return y*TS;};
 function caveDeco(){
   const u=under;if(u.deco)return u.deco;
   const o=u.opt||{},col=i=>u.a+i,falls=(o.fall||[]).map(col),pool=o.pool?[col(o.pool[0]),col(o.pool[1])]:null;
-  const d={tites:[],mites:[],webs:[],shrooms:[],bats:[],drips:[],roots:[],gems:[],falls:[],pool:null,rings:[]};
+  const d={pit:[],tites:[],mites:[],webs:[],shrooms:[],bats:[],drips:[],roots:[],gems:[],falls:[],pool:null,rings:[]};
   const shaft=tx=>(tx>=u.a+2&&tx<u.a+4)||(tx>=u.ex&&tx<u.ex+SUB_SHAFT);
   for(let tx=u.a+1;tx<u.a+u.w-1;tx++){if(shaft(tx))continue;const h=vhash(tx,77);
     // Cât loc e sub tavan până la primul bloc
@@ -67,12 +67,13 @@ function caveDeco(){
     if(nearBlock&&!falls.includes(tx))continue;
     if(falls.includes(tx))d.falls.push({x:tx*TS+3,y:cy,len:Math.min(26,room),w:10,big:true,st:'wait',t:0,vy:0,floor:floorY(tx)});
     else if(h%3===0||overPool)d.tites.push({x:tx*TS+1+(h>>>3)%8,y:cy,len:Math.min(10+(h>>>7)%13,room),w:4+(h>>>11)%5,pool:overPool});
+    if(grid[12][tx]!=='D'){d.pit.push(tx);continue;}   // groapa cu țepi de piatră
     if(h%3===1&&grid[11][tx]==='.'&&!overPool)d.mites.push({x:tx*TS+1+(h>>>13)%8,y:floorY(tx),len:8+(h>>>15)%9,w:4+(h>>>17)%4});
     if(h%9===4&&!overPool)d.shrooms.push({x:tx*TS+4+(h>>>19)%7,y:floorY(tx)});
     if(h%9===2&&!falls.includes(tx))d.roots.push({x:tx*TS+3+(h>>>21)%10,y:cy,len:14+(h>>>23)%18,ph:h%17});
   }
   d.webs.push({x:(u.a+1)*TS,y:ceilY(u.a+1),dir:1},{x:(u.a+u.w-1)*TS,y:ceilY(u.a+u.w-2),dir:-1});
-  for(const i of [6,16]){const hx=col(i)*TS+8,hy=ceilY(col(i));d.bats.push({hx,hy,x:hx,y:hy+1,vx:0,vy:0,st:'hang',t:0,ph:i});}
+  for(const i of o.bats||[6,16]){const hx=col(i)*TS+8,hy=ceilY(col(i));d.bats.push({hx,hy,x:hx,y:hy+1,vx:0,vy:0,st:'hang',t:0,ph:i});}
   // Pietre în pereți, tavan și podea: pe tile-urile de pământ ale camerei
   d.stones=[];for(let tx=u.a;tx<u.a+u.w;tx++)for(let ty=0;ty<ROWS;ty++){if(grid[ty][tx]!=='D')continue;const h=vhash(tx,ty*13+5);
     if(h%6===0)d.stones.push({x:tx*TS+2+(h>>>3)%10,y:ty*TS+2+(h>>>7)%10,n:2+(h>>>11)%3,s:h>>>13});}
@@ -90,9 +91,11 @@ function caveDeco(){
   d.drips=d.tites.filter((s,i)=>s.pool||i%4===1).map((s,i)=>({x:s.x+(s.w>>1),y:s.y+s.len,t:40+i*37,pool:s.pool}));
   if(pool)d.pool={x0:pool[0]*TS+2,x1:(pool[1]+1)*TS-2,y:floorY(pool[0])};
   // Cristale: pe jos (i) sau în perete (['L'|'R', rând])
-  for(const g of o.gems||[]){
-    if(typeof g==='number')d.gems.push({x:col(g)*TS+3,y:floorY(col(g)),dir:-1,c:g%2});
-    else{const wl=g[0]==='L';d.gems.push({x:wl?(u.a+1)*TS:(u.a+u.w-1)*TS,y:g[1]*TS+8,dir:wl?1:2,c:wl?0:1});}}
+  // Pe jos: întâi foarte mare, apoi mic, apoi mare; în pereți: stânga mic, dreapta mare
+  let nf=0,k=0;for(const g of o.gems||[]){   // k: culoarea, pe rând
+    if(typeof g==='number')d.gems.push({x:col(g)*TS+3,y:floorY(col(g)),dir:-1,c:(u.a+k++)%3,sz:[2,0,1][nf++%3]});
+    else{const wl=g[0]==='L';d.gems.push({x:wl?(u.a+1)*TS:(u.a+u.w-1)*TS,y:g[1]*TS+8,dir:wl?1:2,c:(u.a+k++)%3,sz:wl?0:1});}}
+  d.webs=d.webs.filter(wb=>!d.gems.some(g=>Math.abs(g.x-wb.x)<24&&Math.abs(g.y-wb.y)<28));   // fără pânză peste cristale
   return u.deco=d;
 }
 // Liliecii, picăturile, cercurile din baltă, stalactitele care cad
@@ -195,18 +198,32 @@ function drawRoot(r,cx){
     ctx.fillStyle=j<3?'#4a3020':'#7a5636';ctx.fillRect(x+sw,r.y+j,1,1);
     if(j%7===4){ctx.fillStyle='#6a4a2c';ctx.fillRect(x+sw+(j%2?1:-1),r.y+j+1,1,2);}}
 }
-// Cristal: trei așchii colțuroase care strălucesc
-const GEM_COL=[['#c890ff','#8a50e0','#f0d8ff','190,130,255'],['#80d8ff','#3a90d0','#e0f8ff','120,200,255']];
+// Cristal: un mănunchi de prisme cu vârf ascuțit, fețe deschise / închise, și pietricele la bază
+const GEM_COL=[['#c890ff','#8a50e0','#f0d8ff','190,130,255','#4a2080'],['#80d8ff','#3a90d0','#e0f8ff','120,200,255','#1a4a80'],['#80f0a8','#30a860','#e0ffe8','120,240,160','#0e5030']];   // mov, albastru, verde
+// Trei mărimi: mic, mare, foarte mare (doar pe jos); prismele sunt alese la întâmplare: [deplasare, lățime, înălțime, înclinare]
+function gemPrisms(sz,seed){
+  const H=[12,21,33][sz],half=[5,9,14][sz],ns=[[2,4],[2,4,5],[5,6,7,8]][sz],R=k=>vhash(seed,k);
+  const n=ns[R(1)%ns.length],main=[5,7,9][sz],out=[[((R(2)%3)-1),main,H,0]];
+  for(let i=1;i<n;i++){const side=i%2?-1:1,o=side*(2+R(10+i)%(half-1)),w=R(20+i)%3===0&&sz?5:3+((R(30+i)%2)*2);
+    out.push([o,Math.min(w,main-2),Math.max(4,Math.round(H*(0.25+(R(40+i)%55)/100))),side*(R(50+i)%3===0?2:1)]);}
+  return out.sort((p,q)=>q[2]-p[2]);   // cele înalte în spate
+}
+const GEM_TOP=[12,21,33],GEM_HALF=[6,10,15];
 function drawGems(g,cx){
-  const x=Math.round(g.x-cx);if(x<-20||x>W+20)return;const [m,dk,lt,rgb]=GEM_COL[g.c];
-  const P=(px,py,c)=>{ctx.fillStyle=c;ctx.fillRect(px,py,1,1);};
-  // Așchie de lungime h, înclinată; vertical (pe jos) sau orizontal (din perete)
-  const shard=(bx,by,h,tilt,side)=>{for(let j=0;j<h;j++){const ww=j<2?1:3,o=Math.round(tilt*j/4)-(ww>>1);
-    for(let k=0;k<ww;k++){const c=k===0?lt:k===ww-1?dk:m;
-      if(side)P(bx+side*j,by+o+k,c);else P(bx+o+k,by-j,c);}}};
-  if(g.dir<0){glow(x+5,g.y-5,14+Math.sin(G.t*0.05+g.x)*2,rgb,0.4);shard(x+2,g.y-1,7,-3,0);shard(x+5,g.y-1,11,0,0);shard(x+8,g.y-1,6,3,0);}
-  else{const s=g.dir===1?1:-1;glow(x+s*5,g.y,14+Math.sin(G.t*0.05+g.x)*2,rgb,0.4);shard(x,g.y-3,6,-3,s);shard(x,g.y,9,0,s);shard(x,g.y+3,5,3,s);}
-  if((G.t+g.x)%90<6){const sx=g.dir<0?x+5:x+(g.dir===1?7:-7),sy=g.dir<0?g.y-11:g.y;ctx.fillStyle='#ffffff';ctx.fillRect(sx-1,sy,3,1);ctx.fillRect(sx,sy-1,1,3);}
+  const x=Math.round(g.x-cx);if(x<-30||x>W+30)return;const [m,dk,lt,rgb,ol]=GEM_COL[g.c];
+  // u = de-a latul, v = în lungul cristalului
+  const floor=g.dir<0,bx=floor?x+5:x,by=floor?g.y:g.y,s=g.dir===1?1:-1;
+  const P=(u,v,c)=>{ctx.fillStyle=c;if(floor)ctx.fillRect(bx+u,by-1-v,1,1);else ctx.fillRect(bx+s*v,by+u,1,1);};
+  const sz=g.sz||0,top=GEM_TOP[sz],hw=GEM_HALF[sz];
+  glow(floor?bx:bx+s*top/2,floor?by-top/2:by,top+6+Math.sin(G.t*0.05+g.x)*2,rgb,0.35);
+  for(const [o,w,h,ln] of g.pr||(g.pr=gemPrisms(sz,g.x*7+g.y))){const t=(w+1)>>1;
+    for(let v=0;v<h;v++){const ww=Math.min(w,1+2*(h-1-v)),u0=o+Math.round(ln*v/5)-(ww>>1),tip=v>=h-t;
+      for(let k=0;k<ww;k++){const edge=k===0||k===ww-1;
+        P(u0+k,v,edge&&ww>2?ol:tip?(k<ww/2?lt:m):k<w/3?lt:k>=w-w/3-0.5?dk:m);}}
+    P(o+Math.round(ln*(h-2)/5),h-1,'#ffffff');}   // vârful sclipește
+  // Pietricele de cristal la bază
+  for(const [u,c] of [[-hw,dk],[1-hw,m],[hw-1,m],[hw,dk],[-1,dk]])P(u,0,c);
+  if((G.t+g.x)%90<6){const [sx,sy]=floor?[bx,by-top-2]:[bx+s*(top+2),by];ctx.fillStyle='#ffffff';ctx.fillRect(sx-1,sy,3,1);ctx.fillRect(sx,sy-1,1,3);}
 }
 // Balta: scobită în pământ, cu maluri și apă în ea
 function drawPool(pl,rings,cx){
@@ -256,6 +273,7 @@ function drawCaveLife(cx){
   for(const s of d.tites)drawSpike(s,cx,1);
   for(const s of d.falls)if(s.st!=='gone')drawSpike(s,cx,1,s.st==='shake'?((s.t>>1)%2?1:-1):0);
   for(const s of d.mites)drawSpike(s,cx,-1);
+  drawPitSpikes(d.pit,cx);
   for(const w of d.webs)drawWeb(w,cx);
   for(const s of d.shrooms)drawShroom(s,cx);
   for(const g of d.gems)drawGems(g,cx);
@@ -264,7 +282,9 @@ function drawCaveLife(cx){
 }
 // Semnul intrării ascunse: crăpături mici în pământ, sub iarbă și mai jos
 function drawHoleCracks(cx){
-  if(!under||inUnder()||holesOpen())return;const x=Math.round(under.x*TS-cx),y=12*TS;if(x<-40||x>W+8)return;
+  if(!under||inUnder())return;
+  if(holesOpen()){for(const hx of [under.x,under.x2])drawDarkSnow(hx,cx);return;}   // zăpadă sau iarbă întunecată sus în găuri, peste colțuri
+  const x=Math.round(under.x*TS-cx),y=12*TS;if(x<-40||x>W+8)return;
   ctx.fillStyle=mixHex(theme.dirtD,'#000000',0.45);
   for(const [dx,dy] of [[9,7],[10,8],[11,8],[12,9],[13,10],[14,10],[15,9],[16,9],[17,10],[18,11],[19,11],[20,10],[21,10],[22,11],[14,11],[14,12],[19,12]])ctx.fillRect(x+dx,y+dy,1,1);
   // Crăpături mici și câteva mai mari, până jos
@@ -282,13 +302,14 @@ const DIAMOND_COL=['150,230,255','255,150,230','190,255,200','255,240,170'];
 function drawUnderBG(cx){
   const x0=Math.floor(cx/TS),x1=Math.floor((cx+W)/TS);
   for(let tx=x0;tx<=x1;tx++)for(let ty=0;ty<ROWS;ty++)ctx.drawImage(tiles.Yv[vhash(tx,ty)%3],tx*TS-cx,ty*TS);
-  // Noaptea, aceeași umbră ca peste puțuri
-  if(theme.night){ctx.fillStyle='rgba(12,18,56,0.4)';ctx.fillRect(0,0,W,H);}
+  // Mereu umbra de noapte, ca peste puțuri
+  ctx.fillStyle='rgba(12,18,56,0.4)';ctx.fillRect(0,0,W,H);
   // Pietre, oase și cranii în peretele din spate
   if(under&&under.deco){for(const s of under.deco.bgStones)drawStones(s,cx,true);ctx.globalAlpha=0.4;for(const b of under.deco.bones)drawBones(b,cx);ctx.globalAlpha=1;}
   // Diamantele, prinse în perete: mici, mijlocii și mari
   for(let i=Math.floor(cx/38)-1;i<(cx+W)/38+1;i++){const h=vhash(i,123);if(h%3===0)continue;
     const x=Math.round(i*38+(h>>>4)%30-cx),y=SUB_CEIL*TS+6+(h>>>9)%72,c=DIAMOND_COL[(h>>>14)%4],a=0.5+0.5*Math.sin(G.t*0.04+(h%50)),sz=(h>>>18)%5;
+    if(nearRock(x+cx,y))continue;   // lumina nu intră în pereți sau puțuri
     drawDiamond(x,y,sz<2?0:sz<4?1:2,c,a);}
 }
 // Diamant: 0 = sclipire mică, 1 = romb mijlociu, 2 = piatră mare cu fețe
@@ -303,3 +324,16 @@ function drawDiamond(x,y,k,c,a){
     if(k===2){ctx.fillStyle='rgba(255,255,255,0.45)';ctx.fillRect(x-2,y+r0+1,2,1);ctx.fillRect(x-3,y+r0+2,1,1);}}
   ctx.globalAlpha=a;P(0,0,lt);ctx.globalAlpha=1;
 }
+// Groapa cu țepi: pietre ascuțite, înalte și scunde, cu vârfuri deschise
+function drawPitSpikes(cols,cx){
+  if(!cols.length)return;const by=ROWS*TS+24,dk=mixHex(theme.dirtD,'#000000',0.55),md=mixHex(theme.dirtD,'#5e5a66',0.5),lt='#9a96a2',tip='#d8d4dc';
+  for(const tx of cols){const x0=Math.round(tx*TS-cx);if(x0<-TS||x0>W)continue;
+    // Doi țepi mari și unul mic între ei, pe fiecare pătrat
+    for(const [o,w,h] of [[0,9,46+vhash(tx,1)%5],[5,7,37+vhash(tx,2)%4],[9,9,43+vhash(tx,3)%6]]){
+      for(let j=0;j<h;j++){const ww=Math.max(1,Math.round(w*(1-j/h))),x=x0+o+((w-ww)>>1),y=by-1-j;
+        ctx.fillStyle=md;ctx.fillRect(x,y,ww,1);
+        if(ww>1){ctx.fillStyle=lt;ctx.fillRect(x,y,1,1);ctx.fillStyle=dk;ctx.fillRect(x+ww-1,y,1,1);}
+        if(j>h-4){ctx.fillStyle=tip;ctx.fillRect(x,y,ww,1);}}}}
+}
+// E pământ sau puț la mai puțin de 16px de punctul ăsta?
+function nearRock(wx,y){for(const dx of [-16,0,16])for(const dy of [-16,0,16]){const t=tileAt(Math.floor((wx+dx)/TS),Math.floor((y+dy)/TS));if(t!=='.')return true;}return false;}

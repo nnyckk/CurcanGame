@@ -132,7 +132,7 @@ function updateBoss(){
   if(['walk','volley','tired','dazed','frozen','gthrow','leapWarn','strike','land','chargePrep','flee'].includes(b.st)&&b.y>=BOSS_Y-1&&bossWater(bcx)){
     b.raise=false;bossJump(bossSafeX(bcx),24,'land');}
   switch(b.st){
-    case 'wait':b.dir=-1;if(!p.dead&&p.x>b.a0+TS){b.st='intro';b.t=0;b.lock=true;stopSong();G.bossHurt=false;}break;   // bossHurt: ZIUA CURCANULUI
+    case 'wait':b.dir=-1;if(!p.dead&&!inUnder()&&p.x>b.a0+TS&&p.x<b.a1){b.st='intro';b.t=0;b.lock=true;stopSong();G.bossHurt=false;}break;   // bossHurt: ZIUA CURCANULUI
     case 'intro':   // cad baloții de fân în spatele tău
       b.logY=Math.min(12*TS-44,-60+b.t*13);
       if(b.t===16){G.shake=10;sfx.thud();}

@@ -60,10 +60,10 @@ function updatePlay(){
   for(const it of items){
     if(it.rise>0){it.y+=it.down?1:-1;it.rise--;continue;}   // down: iese pe dedesubt
     // Boaba roșie stă pe loc deasupra blocului
-    if(it.type==='berry'||it.type==='ice'){if(it.down){it.vy=Math.min(it.vy+0.35,6);moveY(it);if(it.y+it.h>WATER_Y&&overPit(it)){it.remove=true;splash(it.x+it.w/2);continue;}}   // ieșită pe dedesubt: cade drept pe pământ
+    if(it.type==='berry'||it.type==='ice'){if(it.down){it.vy=Math.min(it.vy+0.35,6);moveY(it);if(it.y+it.h>WATER_Y&&overPit(it)){it.remove=true;if(!inUnder())splash(it.x+it.w/2);continue;}}   // ieșită pe dedesubt: cade drept pe pământ
       if(overlap(player,it)){it.remove=true;if(it.type==='ice')powerIce(it.x+5,it.y);else powerFire(it.x+5,it.y);}continue;}
     it.vx=it.dir*0.8;it.vy=Math.min(it.vy+0.35,6);moveX(it);if(it.hitWall)it.dir*=-1;moveY(it);
-    if(it.y+it.h>WATER_Y&&overPit(it)){it.remove=true;splash(it.x+it.w/2);continue;}
+    if(it.y+it.h>WATER_Y&&overPit(it)){it.remove=true;if(!inUnder())splash(it.x+it.w/2);continue;}
     if(overlap(player,it)){it.remove=true;powerUp(it.x+5,it.y);}
   }
   items=items.filter(i=>!i.remove);

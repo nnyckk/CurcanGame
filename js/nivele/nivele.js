@@ -7,6 +7,7 @@ function newMap(w){
   m.f=(x,y,ww,hh,c)=>{for(let j=0;j<hh;j++)for(let i=0;i<ww;i++)m.set(x+i,y+j,c);};
   m.g=(a,b)=>m.f(a,12,b-a+1,2,'D');
   m.pit=(a,b)=>m.f(a,12,b-a+1,2,'.');
+  m.dip=(a,b)=>m.f(a,12,b-a+1,1,'.');   // adâncitură: un pătrat în jos, pământ dedesubt
   // Lac înghețat: gheață pe rândul solului, apă dedesubt
   m.lake=(a,b)=>{m.f(a,12,b-a+1,1,'I');m.f(a,13,b-a+1,1,'.');};
   // Pământul din spate (Z): doar decor, treci prin el
@@ -39,9 +40,13 @@ function newMap(w){
   // Pană de aur: 'open', 'brick' (P), 'hidden' (V) sau 'boss'
   m.pana=(x,y,kind='open')=>{m.golds.push({x,y,kind});if(kind==='brick')m.set(x,y,'P');else if(kind==='hidden')m.set(x,y,'V');};
   // Peștera de sub pământ: găurile x, x2 în sol; camera de la a, lată de w (în dreapta hărții); opt: fall, pool, gems
-  m.under=(x,x2,a,w,opt)=>{m.underDef={x,x2,a,w,opt};   // găurile se deschid în joc
+  m.under=(x,x2,a,w,opt={})=>{m.underDef={x,x2,a,w,opt};const SUB_CEIL=opt.ceil||7;   // găurile se deschid în joc
     m.f(a,0,w,SUB_CEIL,'D');m.f(a,12,w,2,'D');m.f(a,SUB_CEIL,1,12-SUB_CEIL,'D');m.f(a+w-1,SUB_CEIL,1,12-SUB_CEIL,'D');
-    m.f(a+2,0,2,SUB_CEIL,'Y');m.f(a+w-4,0,2,SUB_CEIL,'Y');m.f(a+w-4,10,2,2,'D');m.f(a+w-5,11,1,1,'D');};   // puțurile și treapta de ieșire
+    m.f(a+2,0,2,SUB_CEIL,'Y');m.f(a+w-4,0,2,SUB_CEIL,'Y');m.f(a+w-4,10,2,2,'D');m.f(a+w-5,11,1,1,'D');
+    if(opt.pit)m.f(a+opt.pit[0],12,opt.pit[1]-opt.pit[0]+1,2,'.');   // puțurile, treapta de ieșire, groapa
+    // Tavan înalt: denivelat, iar puțurile coboară până la rândul 6
+    if(SUB_CEIL<6){for(let i=1;i<w-1;i++){const e=Math.sin(i*0.45)+Math.sin(i*0.21+1)*0.5>0.6?1:0;m.f(a+i,SUB_CEIL,1,e,'D');}
+      for(const s of [2,w-4]){m.f(a+s-1,SUB_CEIL,4,6-SUB_CEIL,'D');m.f(a+s,0,2,6,'Y');}}};
   // În peșteră nu crește iarbă
   m.done=()=>{const u=m.underDef;for(let y=0;y<ROWS;y++)for(let x=0;x<w;x++)if(grid[y][x]==='D'&&!(u&&x>=u.a)&&(y===0||(grid[y-1][x]!=='D'&&grid[y-1][x]!=='G')))grid[y][x]='G';return m;};
   return m;

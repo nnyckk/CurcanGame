@@ -62,7 +62,8 @@ function updatePlayer(){
   if(p.onGround){const under=iceUnder(p);if(under.length)stepOnIce(under);}
   // Țepii rănesc doar când calci pe ei de sus
   if(p.onGround&&standsOnSpikes(p))hurt(-p.face);
-  if(p.y+p.h>WATER_Y&&overPit(p))drown();
+  if(inUnder()){if(p.y+p.h>H-12&&overPit(p))die('pit');}   // în peșteră: țepii din groapă
+  else if(p.y+p.h>WATER_Y&&overPit(p))drown();
   else if(p.y>H+8)die('pit');
 }
 // Lovitura a atins ceva: praf, zguduire, bufnitură. Dedesubt: blocurile M / power-up se deschid, cărămizile se sparg

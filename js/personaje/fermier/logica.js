@@ -12,7 +12,7 @@ function updateMan(e){
   if(e.dead){e.deadT--;
     if(e.dead===2){e.vy+=0.35;e.y+=e.vy;e.x+=e.vx;
       // Fermierul aruncat de pe ecran face pleosc doar
-      if(!e.wet&&e.y+e.h>WATER_Y){e.wet=true;if(overPit(e))splash(e.x+e.w/2);}}
+      if(!e.wet&&e.y+e.h>WATER_Y){e.wet=true;if(overPit(e)&&!inUnder())splash(e.x+e.w/2);}}
     if(e.deadT<=0)e.remove=true;return;}
   if(e.sink){sinkStep(e);return;}
   if(e.frozen){updateFrozen(e);return;}

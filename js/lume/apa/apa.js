@@ -3,7 +3,7 @@
 // Coloanele fără sol pe rândul 12 sunt gropi cu apă
 const WATER_Y=12*TS+5;
 // Apă doar unde lipsește tot solul (adânciturile au pământ jos)
-const waterCol=tx=>'.I'.includes(tileAt(tx,12))&&tileAt(tx,13)==='.';
+const waterCol=tx=>'.I'.includes(tileAt(tx,12))&&tileAt(tx,13)==='.'&&!(under&&tx>=under.a);   // groapa din peșteră nu e apă
 function overPit(e){const tx=Math.floor((e.x+e.w/2)/TS);return tileAt(tx,12)==='.'&&tileAt(tx,13)==='.';}
 function splash(x){
   const w=theme.water;
@@ -19,26 +19,35 @@ function bubble(x,y){
 function steam(x){for(let i=0;i<7;i++)parts.push({x:x+(Math.random()-0.5)*8,y:WATER_Y-2,vx:(Math.random()-0.5)*0.6,vy:-0.5-Math.random()*0.7,g:-0.01,life:30,max:30,col:'#d8d8e0',s:2});}
 // Un mob viu cade în apă: se scufundă
 function enterWater(e){
-  e.sink=true;e.vy=Math.min(Math.max(e.vy,0.5),2.5);splash(e.x+e.w/2);
+  const cave=!!under&&e.x>=under.a*TS;   // groapa cu țepi din peșteră: cade, nu se scufundă
+  e.sink=true;e.spike=cave;e.stuckT=0;e.vy=Math.min(Math.max(e.vy,0.5),2.5);if(!cave)splash(e.x+e.w/2);
   // Apa frânează brusc mișcarea pe orizontală
   e.vx*=0.3;
   let l=Math.floor((e.x+e.w/2)/TS),r=l;
-  while(waterCol(l-1))l--;while(waterCol(r+1))r++;
+  const hole=x=>cave?tileAt(x,12)==='.'&&tileAt(x,13)==='.':waterCol(x);
+  while(hole(l-1))l--;while(hole(r+1))r++;
   e.pitL=l*TS;e.pitR=(r+1)*TS;
   if(e.type==='man'&&e.frozen&&e.slideDir)addScore(e.boy?100:200,e.x+5,WATER_Y-14);   // l-ai împins tu în apă, înghețat
   if(e.type==='bomb'){
     if(e.slideDir)addScore(100,e.x+6,WATER_Y-14);   // ai împins-o tu în apă
-    if(e.lit){e.lit=0;steam(e.x+6);sfx.hiss();}
+    if(e.lit&&!cave){e.lit=0;steam(e.x+6);sfx.hiss();}else e.lit=0;
     e.slideDir=0;
   }
 }
 // Scufundare lentă: viteza tinde spre ~0,33 px/cadru
 function sinkStep(e){
+  if(e.spike){spikeStep(e);return;}
   e.vy=e.vy*0.88+0.04;e.y+=e.vy;e.vx*=0.85;
   // Rămâne între pereții gropii: dacă se lovește de unul
   const nx=clamp(e.x+e.vx,e.pitL+3,e.pitR-e.w-3);if(nx!==e.x+e.vx)e.vx=0;e.x=nx;
   if(G.t%10===0)bubble(e.x+e.w/2,e.y);
   if(e.y>H+20)e.remove=true;
+}
+// Căzut pe țepii din peșteră: rămâne înfipt puțin, apoi se face praf
+function spikeStep(e){
+  const tipY=H-12;
+  if(e.y+e.h<tipY){e.vy=Math.min(e.vy+0.35,6);e.y+=e.vy;e.x=clamp(e.x+e.vx,e.pitL+2,e.pitR-e.w-2);if(e.y+e.h>=tipY){e.y=tipY-e.h;e.vy=0;e.vx=0;sfx.brk();G.shake=3;}return;}
+  if(++e.stuckT>=40){e.remove=true;for(let i=0;i<10;i++)parts.push({x:e.x+Math.random()*e.w,y:e.y+Math.random()*e.h,vx:(Math.random()-0.5)*1.4,vy:-0.6-Math.random(),g:0.1,life:22,max:22,col:i%2?'#9a96a2':'#5e5a66',s:i%3?1:2});}
 }
 // Desenată peste personaje
 function drawWater(cx){

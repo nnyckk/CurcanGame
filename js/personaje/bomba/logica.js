@@ -43,7 +43,7 @@ function explode(e){
 function updateBomb(e){
   // Aruncată de pe ecran: cade ca fermierii
   if(e.dead){e.deadT--;e.vy+=0.35;e.y+=e.vy;e.x+=e.vx;
-    if(!e.wet&&e.y+e.h>WATER_Y){e.wet=true;if(overPit(e))splash(e.x+e.w/2);}
+    if(!e.wet&&e.y+e.h>WATER_Y){e.wet=true;if(overPit(e)&&!inUnder())splash(e.x+e.w/2);}
     if(e.deadT<=0)e.remove=true;return;}
   if(e.sink){sinkStep(e);return;}
   if(e.frozen){updateFrozen(e);return;}

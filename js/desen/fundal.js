@@ -62,6 +62,13 @@ function earthShade(){
 function drawEarthShade(cx){ctx.drawImage(earthShade(),cx,0,W,ROWS*TS,0,0,W,ROWS*TS);}
 // Lățimea gurii pasajului, rând cu rând
 const MOUTH=[7,5,4,3,2,2,1,1];
+// Zăpadă sau iarbă întunecată sus în gaura peșterii: doar grosimea stratului, cu marginea de jos neregulată
+function drawDarkSnow(hx,cx){const x=Math.round(hx*TS-cx)-2,y=12*TS;if(x<-40||x>W)return;
+  const dk=c=>mixHex(c,'#000000',0.5),[c0,c1,c2]=theme.snow?['#5a6a7e','#46546a','#7a8aa0']:[dk(theme.grass),dk(theme.grassD),dk(theme.grassL)];   // zăpadă sau iarbă, întunecate
+  for(let i=0;i<SUB_SHAFT*TS+4;i++){const d=4+Math.round(Math.sin((hx*TS+i)*0.5)*1.2+Math.sin((hx*TS+i)*0.23)*1);
+    ctx.fillStyle=c0;ctx.fillRect(x+i,y,1,d);ctx.fillStyle=c1;ctx.fillRect(x+i,y+d,1,1);
+    if(vhash(hx,i)%5===0){ctx.fillStyle=c2;ctx.fillRect(x+i,y+1,1,1);}}
+}
 // Pasajul prin deal: umbră sub tavan; la gură peretele coboară și se rotunjește
 function drawTunnel(tx,ty,cx){
   const x=tx*TS-cx,y=ty*TS,rc=tileAt(tx,ty-1),open=t=>t!=='Y'&&!EARTH_N.includes(t);
@@ -103,6 +110,6 @@ function drawTiles(cx){
     if(!img)continue;let oy=0;for(const b of bumps)if(b.tx===tx&&b.ty===ty)oy=-BUMPY[b.t];
     ctx.drawImage(img,tx*TS-cx,ty*TS+oy);
     // Iarna: puțină zăpadă pe blocuri, platforme și trepte
-    if(theme.snow&&SNOW_CAPPED.includes(c)){const up=tileAt(tx,ty-1);if(!solid(up)&&up!=='=')ctx.drawImage(tiles.cap,tx*TS-cx,ty*TS+oy);}}}
+    if(theme.snow&&!inUnder()&&SNOW_CAPPED.includes(c)){const up=tileAt(tx,ty-1);if(!solid(up)&&up!=='=')ctx.drawImage(tiles.cap,tx*TS-cx,ty*TS+oy);}}}
   drawEarthShade(cx);
 }

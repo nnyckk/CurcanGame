@@ -7,7 +7,7 @@ function drawWorld(){
   const lift=inCafe()?0:Math.round(G.lift||0),vy=inCafe()?CAFE_VY:-lift;ctx.save();ctx.translate(0,vy);
   if(inCafe())drawCafeRoom(cx);else if(inUnder())drawUnderBG(cx);else drawBG();
   // Noaptea: lumea de joc se desenează pe un canvas separat
-  const night=theme.night,main=ctx;
+  const night=theme.night||inUnder(),main=ctx;   // în peșteră e mereu întuneric
   if(night){ctx=shadeCtx;ctx.clearRect(0,0,W,H);}
   const drawItem=it=>{
     const gx=Math.round(it.x-cx),gy=Math.round(it.y),ice=it.type==='ice',berry=it.type==='berry'||ice;
@@ -35,7 +35,7 @@ function drawWorld(){
   const entering=e=>e.enter&&!e.dead;
   for(const e of enemies)if(entering(e))drawEnemy(e,cx);
   drawArena(cx);
-  if(theme.snow)drawLakeBase(cx);
+  if(theme.snow&&!inRoom())drawLakeBase(cx);   // în peșteră nu e apă
   if(!night){drawCoins();drawGolds(cx);}
   // Noaptea, bomba aprinsă luminează: nu primește umbra
   const litBomb=e=>night&&e.type==='bomb'&&e.lit>0&&!e.sink;
@@ -44,9 +44,9 @@ function drawWorld(){
   drawPlayer(cx);
   // Decorul de pe sol stă în fața personajelor
   if(theme.farm)drawGroundDecor(cx,theme,tx=>grid[12][tx]==='G'&&grid[11][tx]==='.'&&tileAt(tx-1,12)!=='.'&&tileAt(tx+1,12)!=='.');
-  else if(theme.snow&&!inCafe())drawSnowDecor(cx,tx=>grid[12]&&grid[12][tx]==='G'&&grid[11][tx]==='.'&&!'.I'.includes(tileAt(tx-1,12))&&!'.I'.includes(tileAt(tx+1,12)));
-  if(!inCafe())drawWater(cx);   // în cafenea nu e apă
-  if(lakeLife)drawLakeLife(cx);
+  else if(theme.snow&&!inRoom())drawSnowDecor(cx,tx=>grid[12]&&grid[12][tx]==='G'&&grid[11][tx]==='.'&&!'.I'.includes(tileAt(tx-1,12))&&!'.I'.includes(tileAt(tx+1,12)));
+  if(!inRoom())drawWater(cx);   // în cafenea și în peșteră nu e apă
+  if(lakeLife&&!inRoom())drawLakeLife(cx);   // în peșteră nu sunt pești
   if(night){
     // Umbra de noapte
     ctx.globalCompositeOperation='source-atop';ctx.fillStyle='rgba(12,18,56,0.4)';ctx.fillRect(0,0,W,H);
@@ -75,7 +75,7 @@ function drawWorld(){
     if(p.edge){ctx.fillStyle=p.edge;ctx.fillRect(Math.round(p.x-cx)-1,Math.round(p.y)-1,p.s+2,p.s+2);}
     ctx.globalAlpha=p.max?Math.min(1,p.life/(p.max*0.5)):1;ctx.fillStyle=p.col;ctx.fillRect(Math.round(p.x-cx),Math.round(p.y),p.s,p.s);ctx.globalAlpha=1;
   }
-  if(theme.snow&&!inCafe())drawSnowfall();
+  if(theme.snow&&!inRoom())drawSnowfall();
   for(const p of popups)txt(p.s,p.x-cx,p.y,p.c,1,'c','#000');
   if(cafe)drawCafeHints(cx);
   if(TEST&&G.showHB)drawHitboxes(cx);
