@@ -1,12 +1,16 @@
 'use strict';
 // ===== SUNET: Web Audio și efectele sonore =====
-let AC=null,master,musicG,sfxG,noiseBuf,pulseW,pulse12;
+let AC=null,master,musicG,sfxG,noiseBuf,pulseW,pulse12,echoIn;
 function mkPulse(d){const n=32,re=new Float32Array(n),im=new Float32Array(n);for(let k=1;k<n;k++)re[k]=2/(k*Math.PI)*Math.sin(k*Math.PI*d);return AC.createPeriodicWave(re,im);}
 function initAudio(){
   if(AC){if(AC.state==='suspended')AC.resume();return;}
   try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){return;}
   master=AC.createGain();master.gain.value=0.55;master.connect(AC.destination);
   musicG=AC.createGain();musicG.connect(master);
+  // Ecoul de peșteră: sunetul se repetă, tot mai încet și mai înfundat
+  echoIn=AC.createGain();echoIn.connect(musicG);
+  const dl=AC.createDelay(1),fb=AC.createGain(),lp=AC.createBiquadFilter();dl.delayTime.value=0.42;fb.gain.value=0.5;lp.type='lowpass';lp.frequency.value=1600;
+  echoIn.connect(dl);dl.connect(lp);lp.connect(fb);fb.connect(dl);lp.connect(musicG);
   sfxG=AC.createGain();sfxG.connect(master);
   applyAudio();
   noiseBuf=AC.createBuffer(1,AC.sampleRate,AC.sampleRate);const d=noiseBuf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
@@ -58,6 +62,10 @@ const sfx={
   kick(){if(!AC)return;const t=AC.currentTime;tone('square',260,t,0.06,0.12,sfxG,520);noise(t,0.04,0.12,sfxG,2500);},
   burn(){if(!AC)return;const t=AC.currentTime;noise(t,0.25,0.25,sfxG,1400,'lowpass');tone('square',420,t,0.18,0.09,sfxG,70);},
   blip(){if(!AC)return;tone('pulse',1700,AC.currentTime,0.03,0.05,sfxG);},
+  // Liliacul: trei chițăituri scurte, ascuțite
+  bat(){if(!AC)return;const t=AC.currentTime;for(let i=0;i<3;i++)tone('square',2600+Math.random()*900,t+i*0.055,0.035,0.035,sfxG,3800+Math.random()*600);},
+  // Picătura care cade: un „plic” rotund
+  drip(){if(!AC)return;const t=AC.currentTime;tone('sine',1500+Math.random()*400,t,0.09,0.05,sfxG,600);tone('sine',900,t+0.1,0.06,0.015,sfxG,500);},
   // Gheața: trosnet scurt când mai crapă un pic
   crack(){if(!AC)return;const t=AC.currentTime;noise(t,0.09,0.3,sfxG,3200);tone('square',1400,t,0.05,0.05,sfxG,500);},
   iceBreak(){if(!AC)return;const t=AC.currentTime;noise(t,0.45,0.4,sfxG,2600);tone('triangle',1200,t,0.3,0.12,sfxG,180);},

@@ -4,7 +4,8 @@
 function solid(c){return c==='G'||c==='D'||c==='B'||c==='P'||c==='M'||c==='H'||c==='A'||c==='U'||c==='X'||c==='^'||c==='I'||c==='F'||c==='S'||c==='E'||c==='K';}
 function tileAt(tx,ty){if(tx<0||tx>=cols)return 'X';if(ty<0||ty>=ROWS)return '.';return grid[ty][tx];}
 // Pe ce stai doar de sus: scândurile și iarba de pe pământul din spate
-function ledge(tx,ty){const c=tileAt(tx,ty);return c==='='||(c==='Z'&&tileAt(tx,ty-1)!=='Z');}
+// W = pământul din spate, al doilea strat (mai departe); pe iarba lui de sus stai, dacă nu-l acoperă cel din față
+function ledge(tx,ty){const c=tileAt(tx,ty),u=tileAt(tx,ty-1);return c==='='||(c==='Z'&&u!=='Z')||(c==='W'&&u!=='W'&&u!=='Z');}
 function moveX(e){
   e.x+=e.vx;e.hitWall=false;const t=Math.floor(e.y/TS),b=Math.floor((e.y+e.h-0.01)/TS);
   if(e.vx>0){const tx=Math.floor((e.x+e.w-0.01)/TS);for(let ty=t;ty<=b;ty++)if(solid(tileAt(tx,ty))){e.x=tx*TS-e.w;e.hitWall=true;break;}}

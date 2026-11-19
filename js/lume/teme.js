@@ -144,6 +144,9 @@ function getTiles(ti){
   const ZA=[0.22,0.37,0.5,0.62];
   const dim=(img,a,y0=0)=>{const [c,g]=mkCanvas(16,16);g.drawImage(img,0,0);g.fillStyle='rgba(18,8,16,'+a+')';g.fillRect(0,y0,16,16-y0);return c;};
   T.Zd=ZA.map(a=>(T.Dv||[T.D]).map(d=>dim(d,a)));T.Z=T.Zd[1][0];
+  // Al doilea strat, mai departe: mai închis
+  const WA=[0.42,0.54,0.64,0.72];T.Wd=WA.map(a=>(T.Dv||[T.D]).map(d=>dim(d,a)));
+  T.WG=dim(T.G,WA[0],6);{const g=T.WG.getContext('2d');g.fillStyle='rgba(18,8,16,0.14)';g.fillRect(0,0,16,6);g.fillStyle='rgba(0,0,0,0.3)';g.fillRect(0,6,16,1);}   // iarba puțin stinsă; pământul de sub ea, la fel ca restul dealului
   T.ZG=dim(T.G,ZA[0],6);{const g=T.ZG.getContext('2d');g.fillStyle='rgba(0,0,0,0.25)';g.fillRect(0,6,16,1);}   // iarba de sus, aprinsă: pe ea poți sta
   // Interiorul unui pasaj prin deal: pământ foarte închis
   T.Yv=[3,17,29].map(s=>earth(s,mixHex(th.dirtD,ink,0.62),mixHex(th.dirt,ink,0.5),mixHex(th.dirtD,ink,0.8)));T.Y=T.Yv[0];

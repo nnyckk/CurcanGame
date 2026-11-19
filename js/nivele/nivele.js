@@ -14,6 +14,8 @@ function newMap(w){
   // Deal din față / din spate, din sol în sus: câte o înălțime pe coloană
   m.hill=(x,hs)=>hs.forEach((h,i)=>m.f(x+i,12-h,1,h,'D'));
   m.back=(x,hs)=>hs.forEach((h,i)=>m.z(x+i,12-h,1,h));
+  // Deal și mai în spate (W): se pune după cele din față, doar unde e gol
+  m.far=(x,hs)=>hs.forEach((h,i)=>{for(let j=12-h;j<12;j++)if(grid[j]&&grid[j][x+i]==='.')grid[j][x+i]='W';});
   // Pasaj prin deal (Y): scobit în pământ, treci prin el
   m.tunnel=(x,y,ww,hh)=>m.f(x,y,ww,hh,'Y');
   m.r=(x,y,s)=>{for(let i=0;i<s.length;i++)if(s[i]!==' ')m.set(x+i,y,s[i]);};

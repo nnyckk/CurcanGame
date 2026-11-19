@@ -75,6 +75,20 @@ const SONGS={
             D5 - Eb5 - F#5 - G5 - A5 - G5 - F#5 - Eb5 -
             D5 - - - A4 - - - D5 - - - . . . .`),
     bass:bassBars([[38],[38,39],[43,42],[38],[45],[46,45],[38,43],[38,45]])},
+  // Peștera: lent, rece și gol, cu ecou; o inimă care bate și vânt prin galerii
+  cave:{bpm:56,loop:true,echo:true,leadType:'sine',leadVol:0.12,bassVol:0.2,drums:'k..k....w.......k..k......p.....',
+    lead:P(`D4 - - - - - - - . . . . F4 - - -
+            E4 - - - - - Bb3 - - - - - . . . .
+            A3 - - - - - - - . . . . C4 - C#4 -
+            D4 - - - - - - - - - - - . . . .
+            F4 - - - E4 - - - D4 - - - G#3 - - -
+            A3 - - - - - - - . . . . . . . .
+            D5 - - - - - . . C#5 - - - - - . .
+            A4 - - - - - - - - - - - . . . .`),
+    bass:P(`D2 - - - - - - - - - - - - - - - Bb1 - - - - - - - - - - - - - - -
+           A1 - - - - - - - - - - - - - - - D2 - - - - - - - - - - - - - - -
+           G1 - - - - - - - - - - - - - - - A1 - - - - - - - - - - - - - - -
+           Bb1 - - - - - - - - - - - - - - - A1 - - - - - - - - - - - - - - -`)},
   clear:{bpm:190,loop:false,drums:'k...k...k.......',lead:P('D5 F#5 A5 D6 - - A5 D6 - - - - - - - -'),bass:P('D3 - - - - - A2 D3 - - - - - - - -')},
   death:{bpm:170,loop:false,drums:'',lead:P('A4 Bb4 A4 G4 F#4 Eb4 D4 - - - - - . . . .'),bass:P('D3 - - - - - D2 - - - - - . . . .')},
   gameover:{bpm:120,loop:false,drums:'',lead:P('D5 - - A4 - - F#4 - - Eb4 - - D4 - - - - - - - . . . .'),bass:P('D3 - - - - - - - - Eb2 - - D2 - - - - - - - . . . .')},
@@ -89,21 +103,24 @@ function sched(){
   if(!AC||!seq.song)return;
   if(seq.next<AC.currentTime-0.2)seq.next=AC.currentTime+0.05;
   while(seq.song&&seq.next<AC.currentTime+0.15){
-    const s=seq.song,sd=60/s.bpm/4,i=seq.step;
+    const s=seq.song,sd=60/s.bpm/4,i=seq.step,out=s.echo?echoIn:musicG;   // echo: piesa trece prin ecoul de peșteră
     if(!s.loop&&i>=s.lead.length){seq.song=null;if(s.next)playSong(s.next);break;}
     const li=i%s.lead.length,L=s.lead[li];
-    if(L>0){let n=1;while(n<16&&s.lead[(li+n)%s.lead.length]===0&&(s.loop||li+n<s.lead.length))n++;if(s.leadMax)n=Math.min(n,s.leadMax);tone(s.leadType||'pulse',mtof(L),seq.next,sd*n*0.95,s.leadVol||0.1,musicG);}
-    if(s.bass&&s.bass.length){const bi=i%s.bass.length,B=s.bass[bi];if(B>0){let n=1;while(n<16&&s.bass[(bi+n)%s.bass.length]===0)n++;tone('triangle',mtof(B),seq.next,sd*n*0.9,s.bassVol||0.3,musicG);}}
+    if(L>0){let n=1;while(n<16&&s.lead[(li+n)%s.lead.length]===0&&(s.loop||li+n<s.lead.length))n++;if(s.leadMax)n=Math.min(n,s.leadMax);tone(s.leadType||'pulse',mtof(L),seq.next,sd*n*0.95,s.leadVol||0.1,out);}
+    if(s.bass&&s.bass.length){const bi=i%s.bass.length,B=s.bass[bi];if(B>0){let n=1;while(n<16&&s.bass[(bi+n)%s.bass.length]===0)n++;tone('triangle',mtof(B),seq.next,sd*n*0.9,s.bassVol||0.3,out);}}
     // Acordurile: {n: notele, d: câți pași țin}
-    if(s.chords){const c=s.chords[i%s.chords.length];if(c)for(const m of c.n)tone('sine',mtof(m),seq.next,sd*c.d,s.chordVol||0.04,musicG);}
+    if(s.chords){const c=s.chords[i%s.chords.length];if(c)for(const m of c.n)tone('sine',mtof(m),seq.next,sd*c.d,s.chordVol||0.04,out);}
     if(s.drums){const d=s.drums[i%s.drums.length],t=seq.next;
-      if(d==='k')tone('sine',160,t,0.12,0.5,musicG,40);
-      else if(d==='s')noise(t,0.12,0.22,musicG,1800);
-      else if(d==='h')noise(t,0.03,0.1,musicG,7000);
+      if(d==='k')tone('sine',160,t,0.12,0.5,out,40);
+      else if(d==='s')noise(t,0.12,0.22,out,1800);
+      else if(d==='h')noise(t,0.03,0.1,out,7000);
+      // Peștera: vânt înfundat și o picătură
+      else if(d==='w')noise(t,1.4,0.07,out,380,'lowpass');
+      else if(d==='p')tone('sine',1300,t,0.08,0.05,out,600);
       // Jazz: r = ride, R = ride + perie pe tobă
-      else if(d==='r'||d==='R'||d==='q'){noise(t,0.22,0.06,musicG,6500);
-        if(d==='R')noise(t,0.16,0.1,musicG,2600,'bandpass');
-        if(d==='q')tone('sine',105,t,0.16,0.26,musicG,52);}}
+      else if(d==='r'||d==='R'||d==='q'){noise(t,0.22,0.06,out,6500);
+        if(d==='R')noise(t,0.16,0.1,out,2600,'bandpass');
+        if(d==='q')tone('sine',105,t,0.16,0.26,out,52);}}
     seq.step++;seq.next+=sd;
   }
 }

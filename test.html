@@ -389,7 +389,7 @@ function buildTerrain(){
     const x0=Math.floor(tx*sx),w=Math.max(1,Math.floor((tx+1)*sx)-x0),pit=R[12][tx]==='.'&&R[13][tx]==='.',lake=R[12][tx]==='I';
     for(let ty=0;ty<14;ty++){
       const ch=R[ty][tx],y0=Math.round(top+ty*rh),y1=Math.round(top+(ty+1)*rh);
-      if(ch==='.'||ch==='V'||ch==='Z'||ch==='Y'){   // V = blocul invizibil cu o pană de aur; Z = pământul din spate
+      if(ch==='.'||ch==='V'||ch==='Z'||ch==='W'||ch==='Y'){   // V = blocul invizibil cu o pană de aur; Z = pământul din spate
         if(ty===12&&pit){t.fillStyle=c.water;const ys=Math.round(top+(12+5/16)*rh);t.fillRect(x0,ys,w,y1-ys);}
         else if(ty===13&&(pit||lake)){t.fillStyle=c.water;t.fillRect(x0,y0,w,y1-y0);}
         continue;}
