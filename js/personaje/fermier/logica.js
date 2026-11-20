@@ -5,6 +5,7 @@ function forkBox(e){return {x:e.dir>0?e.x+e.w:e.x-MAN_REACH,y:e.y+7,w:MAN_REACH,
 // pts = punctele fermierului cu furcă
 function killMan(e,mode,pts){
   e.dead=mode;e.deadT=mode===1?30:120;e.frozen=0;
+  if(e.key)keyDrop(e);   // cheia coliviei cade din el
   if(mode===2){e.vy=-4.5;e.vx=(Math.random()<0.5?-1:1)*1.2;}
   addScore(e.boy?pts/2:pts,e.x+5,e.y-4);
 }
@@ -67,5 +68,5 @@ function updateMan(e){
   // Ajuns totuși cu picioarele pe țepi
   if(e.onGround&&standsOnSpikes(e)){killMan(e,2,200);sfx.stomp();return;}
   if(moving)e.anim+=e.chasing?1.6:1;
-  if(e.y>H+20)e.remove=true;
+  if(e.y>H+20){if(e.key)keyDrop(e,true);e.remove=true;}
 }

@@ -29,6 +29,7 @@ const MENU={
     {label:'SETĂRI',sub:true,act:()=>openMenu('settings')},
     {label:'MOD TEST',act:()=>{location.href='test.html';}},
     {label:'PENE',badge:'pene',act:()=>openMenu('pene')},
+    {label:'CURCANI',badge:'custi',act:()=>openMenu('custi')},
     {label:'ACHIEVEMENTS',badge:'ach',act:()=>{G.achPage=0;openMenu('ach');}}],
   settings:[],   // vezi settingsItems
   // Pauza din joc (ESC)
@@ -41,6 +42,8 @@ const MENU={
     {label:'ÎNAPOI',act:()=>menuBack()}],
   pene:[
     {label:'ÎNAPOI',act:()=>menuBack()}],
+  custi:[
+    {label:'ÎNAPOI',act:()=>menuBack()}],
   // Pagina ACHIEVEMENTS: cartonașele, ÎNAPOI, săgețile paginilor
   ach:ACH.map(a=>({label:a.name,ach:a.id,info:true,act:()=>{}})).concat([{label:'ÎNAPOI',act:()=>menuBack()},
     {label:'<',pg:-1,act:()=>{}},{label:'>',pg:1,act:()=>{}}]),
@@ -50,17 +53,18 @@ function menuBack(){
   if(G.menu==='controls')openMenu('settings',MENU.settings.findIndex(it=>it.label==='CONTROALE'));
   else if(G.menu==='settings')openMenu(G.state==='play'?'pause':'main',G.state==='play'?2:1);
   else if(G.menu==='pause')pauseClose();
-  else if(G.menu==='pene'||G.menu==='ach')openMenu('main',0);
+  else if(G.menu==='pene'||G.menu==='custi'||G.menu==='ach')openMenu('main',0);
 }
 // Unde stă fiecare buton, în pixeli de joc
 // Insignele de jos, în dreapta recordului: PENE, ACHIEVEMENTS
 const BADGE_W=50;   // PENE și ACHIEVEMENTS: doar iconița și numărul
 const goldBadgeRect=()=>({x:106,y:H-19,w:BADGE_W,h:15,s:goldFound()+'/'+goldTotal()});
+const cageBadgeRect=()=>({x:106+BADGE_W+4,y:H-19,w:BADGE_W,h:15,s:cageFound()+'/'+cageTotal()});
 function menuRects(){
   const m=G.menu,items=MENU[m],h=15;
   if(m==='ach')return achRects(items);
-  const L=m==='main'?{w:96,gap:5,y0:102}:m==='settings'?{w:168,gap:4,y0:76}:m==='pause'?{w:120,gap:5,y0:78}:m==='pene'?{w:96,gap:0,y0:168}:{w:96,gap:0,y0:156};
-  return items.map((it,i)=>it.badge?Object.assign({it},it.badge==='ach'?achBadgeRect():goldBadgeRect())
+  const L=m==='main'?{w:96,gap:5,y0:102}:m==='settings'?{w:168,gap:4,y0:76}:m==='pause'?{w:120,gap:5,y0:78}:m==='pene'?{w:96,gap:0,y0:168}:m==='custi'?{w:96,gap:0,y0:186}:{w:96,gap:0,y0:156};
+  return items.map((it,i)=>it.badge?Object.assign({it},it.badge==='ach'?achBadgeRect():it.badge==='custi'?cageBadgeRect():goldBadgeRect())
     :{it,x:W/2-L.w/2,y:L.y0+i*(h+L.gap)+(m==='settings'&&i===items.length-1?6:0),w:L.w,h});
 }
 function menuHit(e){

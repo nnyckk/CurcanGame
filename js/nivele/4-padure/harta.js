@@ -14,11 +14,12 @@ LEVELS.push({id:'padure',theme:1,song:'winter',tip:'PE GHEAȚĂ NU STA PE LOC, F
   m.lake(68,87);m.pit(76,78);m.pit(83,84);m.r(72,8,'====');m.c(72,7,4);m.c(80,10,2);
   m.e('man',90);
   // Peștera: intri la 94 (pământ crăpat), ieși la 219, înainte de dealul dublu
-  const a=466;m.under(94,219,a,40,{ceil:4,pit:[14,17],fall:[7,29],pool:[24,27],gems:[9,33,['L',9],['R',8]]});
+  const a=466;m.under(94,219,a,40,{ceil:4,pit:[14,17],fall:[7,19],pool:[24,27],gems:[9,22,['L',9],['R',8]]});
   m.c(a+5,10,3);m.f(a+8,10,4,2,'D');m.c(a+8,9,4);   // movilă
   m.c(a+14,8);m.c(a+15,7,2);m.c(a+17,8);   // groapa cu țepi: sari peste
   m.r(a+20,8,'BMB');m.c(a+20,6,3);m.e('boy',a+25);   // blocuri, apoi balta
-  m.f(a+29,9,3,3,'D');m.c(a+29,8,3);   // a doua movilă
+  m.f(a+29,9,4,3,'D');   // a doua movilă
+  m.colivie(a+31,9);   // colivia: pe a doua movilă
   m.r(103,8,'BHB');m.e('man',109);m.e('bomb',114);
   // Lacul 3: două copci late, platforme deasupra
   m.lake(119,142);m.pit(125,127);m.pit(134,136);m.r(122,8,'===');m.r(130,7,'BMMB');m.e('boy',131,6);m.c(122,7,3);m.c(138,10,3);

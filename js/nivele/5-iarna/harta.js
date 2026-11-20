@@ -21,8 +21,9 @@ LEVELS.push({id:'iarna',theme:5,song:'winter',tip:'MESOPOTAMIA E APROAPE. DAR NU
   m.r(108,8,'BHB');
   m.r(108,4,'B B');m.pana(109,4,'brick');   // pana 2: în cărămidă
   // Peștera mare: intri la 117, ieși la 180
-  const a=269;m.under(117,180,a,50,{ceil:4,pit:[23,30],fall:[9,20,37],pool:[33,36],bats:[8,18,32,40],gems:[12,44,['L',8],['R',6]]});
+  const a=269;m.under(117,180,a,50,{ceil:4,pit:[23,30],fall:[5,20,37],pool:[33,36],bats:[3,18,32,40],gems:[21,44,['L',8],['R',6]]});
   m.e('bomb',a+7);m.f(a+10,9,4,3,'D');   // movilă
+  m.colivie(a+12,9);   // colivia: pe movilă
   m.r(a+16,8,'MHM');   // bănuți și putere
   m.r(a+25,9,'===');m.c(a+25,8,3);   // scândura peste groapa cu țepi
   m.e('man',a+35);m.e('bomb',a+38);m.st(a+40,3,1);m.f(a+43,9,6,3,'D');   // trepte de piatră spre o terasă înaltă, cu ieșirea

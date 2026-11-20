@@ -98,7 +98,7 @@ function drawTiles(cx){
       continue;}
     // Blocul-slot se desenează o singură dată
     if(c==='S'||c==='E'){if(tileAt(tx-1,ty)!==c&&tileAt(tx,ty-1)!==c)drawSlotBlock(tx*TS-cx,ty*TS,c==='E');continue;}
-    let img=(c==='M'||c==='H')?mf:c==='A'?tiles.A[fi]:c==='P'?tiles.B:tiles[c];   // V nu are desen
+    let img=(c==='M'||c==='H')?mf:c==='A'?tiles.A[fi]:c==='P'?tiles.B:c==='F'&&tileAt(tx,ty-1)==='F'?tiles.F2:tiles[c];   // V nu are desen
     if(c==='G'||c==='D')img=earthBase(c,tx,ty);else if(c==='Z')img=zImg(tx,ty);else if(c==='W')img=wImg(tx,ty);
     if(c==='Y'){drawTunnel(tx,ty,cx);continue;}
     if(c==='G'||c==='D'){const u=behindEarth(tx,ty);if(u)ctx.drawImage(u,tx*TS-cx,ty*TS);}

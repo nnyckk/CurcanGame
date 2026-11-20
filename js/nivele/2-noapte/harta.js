@@ -7,11 +7,12 @@ LEVELS.push({id:'noapte',theme:3,song:'night',tip:'NOAPTEA, FERMIERII VĂD DOAR 
   m.e('boy',24);
   m.st(30,3,1);m.pit(33,36);m.c(33,7);m.c(34,6,2);m.c(36,7);m.st(37,3,-1);   // arc de săritură
   // Peștera de sub pământ: cazi în gaură, ieși sărind din cealaltă, chiar înainte de punctul de salvare
-  const a=222;m.under(44,93,a,26,{fall:[8,18],pool:[5,7],gems:[19,12,['L',9],['R',9]],skel:[[9,1],[24,-1]]});m.e('man',51);
-  // Bănuții: 3 în arc peste baltă, 4 pe movilă, 3 lângă peretele din dreapta și 2 în puțul de ieșire
+  const a=222;m.under(44,93,a,26,{fall:[8,18],pool:[5,7],gems:[3,21,['L',9],['R',9]],skel:[[9,1],[24,-1]]});m.e('man',51);
+  // Bănuții: 3 în arc peste baltă, 3 lângă peretele din dreapta și 2 în puțul de ieșire
   const C=(i,y)=>m.c(a+i,y);[[5,10],[6,9],[7,10],[24,9],[24,10],[24,11],[22,6],[23,6]].forEach(([i,y])=>C(i,y));
   m.r(a+11,9,'H');m.pana(a+10,9,'brick');   // pana 2: în cărămida de lângă bloc
-  m.f(a+13,7,3,1,'D');m.f(a+14,11,4,1,'D');m.c(a+14,10,4);m.e('bomb',a+19);   // un singur bloc, cu putere
+  m.f(a+13,7,3,1,'D');m.f(a+14,11,4,1,'D');m.e('bomb',a+19);   // un singur bloc, cu putere
+  m.colivie(a+16,11);   // colivia: în peșteră, pe movilă
   m.pit(64,67);m.r(64,8,'====');m.c(64,7,4);
   m.e('bomb',72);m.e('boy',78);
   m.r(82,8,'BBMBBB');m.c(83,7,4);m.e('man',85,7);

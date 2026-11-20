@@ -20,7 +20,8 @@ function steam(x){for(let i=0;i<7;i++)parts.push({x:x+(Math.random()-0.5)*8,y:WA
 // Un mob viu cade în apă: se scufundă
 function enterWater(e){
   const cave=!!under&&e.x>=under.a*TS;   // groapa cu țepi din peșteră: cade, nu se scufundă
-  e.sink=true;e.spike=cave;e.stuckT=0;e.vy=Math.min(Math.max(e.vy,0.5),2.5);if(!cave)splash(e.x+e.w/2);
+  e.sink=true;e.spike=cave;e.stuckT=0;
+  if(e.key)keyDrop(e,true);   // cheia sare pe male.vy=Math.min(Math.max(e.vy,0.5),2.5);if(!cave)splash(e.x+e.w/2);
   // Apa frânează brusc mișcarea pe orizontală
   e.vx*=0.3;
   let l=Math.floor((e.x+e.w/2)/TS),r=l;

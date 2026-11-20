@@ -15,9 +15,10 @@ function render(){
     default:
       drawWorld();drawHUD();
       if(G.state==='clear'&&G.stateT>60)drawClearCard();
-      if(G.state==='win'){panel(60,16,280,38);
-        txt('BRAVO, CURCANULE! AI AJUNS LA MESOPOTAMIA!',W/2,21,'#ffffff',1,'c',null);
-        txt('POFTĂ BUNĂ!',W/2,36,'#ffd23f',2,'c','#7a2a0a');
+      // Poza de grup: un flash alb
+      if(G.state==='win'&&G.photoT&&G.photoT<12){ctx.fillStyle=`rgba(255,255,255,${1-G.photoT/12})`;ctx.fillRect(0,0,W,H);}
+      // Finalul: doar scorul, jos; restul spune restaurantul
+      if(G.state==='win'&&!G.talk){
         ctx.fillStyle='rgba(16,8,32,0.8)';ctx.fillRect(0,195,W,29);
         txt('SCOR FINAL '+pad(G.score,6)+'   '+(G.score>=G.hi?'RECORD NOU!':'RECORD '+pad(G.hi,6)),W/2,199,'#9fe8ff',1,'c',null);
         if(G.stateT>120&&(G.t>>5)%2===0)txt('ENTER - JOACĂ DIN NOU',W/2,211,'#7fff7f',1,'c',null);}

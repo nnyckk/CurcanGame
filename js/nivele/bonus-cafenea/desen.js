@@ -52,8 +52,11 @@ function drawCafeRoom(cx){
   P(sx-27,T+10,54,13,BR);P(sx-27,T+10,54,1,BRL);P(sx-26,T+11,52,11,'#16121a');
   ctx.drawImage(MESO_LOGO,x0+sx-(MESO_LOGO.width>>1),T+13);
   // Lămpile de alamă, atârnate de grindă, cu becuri calde
-  for(const lx of [120,240]){P(lx,T+8,1,8,'#1a100a');P(lx-3,T+16,7,2,BRD);P(lx-3,T+16,7,1,BRL);P(lx-1,T+18,3,2,'#fff0b0');
-    glow(x0+lx,T+22,34,'255,190,110',0.36);}
+  for(const lx of [120,240]){P(lx,T+8,1,10,'#1a100a');P(lx-1,T+18,3,2,BRD);
+    // Abajurul, ca un clopot, și becul
+    for(let k=0;k<5;k++){const w=7+2*Math.min(k,3);P(lx-(w>>1),T+20+k,w,1,k===0?BRL:BR);}
+    P(lx-6,T+24,13,1,BRD);P(lx-2,T+25,5,2,'#fff0b0');P(lx-1,T+27,3,1,'#ffe080');
+    glow(x0+lx,T+28,44,'255,190,110',0.4);}
   // Fereastra mică
   const W0=(px,py,w,h,col)=>P(px+6,py-14,w,h,col);
   W0(98,140,24,26,'#2a1a12');W0(100,142,20,22,'#8aa6bc');W0(100,157,20,7,'#dfe8f0');
@@ -106,6 +109,8 @@ function drawCafeFrame(cx){
   // Întunericul: în stânga, în dreapta
   P(-W,-H,W+L,H*3,'#120c0a');P(R,-H,W,H*3,'#120c0a');P(L,-H,R-L,top+H,'#120c0a');P(L,fy,R-L,H*2,'#120c0a');
   for(const x of [L-5,R]){P(x,top,5,fy-top,'#2a1a12');P(x+(x<L?4:0),top,1,fy-top,'#4a3020');}
+  // Grinda de jos, ca cea de sus
+  P(L-5,fy,R-L+10,8,'#2a1a12');P(L-5,fy,R-L+10,1,'#4a3020');P(L-5,fy+7,R-L+10,1,'#1a100a');
 }
 // Blocul-slot, desenat o dată
 function drawSlotBlock(x,y,used){

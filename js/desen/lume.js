@@ -31,6 +31,7 @@ function drawWorld(){
   drawPlats(cx);
   if(inCafe())drawCafeFrame(cx);   // întunericul din jurul cafenelei
   if(cafe)drawCafeNPC(cx);
+  drawCage(cx);   // colivia cu curcanul prins
   // Mobii chemați de boss care încă intră în poiană trec
   const entering=e=>e.enter&&!e.dead;
   for(const e of enemies)if(entering(e))drawEnemy(e,cx);
@@ -41,6 +42,7 @@ function drawWorld(){
   const litBomb=e=>night&&e.type==='bomb'&&e.lit>0&&!e.sink;
   for(const e of enemies)if((e.active||(e.x-cx<W+24))&&!litBomb(e)&&!entering(e))drawEnemy(e,cx);
   drawBoss(cx);
+  drawKeys(cx);
   drawPlayer(cx);
   // Decorul de pe sol stă în fața personajelor
   if(theme.farm)drawGroundDecor(cx,theme,tx=>grid[12][tx]==='G'&&grid[11][tx]==='.'&&tileAt(tx-1,12)!=='.'&&tileAt(tx+1,12)!=='.');
@@ -51,7 +53,7 @@ function drawWorld(){
     // Umbra de noapte
     ctx.globalCompositeOperation='source-atop';ctx.fillStyle='rgba(12,18,56,0.4)';ctx.fillRect(0,0,W,H);
     ctx.globalCompositeOperation='source-over';
-    ctx=main;ctx.drawImage(shadeCv,0,0);
+    ctx=main;drawRestaurantBehind(cx);ctx.drawImage(shadeCv,0,0);   // ferestrele luminate, sub umbră
     // Curcanul de aur luminează noaptea
     if(player&&!player.dead&&goldSkinOn()){ctx.globalAlpha=0.62+0.18*Math.sin(G.t*0.035);drawPlayer(cx);ctx.globalAlpha=1;}
     drawNightLights(cx);
@@ -78,6 +80,7 @@ function drawWorld(){
   if(theme.snow&&!inRoom())drawSnowfall();
   for(const p of popups)txt(p.s,p.x-cx,p.y,p.c,1,'c','#000');
   if(cafe)drawCafeHints(cx);
+  drawCageHint(cx);drawRestHint(cx);
   if(TEST&&G.showHB)drawHitboxes(cx);
   ctx.restore();
   // Lumea urcată

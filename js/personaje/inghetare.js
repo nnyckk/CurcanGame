@@ -50,7 +50,7 @@ function updateFrozen(e){
     else{if(o.type==='man')killMan(o,2,200);else knockBomb(o);sfx.stomp();}
     shatter(e,200);return;
   }
-  if(e.y>H+20)e.remove=true;
+  if(e.y>H+20){if(e.key)keyDrop(e,true);e.remove=true;}
 }
 // Un dușman înghețat: sprite-ul lui albăstrit
 function drawFrozen(e,sx){

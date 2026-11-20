@@ -16,6 +16,7 @@ function drawTitle(){
   if(THEMES[0].farm)drawGroundDecor(fc,THEMES[0],()=>true);   // în fața personajelor
   if(G.menu==='settings'){txtCute('SETĂRI',W/2,40,3,'#e8323e','#000000');drawMenuButtons();return;}
   if(G.menu==='controls'){txtCute('CONTROALE',W/2,20,3,'#e8323e','#000000');drawControls();drawMenuButtons();return;}
+  if(G.menu==='custi'){txtCute('CURCANI PRINȘI',W/2,30,3,'#e8323e','#000000');drawCageInfo();drawMenuButtons();return;}
   if(G.menu==='pene'){txtCute('PENE DE AUR',W/2,30,3,'#e8323e','#000000');drawGoldInfo();drawMenuButtons();return;}
   if(G.menu==='ach'){txtCute('ACHIEVEMENTS',W/2,5,3,'#e8323e','#000000');drawMenuButtons();drawAchInfo();return;}
   txtCute('CURCANUL',W/2,18,4,'#e8323e','#000000');
@@ -39,7 +40,7 @@ function drawMenuButtons(){
   menuRects().forEach((b,i)=>{
     const on=i===G.sel,it=b.it,ty=b.y+4;
     // Insignele de jos: luminate doar cât e mouse-ul pe ele
-    if(it.badge){(it.badge==='ach'?drawAchBadge:drawGoldBadge)(b,i===G.hover);return;}
+    if(it.badge){if(it.badge==='custi')drawCageBadge(b,i===G.hover);else (it.badge==='ach'?drawAchBadge:drawGoldBadge)(b,i===G.hover);return;}
     if(it.ach){drawAchCell(b,on);return;}   // cartonașele din pagina ACHIEVEMENTS
     if(it.pg){drawAchArrow(b,i===G.hover);return;}
     const au=!!it.gold;   // curcanul de aur: mereu galben (apare doar cu toate penele)
@@ -76,7 +77,7 @@ const CUP_PIX=["lgggggd","l.lgd.d",".lggdd.","..lgd..","...d...","..lgd..",".lgg
 // Pana mică: aceeași ca pana mare din nivel, cu tija albă (w)
 const FEATHER_PIX=["..g..",".lgd.","lgwgd","lgwgd","lgwgd",".gwd.","..w..","..w.."];
 // sh: umbră închisă, doar când e mouse-ul pe insignă
-function drawPix(map,x,y,sh){if(sh)map.forEach((r,j)=>{for(let i=0;i<r.length;i++)if(r[i]!=='.'){ctx.fillStyle='#5a1008';ctx.fillRect(x+i+1,y+j+1,1,1);}});map.forEach((r,j)=>{for(let i=0;i<r.length;i++)if(r[i]!=='.'){ctx.fillStyle=ICON_PAL[r[i]];ctx.fillRect(x+i,y+j,1,1);}});}
+function drawPix(map,x,y,sh,pal=ICON_PAL){if(sh)map.forEach((r,j)=>{for(let i=0;i<r.length;i++)if(r[i]!=='.'){ctx.fillStyle='#5a1008';ctx.fillRect(x+i+1,y+j+1,1,1);}});map.forEach((r,j)=>{for(let i=0;i<r.length;i++)if(r[i]!=='.'){ctx.fillStyle=pal[r[i]];ctx.fillRect(x+i,y+j,1,1);}});}
 const CUP_ICON=["#######","#.###.#",".#####.","..###..","...#...","..###..",".#####."];
 const NOTE_ICON=["..#####","..#####","..#...#","..#...#",".##..##","###.###","##..##."];
 function drawRecordBadge(){
@@ -90,6 +91,40 @@ function drawGoldBadge(b,on){
   if(on)uiBox(x,y,w,h,'#e8323e','#ffffff','#ff6a72','#a01822');else uiBox(x,y,w,h);
   drawPix(FEATHER_PIX,x+6,y+3,on);
   txt(s,x+w-6,ty,'#ffffff',1,'r',on?'#7a0a10':null);
+}
+// Câți curcani prinși ai salvat
+const CAGE_ICON=["...#...","..###..",".#.#.#.","#.#.#.#","#.#.#.#","#.#.#.#","#######"];
+// Colivia mică, aurie, ca penița și cupa: cârlig, dom, gratii, talpă
+const IRON_PAL={l:'#eceef4',g:'#a8b0c0',d:'#6a7080',s:'#4a5060',w:'#ffffff'};   // culoarea fierului
+const CAGE_PIX=["...w...","..lgd..",".lgggd.","l.g.g.d","l.g.g.d","l.g.g.d","sgggggs",".s...s."];
+// Deschisă: fără gratiile din față, ușița dată în stânga
+const CAGE_OPEN_PIX=[".....w...","....lgd..","...lgggd.","lgl...g.d","lgl...g.d","lgl...g.d","..sgggggs","...s...s."];
+function drawCageBadge(b,on){
+  const {x,y,w,h,s}=b;if(on)uiBox(x,y,w,h,'#e8323e','#ffffff','#ff6a72','#a01822');else uiBox(x,y,w,h);
+  drawPix(CAGE_PIX,x+6,y+3,on,IRON_PAL);   // umbra apare la hover
+  txt(s,x+w-6,y+4,'#ffffff',1,'r',on?'#7a0a10':null);
+}
+// Pagina CURCANI PRINȘI: ce ai de făcut, și cine e salvat
+function drawCageInfo(){
+  const x=36,w=W-72,y0=62,lh=14,won=cageOK();
+  const paras=[
+    ['FIULE, FERMIERII ȚIN ÎNCHIS CÂTE UN CURCAN ÎN FIECARE NIVEL.','#ffd23f'],
+    ['GĂSEȘTE CHEIA ȘI DESCHIDE COLIVIA UNDE SUNT ÎNCHIȘI.','#e8f4ff'],
+    ...(won?[['I-AI SALVAT PE TOȚI. TE AȘTEAPTĂ LA MESOPOTAMIA!','#7fff7f']]:[])];
+  const rows=paras.map(([t,c])=>[wrapWords(t,52),c]),n=rows.reduce((k,[l])=>k+l.length,0);
+  uiBox(x,y0,w,8+n*lh+rows.length*4+36);
+  let y=y0+8;
+  for(const [lines,c] of rows){for(const l of lines){txt(l,x+10,y,c,1,'l',null);y+=lh;}y+=4;}
+  ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(x+8,y-2,w-16,1);
+  // Câte un cartonaș pe curcan: nivelul și capul lui (umbră dacă nu e salvat)
+  const cw=56,ch=26,gap=8,cy=y+4;let cx=Math.round(W/2-(CAPT_INFO.length*cw+(CAPT_INFO.length-1)*gap)/2);
+  CAPT_INFO.forEach((c,i)=>{const ok=cageSaved(c.id),li=LEVELS.findIndex(d=>d.id===c.id);
+    if(ok)uiBox(cx,cy,cw,ch,'#3a2c0c','rgba(255,210,63,0.9)','#4a3a12','#1a1206');else uiBox(cx,cy,cw,ch,'#262040','rgba(255,255,255,0.3)','#302a4c','#18142a');
+    txt(String(li>=0?levelNum(li):i+1),cx+7,cy+10,ok?'#ffd23f':'#9fe8ff',1,'l',null);
+    // Salvat: colivia deschisă; nesalvat: închisă
+    const pm=ok?CAGE_OPEN_PIX:CAGE_PIX,ox=ok?cx+20:cx+24;
+    pm.forEach((r,j)=>{for(let k=0;k<r.length;k++)if(r[k]!=='.'){ctx.fillStyle=IRON_PAL[r[k]];ctx.fillRect(ox+k*2,cy+5+j*2,2,2);}});
+    cx+=cw+gap;});
 }
 // Pagina PENE DE AUR: ce ai de făcut cu penele
 function drawGoldInfo(){
@@ -141,7 +176,7 @@ function drawClearCard(){
     const r=t<6||t>=18?1:2,x=W/2+sx,y=sy+dy;
     ctx.fillStyle='#fff3b0';ctx.fillRect(x-r,y,r*2+1,1);ctx.fillRect(x,y-r,1,r*2+1);ctx.fillStyle='#ffffff';ctx.fillRect(x,y,1,1);
   }
-  const w=164,h=golds.length?50:36,x=W/2-w/2,y=70+dy,bonus=Math.max(0,(G.clearTime||0)-G.time)*50;
+  const w=164,h=(golds.length?50:36)+(cage?14:0),x=W/2-w/2,y=70+dy,bonus=Math.max(0,(G.clearTime||0)-G.time)*50;
   ctx.globalAlpha=e;
   uiBox(x,y,w,h);
   icon(CLOCK_ICON,x+8,y+8,'#9fe8ff');txt('TIMP RĂMAS',x+19,y+8,'#d8e4f0',1,'l',null);txt(pad(G.time,3),x+w-8,y+8,'#ffffff',1,'r',null);
@@ -153,6 +188,11 @@ function drawClearCard(){
     drawGoldMini(x+8,gy,'got',0);txt('PENE DE AUR',x+19,gy+1,'#d8e4f0',1,'l',null);
     golds.forEach((g,i)=>{const run=(G.goldRun||[]).includes(i),nw=(G.goldNew||[]).includes(i);
       drawGoldMini(x+w-31+i*8,gy,run?'got':goldSaved(id,i)?'ghost':'empty',nw&&G.stateT<150?G.stateT:0);});}
+  // Curcanul prins al nivelului
+  if(cage){const cy=y+h-13,id=LEVELS[G.level].id;
+    ctx.fillStyle='rgba(255,255,255,0.12)';ctx.fillRect(x+8,cy-4,w-16,1);
+    icon(CAGE_ICON,x+8,cy,G.cageRun?'#ffd23f':'#8a84a8');txt('CURCAN PRINS',x+19,cy,'#d8e4f0',1,'l',null);
+    txt(G.cageRun?'ELIBERAT!':cageSaved(id)?'SALVAT':'-',x+w-8,cy,G.cageRun?'#ffd23f':'#8a84a8',1,'r',null);}
   // Tocmai ai strâns toate penele din joc
   if(G.goldUnlockNow){const uw=232,ux=W/2-uw/2,uy=y+h+6;
     uiBox(ux,uy,uw,30,'#3a2a08','#ffd23f','#5a4010','#1a1004');

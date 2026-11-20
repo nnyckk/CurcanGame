@@ -13,7 +13,7 @@ function stepOnIce(under){
     if(iceStage(tx)>s0)sfx.crack();
     if(iceCrack[tx]>=ICE_CRACK_T)brk=true;}
   // Se sparge tot ce e sub picioare deodată
-  if(brk){for(const tx of under)breakIce(tx,true);sfx.iceBreak();}
+  if(brk){for(const tx of under)breakIce(tx,true);sfx.iceBreak();achIceFall();}
 }
 // quiet: fără sunet
 function breakIce(tx,quiet){

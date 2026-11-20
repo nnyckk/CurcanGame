@@ -1,6 +1,6 @@
 'use strict';
 // ===== ACHIEVEMENTS =====
-// 16 lucruri de făcut în joc, doar de colecționat
+// 20 de lucruri de făcut în joc, doar de colecționat
 const ACH=[
   {id:'pofta',name:'POFTĂ BUNĂ!',desc:'AJUNGI LA RESTAURANTUL MESOPOTAMIA.'},
   {id:'pene',name:'PANĂ PESTE PANĂ',desc:'STRÂNGI TOATE CELE 15 PENE DE AUR.'},
@@ -12,17 +12,21 @@ const ACH=[
   {id:'nemuritor',name:'NEMURITOR',desc:'TERMINI TOT JOCUL FĂRĂ SĂ PIERZI NICIO VIAȚĂ.'},
   {id:'umbra',name:'UMBRĂ ÎN NOAPTE',desc:'TERMINI ORA DE CULCARE FĂRĂ SĂ TE VADĂ VREUN FERMIER.'},
   {id:'piroman',name:'PIROMAN',desc:'DOBORI 100 DE DUȘMANI CU PENELE DE FOC.'},
+  {id:'zapada',name:'OM DE ZĂPADĂ',desc:'ÎNGHEȚI 50 DE DUȘMANI CU PENELE DE GHEAȚĂ.'},
+  {id:'eliberator',name:'ELIBERATORUL',desc:'ELIBEREZI TOȚI CEI 5 CURCANI PRINȘI.'},
   {id:'glaciara',name:'ERA GLACIARĂ',desc:'L-AI ÎNGHEȚAT PE FERMIERUL-ȘEF CU PENELE DE GHEAȚĂ.',secret:true},
   {id:'nepot',name:'NEPOT ASCULTĂTOR',desc:'AI AJUNS DE 10 ORI LA CAFENEAUA LUI MOȘ CURCAN.',secret:true},
   {id:'cap',name:'CAP TARE',desc:'AI DAT DE 30 DE ORI CU CAPUL ÎN BLOCUL GOL.',secret:true},
   {id:'inot',name:'CURCANII NU ÎNOATĂ',desc:'AI CĂZUT ÎN APĂ DE 10 ORI.',secret:true},
   {id:'autogol',name:'AUTOGOL',desc:'TE-AI ARUNCAT ÎN AER CU PROPRIA BOMBĂ.',secret:true},
   {id:'speleolog',name:'SPELEOLOG',desc:'AI DESCOPERIT TOATE PEȘTERILE DIN JOC.',secret:true},
+  {id:'subtire',name:'PE GHEAȚĂ SUBȚIRE',desc:'S-A CRĂPAT GHEAȚA SUB TINE DE 5 ORI.',secret:true},
+  {id:'gustul',name:'GUSTUL CARE NU SE UITĂ',desc:'AI TERMINAT JOCUL DE 5 ORI.',secret:true},
 ];
 const ACH_KEY=TEST?'curcan_ach_test':'curcan_ach';
 let ACH_SAVE={},achToasts=[];   // achToasts = casetele de „deblocat”
 try{ACH_SAVE=JSON.parse(localStorage.getItem(ACH_KEY)||'{}')||{};}catch(e){}
-const ACH_ALL=/[?&]achall\b/.test(location.search);   // ?achall: le arată pe toate deblocate, fără să salveze
+const ACH_ALL=ALL_OPEN||/[?&]achall\b/.test(location.search);   // ?achall: le arată pe toate deblocate, fără să salveze
 const achGot=id=>ACH_ALL||!!ACH_SAVE[id];
 const achCount=()=>ACH.filter(a=>achGot(a.id)).length;
 // quiet = fără casetă
@@ -32,12 +36,16 @@ function achUnlock(id,quiet){
   if(!quiet)achToasts.push({id,t:0});
 }
 // La pornire: ce ai făcut deja în jocurile trecute
-function achRetro(){if(goldOK())achUnlock('pene',true);if(MOS.wins>0)achUnlock('pofta',true);if(MOS.cafe>=10)achUnlock('nepot',true);if(allCaves())achUnlock('speleolog',true);}
+function achRetro(){if(goldOK())achUnlock('pene',true);if(cageOK())achUnlock('eliberator',true);if(MOS.wins>0)achUnlock('pofta',true);if(MOS.cafe>=10)achUnlock('nepot',true);if(allCaves())achUnlock('speleolog',true);
+  if((MOS.freezes||0)>=50)achUnlock('zapada',true);if((MOS.iceFalls||0)>=5)achUnlock('subtire',true);if(MOS.wins>=5)achUnlock('gustul',true);}
 // Peșterile: nivelurile care au una și cele în care ai intrat (ținute minte de la un joc la altul)
 let CAVE_LEVELS=null;
 const caveLevels=()=>CAVE_LEVELS||(CAVE_LEVELS=LEVELS.filter(d=>!d.arena&&d.build().underDef).map(d=>d.id));
 const allCaves=()=>caveLevels().every(id=>(MOS.caves||[]).includes(id));
 function achCave(){const id=LEVELS[G.level].id;MOS.caves=MOS.caves||[];if(!MOS.caves.includes(id)){MOS.caves.push(id);mosSave();}if(allCaves())achUnlock('speleolog');}
+// Dușmanii înghețați și gheața spartă sub tine, adunate de la un joc la altul
+function achFreeze(){MOS.freezes=(MOS.freezes||0)+1;mosSave();if(MOS.freezes>=50)achUnlock('zapada');}
+function achIceFall(){MOS.iceFalls=(MOS.iceFalls||0)+1;mosSave();if(MOS.iceFalls>=5)achUnlock('subtire');}
 // Dușmanii doborâți cu foc, adunați de la un joc la altul
 function achBurn(){MOS.burns=(MOS.burns||0)+1;mosSave();if(MOS.burns>=100)achUnlock('piroman');}
 // La finalul unui nivel
@@ -64,7 +72,7 @@ function drawAchToast(){
 }
 // ---- Pagina din meniu ----
 // Insigna din meniul principal, în dreapta celei cu penele
-function achBadgeRect(){return {x:106+BADGE_W+4,y:H-19,w:BADGE_W,h:15,s:achCount()+'/'+ACH.length};}
+function achBadgeRect(){return {x:106+(BADGE_W+4)*2,y:H-19,w:BADGE_W,h:15,s:achCount()+'/'+ACH.length};}
 // Medalia: panglică sus, banul rotund jos
 const MEDAL_RIB=['#.....#','##...##','.##.##.'],MEDAL=['..###..','.#####.','###o###','.#####.','..###..'];
 function drawMedalIcon(x,y,on){
@@ -117,7 +125,11 @@ function drawAchCell(b,on){
   ctx.drawImage(art,ax+art.ox,ay+art.oy);
   if(!got&&!hid){const lx=x+b.w-9,ly=y+CARD_PIC-8;   // lacătul, cu contur
     for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]])icon(LOCK_ICON,lx+dx,ly+dy,'#0c0a18');icon(LOCK_ICON,lx,ly,'#8a84a8');}
-  if(got){const t=(G.t+ACH.indexOf(a)*37)%150;if(t<10){ctx.fillStyle='#ffffff';ctx.fillRect(x+b.w-8,y+5,3,1);ctx.fillRect(x+b.w-7,y+4,1,3);}}
+  // Sclipirea: rar, la întâmplare (în unele ferestre de 240 de cadre, la un moment ales din hash)
+  if(got){const k=ACH.indexOf(a),win=Math.floor(G.t/240),h=vhash(k*7+3,win),t=G.t%240-(h>>>4)%220;if(h%3===0&&t>=0&&t<10){
+    // și locul ei, tot la întâmplare, pe partea cu iconița
+    const h2=vhash(win,k*13+5),sx=x+4+h2%(b.w-8),sy=y+4+(h2>>>8)%(CARD_PIC-8);
+    ctx.fillStyle='#ffffff';ctx.fillRect(sx-1,sy,3,1);ctx.fillRect(sx,sy-1,1,3);}}
   // Numele, cu litere mici
   const lines=hid?['???']:tinyWrap(a.name,b.w-6),col=on?'#ffffff':got?'#ffe9a0':'#8a84a8',ty=y+(lines.length>1?36:40);
   lines.forEach((l,i)=>{const lx=Math.round(x+b.w/2-tinyW(l)/2);if(on)tinyTxt(l,lx+1,ty+i*9+1,'#7a0a10');tinyTxt(l,lx,ty+i*9,col);});

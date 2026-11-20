@@ -99,4 +99,6 @@ const sfx={
   // „Bla-bla”-ul bătrânelului
   talk(){if(!AC)return;tone('triangle',230+Math.random()*90,AC.currentTime,0.05,0.07,sfxG);},
   nope(){if(!AC)return;const t=AC.currentTime;tone('square',330,t,0.17,0.07,sfxG,310);tone('square',262,t+0.19,0.17,0.07,sfxG,247);tone('square',196,t+0.38,0.45,0.07,sfxG,175);},
+  // Lacătul zăngăne: n-ai cheia
+  rattle(){if(!AC)return;const t=AC.currentTime;for(let i=0;i<3;i++){tone('square',1100-i*120,t+i*0.07,0.03,0.05,sfxG);noise(t+i*0.07,0.03,0.1,sfxG,3000);}},
 };

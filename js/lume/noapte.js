@@ -13,9 +13,13 @@ function drawNightLights(cx){
     ctx.fillStyle=gr;ctx.beginPath();ctx.moveTo(lx,ly);ctx.arc(lx,ly,LANTERN_LEN,a0-LANTERN_HALF,a0+LANTERN_HALF);ctx.closePath();ctx.fill();
     ctx.globalCompositeOperation='source-over';
     const fl=0.8+0.2*Math.sin(G.t*0.3+e.x);
-    glow(lx,ly,8*fl,'255,210,110',0.7);
-    ctx.fillStyle='#2a2018';ctx.fillRect(lx,ly-5,1,2);ctx.fillRect(lx-1,ly-3,3,1);ctx.fillRect(lx-2,ly-2,1,4);ctx.fillRect(lx+2,ly-2,1,4);ctx.fillRect(lx-1,ly+2,3,1);
-    ctx.fillStyle=fl>0.9?'#fff4c0':'#ffd56a';ctx.fillRect(lx-1,ly-2,3,4);
+    // Felinarul și aura lui: nu peste curcan
+    if(player&&!player.dead&&overlap(player,{x:l.x-7,y:l.y-7,w:15,h:14}))continue;
+    glow(lx,ly,6*fl,'255,210,110',0.7);
+    // lanțul din mână, rama, flacăra
+    ctx.fillStyle='#8a8a9a';ctx.fillRect(lx,ly-4,1,2);
+    ctx.fillStyle='#2a2018';ctx.fillRect(lx-1,ly-2,4,1);ctx.fillRect(lx-1,ly-1,1,3);ctx.fillRect(lx+2,ly-1,1,3);ctx.fillRect(lx-1,ly+2,4,1);
+    ctx.fillStyle=fl>0.9?'#fff4c0':'#ffd56a';ctx.fillRect(lx,ly-1,2,3);
   }
   if(!theme.snow)drawFireflies(cx);   // iarna nu sunt licurici
   // Curcanul de aur luminează încet în noapte

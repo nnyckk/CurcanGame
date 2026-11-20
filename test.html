@@ -192,6 +192,7 @@
         <button class="tile" data-form="ice" aria-pressed="false" title="De gheață (afina înghețată): aruncă pene de gheață cu X"><span class="stage"><img data-icon="tki" alt=""></span>Gheață</button>
       </div>
       <button class="btn tog" data-cmd="goldskin" data-toggle="goldskin" aria-pressed="true" title="Curcanul de aur, și fără pene (doar în modul de test; în joc apare abia cu toate penele de aur)"><i data-px="pana"></i>Curcan de aur</button>
+      <button class="btn tog" data-cmd="haskey" data-toggle="haskey" aria-pressed="false" title="Ai cheia coliviei (o primești din nou și după ce mori)"><i data-px="key"></i>Cheia coliviei</button>
     </div>
   </section>
 
@@ -267,6 +268,7 @@ const PX={
   flake:['#..#..#','.#.#.#.','..###..','#######','..###..','.#.#.#.','#..#..#'],
   palm:['.##.##.','#..#..#','...#...','...#...','...#...','...#...','.#####.'],
   nightsnow:['.##....','##...#.','#...###','#....#.','##.....','.##.#..','...###.'],
+  key: ['.###...','#...#..','#...#..','.###...','..#....','..##...','..##...'],
   aim: ['...#...','.#####.','.#...#.','##.#.##','.#...#.','.#####.','...#...'],
 };
 function pix(name){
@@ -433,6 +435,15 @@ function drawMap(){
     mg.beginPath();mg.moveTo(x,y-r);mg.lineTo(x+r,y);mg.lineTo(x,y+r);mg.lineTo(x-r,y);mg.closePath();
     mg.fillStyle=st===2?'#ffd23f':st===1?'rgba(255,210,63,.35)':'rgba(255,210,63,.6)';mg.fill();
     mg.strokeStyle=st===2?'#fff':st===1?'#ffd23f':'#7a4a08';mg.lineWidth=dpr;mg.stroke();});
+  // Colivia: dom cu gratii; aurie când e deschisă
+  if(MAP.cage){const st=s?s.cage:0,x=X(MAP.cage.x+0.5),y=Y(MAP.cage.y+1),w=4*dpr,h=7*dpr;
+    mg.globalAlpha=st===2?0.4:1;mg.strokeStyle=st===0?'#e8ecf4':'#ffd23f';mg.lineWidth=dpr;
+    mg.beginPath();mg.moveTo(x-w,y);mg.lineTo(x-w,y-h+w);mg.arc(x,y-h+w,w,Math.PI,0);mg.lineTo(x+w,y);mg.closePath();
+    mg.moveTo(x,y);mg.lineTo(x,y-h);mg.stroke();mg.globalAlpha=1;}
+  // Cheia: un cerculeț auriu, la cine o are sau pe jos
+  if(s&&Array.isArray(s.key)){const x=X(s.key[0]),y=Y(s.key[1])-rh*1.4;
+    mg.strokeStyle='#ffd23f';mg.lineWidth=1.5*dpr;mg.beginPath();mg.arc(x,y,2*dpr,0,Math.PI*2);mg.stroke();
+    mg.fillStyle='#ffd23f';mg.fillRect(x-dpr/2,y+2*dpr,dpr,3*dpr);}
   if(s){
     for(const [mx,my,k] of s.mobs){const big=k==='B';mg.fillStyle=MOB_COL[k]||'#fff';mg.beginPath();
       mg.arc(X(mx),Y(my)-rh*(big?1.2:0.6),(big?3.4:1.8)*dpr,0,Math.PI*2);mg.fill();if(big){mg.strokeStyle='#000';mg.lineWidth=dpr;mg.stroke();}}

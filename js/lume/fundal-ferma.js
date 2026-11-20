@@ -28,7 +28,7 @@ function farmFar(g,th,R,hill,FW){
   const house=x0=>{const b=base(x0,30);
     px(x0+2,b-14,26,14);
     for(let r=0;r<=10;r++){const s=Math.round(r*1.5);px(x0+s,b-14-r,30-2*s,1);px(x0+s,b-14-r,1,1,L);px(x0+29-s,b-14-r,1,1,L);}
-    px(x0+21,b-27,4,9);px(x0+21,b-27,4,1,L);   // hornul
+    px(x0+21,b-27,4,11);px(x0+21,b-27,4,1,L);   // hornul, până în acoperiș
     win(x0+6,b-10,4,4);win(x0+20,b-10,4,4);px(x0+13,b-8,4,8,L);px(x0+14,b-7,2,7);
     dyn.smoke.push({x:x0+23,y:b-28});
   };

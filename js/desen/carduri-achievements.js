@@ -26,6 +26,32 @@ function artStar(R,x,y,c){R(x-1,y,3,1,c);R(x,y-1,1,3,c);}
 const ART_M=["#.....#","##...##","#.#.#.#","#..#..#","#.....#"];
 // Câte o iconiță pentru fiecare achievement
 const ACH_DRAW={
+  zapada(g,R){   // omul de zăpadă, cu joben și morcov
+    const snow={k:'#0c0a14',f:'#f4f8fc',l:'#ffffff',d:'#b8c8dc'};
+    artShape(g,inCirc(14,19,6.5),snow);artShape(g,inCirc(14,10,4.5),snow);
+    artShape(g,inAny(inRect(10,4,18,5),inRect(11.5,0.5,16.5,4)),{k:'#0c0a14',f:'#2a2a38',l:'#4a4a5e'});
+    R(12,9,1,1,'#0c0a14');R(15,9,1,1,'#0c0a14');R(16,11,4,1,'#ff8a2a');R(16,12,2,1,'#e06a10');
+    R(14,17,1,1,'#0c0a14');R(14,20,1,1,'#0c0a14');
+  },
+  subtire(g,R){   // placa de gheață crăpată, cu apa dedesubt
+    artShape(g,inRect(2,15,25,25),{f:'#2a6aa8'});
+    artShape(g,inRect(2,9,25,15),{k:'#0c0a14',f:'#bfe6f8',l:'#ffffff',d:'#7ab0d0'});
+    for(const [x,y] of [[13,9],[13,10],[14,11],[12,12],[13,13],[13,14],[8,11],[9,12],[10,12],[11,12],[18,12],[17,13],[16,13],[15,12]])R(x,y,1,1,'#2a5a88');
+    for(let x=4;x<24;x+=5)R(x,18,3,1,'#5a9ad0');R(7,21,4,1,'#5a9ad0');R(17,22,4,1,'#5a9ad0');
+  },
+  gustul(g,R){   // un döner, ca pe semnul restaurantului
+    const d=rotPix(DONER_ROWS,DONER_PAL,0,1);g.imageSmoothingEnabled=false;g.drawImage(d,0,0,30,11,-1,6,30,16);   // drept, mai înalt, cât tot cartonașul
+  },
+  eliberator(g,R){   // o colivie obișnuită, cu lacătul deschis
+    const iron={k:'#0c0a14',f:'#8a90a8',l:'#c8cedc',d:'#5a6070'};
+    const dome=x=>13-Math.sqrt(Math.max(0,81-(x-14)**2))*0.85;
+    const bar=(x,y)=>[7,11,17,21].some(b=>x>=b&&x<b+1.2)&&y>=dome(x)&&y<=22;
+    const ring=(x,y)=>y<=13&&inEll(14,13,9,7.6)(x,y)&&!inEll(14,13,7.8,6.4)(x,y);
+    artShape(g,inAny(bar,ring,inRect(5,13,23,14),inRect(4,22,24,24),inCirc(14,4,1.6)),iron);
+    // lacătul, cu toarta desfăcută: deschis
+    artShape(g,inRect(12,17,16,21),{k:'#3a2004',f:'#ffd23f',l:'#fff3b0',d:'#d08a10'});
+    R(13,15,1,2,'#c8cedc');R(13,14,3,1,'#c8cedc');R(16,13,1,2,'#c8cedc');R(14,19,1,1,'#3a2004');
+  },
   pofta(g,R){   // clopotul de servit
     const c={k:'#0c0a14',f:'#c8cedc',l:'#ffffff',d:'#8a90a8'};
     artShape(g,(x,y)=>y<=19&&inEll(14,19,10,10)(x,y),c);
@@ -48,7 +74,6 @@ const ACH_DRAW={
       return t-band*2<0.7&&vhash(band,Math.floor((x+band*4)/5))%3?'#6a4020':band%2?'#b8824a':'#d8a868';};
     artShape(g,(x,y)=>y>=15&&inEll(14,15,13,6.5)(x,y),{k:'#1e1006',f:twig,l:'#f0cc90',d:'#5a3418'});
     for(const [x,y,c] of [[0,16,'#b8824a'],[1,17,'#b8824a'],[27,15,'#b8824a'],[26,16,'#b8824a'],[25,20,'#8e5c2e']])R(x,y,1,1,c);   // crenguțe care ies
-    artStar(R,23,6,'#ffffff');
   },
   zgarietura(g,R){   // scutul
     const hw=y=>y<14?9:9*Math.sqrt(Math.max(0,(24.5-y)/10.5));
@@ -122,7 +147,6 @@ const ACH_DRAW={
     artShape(g,(x,y)=>inEll(14,19,7.5,9)(x,y)&&y<=25,{f:'#1a1424'});
     const cr={k:'#2a1050',f:'#a070f0',l:'#e0c8ff',d:'#6a3ab8'},prism=(cx,w,top)=>inPoly([[cx-w,25],[cx-w,top+w],[cx,top],[cx+w,top+w],[cx+w,25]]);
     artShape(g,prism(11,1.6,17),cr);artShape(g,prism(17,1.6,18),cr);artShape(g,prism(14,2.2,12),cr);
-    artStar(R,22,6,'#ffffff');
   },
   autogol(g,R){   // bomba din joc (culorile, ochii furioși, picioarele), cu fitilul aprins
     const P=BOMB_PAL;

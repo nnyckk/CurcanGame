@@ -3,7 +3,7 @@
 // Nivelul 3 — LACUL: ferma ziua
 LEVELS.push({id:'lac',theme:4,tip:'SCÂNDURILE CRĂPATE NU TE ȚIN MULT. NU STA PE ELE!',build(){const m=newMap(350);m.g(0,349);
   // Primul ecran e tot pe pământ
-  m.r(9,8,'BMBHB');m.c(10,5,3);
+  m.r(6,8,'BMBHB');m.c(7,5,3);   // mai departe de dealuri
   // Deal dublu spre mal: de sus sari pe prima scândură
   m.hill(15,[2,2,2,2,2]);m.back(18,[4,4,4,4,4]);m.c(19,7,3);
   m.pit(25,322);   // lacul
@@ -30,8 +30,9 @@ LEVELS.push({id:'lac',theme:4,tip:'SCÂNDURILE CRĂPATE NU TE ȚIN MULT. NU STA 
   m.mv(137,8,3,'x',8,300);m.c(140,6,4);
   m.pana(149,2);   // pana 2: sus, peste apă
   m.isl(150,157,8);m.e('man',154,7);
-  m.fall(160,7,2);m.fall(164,6,2);m.fall(168,5,2);m.c(160,5,2);m.c(164,4,2);m.c(168,3,2);
+  m.fall(160,7,2);m.fall(164,6,2);m.fall(168,5,2);m.c(160,5,2);m.c(164,4,2);m.c(170,2,2);
   m.r(172,6,'=====');m.r(173,3,'BMB');
+  m.isl(166,169,11);m.colivie(168,11);   // colivia: pe un petic de pământ, sub platformele care cad
   // Două platforme care urcă și coboară pe rând
   m.mv(179,6,3,'y',4,220,0);m.mv(185,6,3,'y',4,220,0.5);m.c(182,7,3);m.c(179,4,3);m.c(185,4,3);
   m.r(191,8,'====');m.e('boy',192,7);

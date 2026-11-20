@@ -10,6 +10,9 @@ const TIPS={
   // Penele de aur
   gold:['ÎN FIECARE NIVEL SE ASCUND 3 PENE DE AUR. CAUTĂ BINE, FIULE!','O PANĂ DE AUR E A TA ABIA CÂND AJUNGI CU EA LA FINAL.',
     'NU TOATE CĂRĂMIZILE SUNT DOAR CĂRĂMIZI...','ADUNĂ TOATE PENELE DE AUR, FIULE. MERITĂ.'],
+  // Curcanii prinși
+  capt:['FERMIERII ȚIN CURCANI ÎN COLIVII, FIULE. ELIBEREAZĂ-I!','CHEIA COLIVIEI O ARE UN FERMIER SAU UN UCENIC. SE VEDE LA BRÂU.',
+    'LÂNGĂ COLIVIE APASĂ ↑, FIULE. DAR ÎNTÂI IA CHEIA.','COLIVIILE SUNT BINE ASCUNSE. UITĂ-TE PESTE TOT.','CURCANII ELIBERAȚI TE AȘTEAPTĂ LA MESOPOTAMIA.'],
   fire:['BOABA ROȘIE ÎȚI DĂ PENE DE FOC.','APASĂ SCURT X ȘI ARUNCI O PANĂ DE FOC.'],
   night:['STRECOARĂ-TE PE LA SPATELE FERMIERILOR, FIULE.','UCENICII N-AU FELINAR. NICI PREA MULTĂ MINTE.'],
   snow:['PE GHEAȚĂ ALUNECI. FRÂNEAZĂ DIN TIMP!','SARI PESTE COPCILE CU STEGULEȚ ROȘU.','AFINA ÎNGHEȚATĂ ÎȚI DĂ PENE DE GHEAȚĂ.',
@@ -49,6 +52,10 @@ function mosLines(first){
   const n=goldCounts()[i]||0,f=n?goldFoundIn(i):0;
   if(n&&f===n)out.push('AICI AI GĂSIT DEJA TOATE PENELE DE AUR. BRAVO, FIULE!');
   else if(n&&f>0)out.push(`AICI AI GĂSIT ${f===1?'O PANĂ':f+' PENE'} DE AUR. MAI ${n-f===1?'E UNA':'SUNT '+(n-f)}.`);
+  // Curcanul prins din nivelul ăsta
+  const cp=CAPT_INFO.find(c=>c.id===def.id);
+  if(cp){const fem=CAPT_LOOK[CAPT_INFO.indexOf(cp)].fem;
+    out.push(cageSaved(cp.id)?`${cp.name} ÎȚI MULȚUMEȘTE ÎNCĂ O DATĂ, FIULE!`:`PE AICI E ÎNCHIS${fem?'Ă':''} ${cp.name}. AJUT${fem?'-O':'Ă-L'}, FIULE!`);}
   // După cafenea: ce ți-a ieșit la blocul
   if(i>0&&LEVELS[i-1].bonus){const s=G.slotUsed&&G.slotUsed.level===i-1?G.slotUsed.res:-1;
     if(s===SLOT_FIRE)out.push('CUM ÎȚI MERGE CU PANA DE FOC? AI GRIJĂ SĂ NU-ȚI ARZI COADA!');
@@ -68,7 +75,7 @@ function pickTip(first){
   // Ce ține minte
   const mem=mosLines(first).filter(t=>t!==G.tip);
   if(mem.length&&Math.random()<(first?0.6:0.75))return mem[Math.random()*mem.length|0];
-  const own=[def.tip,...(TIPS.level[G.level]||[]),...(th.night?TIPS.night:[]),...(th.snow?TIPS.snow:[]),...(gold?TIPS.gold:[])].filter(Boolean);
+  const own=[def.tip,...(TIPS.level[G.level]||[]),...(th.night?TIPS.night:[]),...(th.snow?TIPS.snow:[]),...(gold?TIPS.gold:[]),...(CAPT_INFO.some(c=>c.id===def.id&&!cageSaved(c.id))?TIPS.capt:[])].filter(Boolean);
   const all=own.concat(TIPS.all,th.snow?[]:TIPS.fire);
   const pool=(first||Math.random()<0.4?own:all).filter(t=>t!==G.tip);
   return pool.length?pool[Math.random()*pool.length|0]:def.tip;

@@ -26,7 +26,7 @@ try{GOLD_SAVE=JSON.parse(localStorage.getItem(GOLD_KEY)||'{}')||{};}catch(e){}
 if(!GOLD_SAVE._v){const o=GOLD_SAVE.noapte||0;if(o)GOLD_SAVE.noapte=((o>>2)&1)|((o&1)<<1)|(((o>>1)&1)<<2);GOLD_SAVE._v=1;
   try{localStorage.setItem(GOLD_KEY,JSON.stringify(GOLD_SAVE));}catch(e){}}
 function goldStore(){GOLD_OK=null;try{localStorage.setItem(GOLD_KEY,JSON.stringify(GOLD_SAVE));}catch(e){}}
-const GOLD_ALL=/[?&]penall\b/.test(location.search);   // ?penall: le arată pe toate găsite, fără să salveze
+const GOLD_ALL=ALL_OPEN||/[?&]penall\b/.test(location.search);   // ?penall: le arată pe toate găsite, fără să salveze
 const goldSaved=(id,i)=>GOLD_ALL||!!((GOLD_SAVE[id]||0)&(1<<i));
 // Câte pene are fiecare nivel
 const goldCounts=()=>GOLD_COUNTS||(GOLD_COUNTS=LEVELS.map(d=>d.arena?0:d.build().golds.length));

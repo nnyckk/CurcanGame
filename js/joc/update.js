@@ -22,6 +22,8 @@ function updatePlay(){
     if(G.time<=0){G.time=0;die('time');return;}}
   updatePlats();
   updatePlayer();
+  // După restaurant: perete nevăzut, la marginea ecranului
+  if(goal&&goal.type==='restaurant'&&!inRoom()){const mx=camMax()+W-2-player.w;if(player.x>mx){player.x=mx;player.vx=0;}}
   if(G.state!=='play'){updateFx();return;}
   updateUnder();
   if(cafe){updateCafe();const d=cafeAction();
@@ -57,6 +59,7 @@ function updatePlay(){
   updateFeathers();
   for(const c of coins){if(c.taken)continue;if(overlap(player,{x:c.x-5,y:c.y-6,w:10,h:12})){c.taken=true;addCoin(c.x,c.y);sparkle(c.x,c.y);}}
   updateGolds();
+  updateCage();if(G.talk){updateFx();return;}   // curcanul eliberat vorbește
   for(const it of items){
     if(it.rise>0){it.y+=it.down?1:-1;it.rise--;continue;}   // down: iese pe dedesubt
     // Boaba roșie stă pe loc deasupra blocului
@@ -68,10 +71,10 @@ function updatePlay(){
   }
   items=items.filter(i=>!i.remove);
   for(const cp of cps){if(cp.on){cp.raise=Math.min(1,cp.raise+0.05);continue;}
-    if(!inRoom()&&player.x+player.w>cp.x+6){cp.on=true;G.cp={level:G.level,x:cp.tx};goldCheckpoint();sfx.cp();popup('SALVAT!',cp.x+8,150,'#7fff7f');}}
+    if(!inRoom()&&player.x+player.w>cp.x+6){cp.on=true;G.cp={level:G.level,x:cp.tx};goldCheckpoint();cageCheckpoint();sfx.cp();popup('SALVAT!',cp.x+8,150,'#7fff7f');}}
   if(G.state==='play'&&goal&&!inRoom()){
     if(goal.type==='sign'&&player.x+player.w>goal.x*TS+34)levelClear(false);
-    else if(goal.type==='restaurant'&&overlap(player,doorRect()))levelClear(true);
+    else if(goal.type==='restaurant'&&restAtDoor()&&upPressed())levelClear(true);   // intri doar cu sus
   }
   updateFx();updateCam();
 }
@@ -98,13 +101,19 @@ function updateClear(){
   if(G.stateT>60){
     if(G.time>0){const d=Math.min(G.time,3);G.time-=d;G.score+=d*50;if(G.stateT%4===0)sfx.blip();}
     else if(++G.tally>90){
-      if(G.final){G.state='win';G.stateT=0;saveHi();playSong('win');MOS.wins++;mosSave();
-        achUnlock('pofta');if(G.fullRun&&!G.runDeaths)achUnlock('nemuritor');}
+      if(G.final){G.state='win';G.stateT=0;G.winTalk=false;G.photoT=0;saveHi();playSong('win');MOS.wins++;mosSave();
+        achUnlock('pofta');if(MOS.wins>=5)achUnlock('gustul');if(G.fullRun&&!G.runDeaths)achUnlock('nemuritor');}
       else{G.level++;G.cp=null;toIntro(true);}
     }
   }
 }
 function updateWin(){
+  // Întâi Moș Curcan, din casetă: după câți curcani ai salvat
+  if(!G.winTalk){G.winTalk=true;openTalk([captEndLine(cageFound(),cageTotal())]);}
+  G.lift=(G.lift||0)+((G.talk?TALK_LIFT:0)-(G.lift||0))*0.25;if(G.lift<0.5&&!G.talk)G.lift=0;
+  if(G.talk){updateTalk();updateFx();return;}
+  // Toți salvați: poza de grup
+  if(!G.photoT&&cageOK()){G.photoT=1;sfx.pop();}else if(G.photoT)G.photoT++;
   G.stateT++;
   if(G.stateT%28===1){const x=cam.x+40+Math.random()*(W-80),y=30+Math.random()*70;const cols=['#ff4a5a','#ffd23f','#5ad0ff','#7fff7f','#ff8ae0','#ffffff'];const c=cols[Math.random()*cols.length|0];
     for(let i=0;i<34;i++){const a=i/34*TAU,s=1.2+Math.random()*1.4;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,g:0.035,life:55,max:55,col:i%3?c:'#fff',s:2});}sfx.pop();}
@@ -135,6 +144,6 @@ function update(){
   }
   updateAch();
   for(const k in pressed)delete pressed[k];
-  if(TOUCH_UI)TOUCH_UI.classList.toggle('door',G.state==='play'&&!!cafeAction());
+  if(TOUCH_UI)TOUCH_UI.classList.toggle('door',G.state==='play'&&(!!cafeAction()||cageNear()||captNear()||restAtDoor()));
   if(TEST&&G.t%6===0)testStatus();
 }

@@ -36,7 +36,9 @@ TK.OVER=mkSprite(TK_TOP.map((r,y)=>{const a=[...r];
   if(y===5||y===7){a[13]='k';a[14]=y===7?'W':a[14];a[15]='k';}
   return a.join('');}).concat(LEG_A),TK_PAL,false);
 // Curcanul de FOC: tot mare
-const TKF_TOP=TK_TOP.slice(0,12).concat([
+const TKF_TOP=TK_TOP.slice(0,10).concat([
+"rWWrWWkOOQQOOQrr....",   // fularul, în culorile focului
+".WrWWkQOOQQOOQkrR...",
 "..WrWkEEEEBBBBDkR...",
 "...WknNnnnEBBBBDk...",
 "....knnNnnBWBWWDk...",
@@ -46,7 +48,7 @@ const TKF_TOP=TK_TOP.slice(0,12).concat([
 "......kDBBBDDDDk....",
 ".......kkDDDDkk.....",
 ]);
-const TKF_PAL=Object.assign({},TK_PAL,{B:'#a81e1e',D:'#5c0c12',E:'#cc3a2c'});const TKF={A:spr(TKF_TOP.concat(LEG_A),TKF_PAL),B:spr(TKF_TOP.concat(LEG_B),TKF_PAL),C:spr(TKF_TOP.concat(LEG_C),TKF_PAL),J:spr(TKF_TOP.concat(LEG_J),TKF_PAL)};
+const TKF_PAL=Object.assign({},TK_PAL,{B:'#a81e1e',D:'#5c0c12',E:'#cc3a2c',O:'#e04a3a',Q:'#6a0c14'});const TKF={A:spr(TKF_TOP.concat(LEG_A),TKF_PAL),B:spr(TKF_TOP.concat(LEG_B),TKF_PAL),C:spr(TKF_TOP.concat(LEG_C),TKF_PAL),J:spr(TKF_TOP.concat(LEG_J),TKF_PAL)};
 TKF.DEAD=mkSprite(TKF_TOP.concat(LEG_A).reverse(),TKF_PAL,false);
 // Curcanul de GHEAȚĂ: costum umbrit albastru deschis
 const TKI_TOP=TK_TOP.slice(0,10).concat([
@@ -104,7 +106,7 @@ const turkeySet=(top,legs,pal)=>{const s={A:spr(top.concat(legs[0]),pal),B:spr(t
 const TKG=turkeySet(TK_TOP,[LEG_A,LEG_B,LEG_C,LEG_J],TKG_PAL),TKGS=turkeySet(TKS_TOP,[SLEG_A,SLEG_B,SLEG_C,SLEG_J],TKG_PAL);
 TKG.OVER=mkSprite(TK_TOP.map((r,y)=>{const a=[...r];if(y===5||y===7){a[13]='k';a[14]=y===7?'W':a[14];a[15]='k';}return a.join('');}).concat(LEG_A),TKG_PAL,false);
 // Cu costum de foc sau de gheață
-const TKGF=turkeySet(TKF_TOP,[LEG_A,LEG_B,LEG_C,LEG_J],Object.assign({},TKG_PAL,{B:'#a81e1e',D:'#5c0c12',E:'#cc3a2c'}));
+const TKGF=turkeySet(TKF_TOP,[LEG_A,LEG_B,LEG_C,LEG_J],Object.assign({},TKG_PAL,{B:'#a81e1e',D:'#5c0c12',E:'#cc3a2c',O:'#e04a3a',Q:'#6a0c14'}));
 const TKGI=turkeySet(TKI_TOP,[LEG_A,LEG_B,LEG_C,LEG_J],Object.assign({},TKG_PAL,{B:'#7cc4ea',D:'#3a86b8',E:'#c8eeff',S:'#3a7ad8',s:'#ffffff',I:'#dff6ff',F:'#e8f8ff'}));
 // Sclipirea trece peste tot curcanul de aur
 const sheenPx=(top,skip)=>{const o=[];top.forEach((r,y)=>{for(let x=0;x<r.length;x++)if(!skip.includes(r[x]))o.push([x,y]);});return o;};

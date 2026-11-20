@@ -22,16 +22,18 @@ function updatePlats(){
   // Platforma care cade pornește când curcanul stă pe ea
   for(const p of plats)if(p.kind==='fall'&&p.st===0&&player.plat===p&&player.onGround){p.st=1;p.t=0;sfx.creak();}
   for(const p of plats){
-    const ox=p.x,oy=p.y;
+    let ox=p.x,oy=p.y;
     if(p.kind==='move')platMove(p);
     else if(p.st===1){p.t++;
       if(p.t%6===0)parts.push({x:p.x+2+Math.random()*(p.w-4),y:p.y+p.h,vx:(Math.random()-0.5)*0.4,vy:0.3,g:0.15,life:22,max:22,col:Math.random()<0.5?'#8f6438':'#c9a27a',s:1});
-      if(p.t>=PLAT_SHAKE){p.st=2;p.solid=false;p.vy=0;}}
+      // Se sfărâmă în așchii, care cad în jos
+      if(p.t>=PLAT_SHAKE){p.st=3;p.t=0;p.solid=false;sfx.brk();
+        for(let i=0;i<26;i++)parts.push({x:p.x+Math.random()*p.w,y:p.y+Math.random()*p.h,vx:(Math.random()-0.5)*0.6,vy:Math.random()*0.5,g:0.2,life:30+(i%10),max:40,col:['#cdb08a','#9a7650','#4a3018'][i%3],s:[1,1,2,1,3,2,1,2][i%8]});}}   // așchii de 1–3 pixeli
     else if(p.st===2){p.vy=Math.min(p.vy+0.3,6);p.y+=p.vy;
       if(!p.wet&&p.y+p.h>WATER_Y){p.wet=true;if(tileAt(Math.floor((p.x+p.w/2)/TS),12)==='.')splash(p.x+p.w/2);}
       if(p.y>H+4){p.st=3;p.t=0;}}
     else if(p.st===3){
-      if(++p.t>=PLAT_BACK&&!overlap(player,{x:p.x0,y:p.y0-4,w:p.w,h:p.h+8})){p.st=4;p.t=0;p.x=p.x0;p.y=p.y0;p.solid=true;p.wet=false;p.alpha=0;}}
+      if(++p.t>=PLAT_BACK&&!overlap(player,{x:p.x0,y:p.y0-4,w:p.w,h:p.h+8})){p.st=4;p.t=0;p.x=ox=p.x0;p.y=oy=p.y0;p.solid=true;p.wet=false;p.alpha=0;}}   // ox, oy: fără salt mare de dy, care trăgea curcanul pe ea
     else if(p.st===4){p.alpha=Math.min(1,++p.t/20);if(p.alpha>=1)p.st=0;}
     p.dx=p.x-ox;p.dy=p.y-oy;
   }

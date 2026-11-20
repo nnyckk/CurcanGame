@@ -156,6 +156,7 @@ js/
     fermier/  ucenic/      desenele, felinarul, comportamentul
     bomba/                 desenele, comportamentul
     mos-curcan/            desenul, replicile din cafenea, sfaturile dintre niveluri
+    curcani-prinsi/        cei 5 curcani din colivii: desenele, numele și replicile
     dusmani.js             crearea și desenarea dușmanilor
     inghetare.js           dușmanii înghețați de pana de gheață
   boss/
@@ -167,7 +168,7 @@ js/
     desert-scos/           deșertul, scos din joc, păstrat pentru mai târziu
   lume/                    teme și tile-uri, fundaluri, decor, restaurantul, noaptea,
                            iarna/ (zăpadă, gheață, brazi), apa/ (gropi, lacuri, rațe și pești)
-  obiecte/                 bănuți și blocuri, power-up-uri, pene de aur, semnul de final și salvările
+  obiecte/                 bănuți și blocuri, power-up-uri, pene de aur, colivia și cheia, semnul de final și salvările
   animatii/                explozii, particule și texte plutitoare
   joc/                     starea jocului, fizica, pornirea nivelului, update, meniul, dialogul, achievements
   desen/                   ordinea desenării: fundal, lume, HUD, ecrane, render

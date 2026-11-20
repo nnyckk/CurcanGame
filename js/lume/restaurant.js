@@ -1,70 +1,128 @@
 'use strict';
 // ===== RESTAURANTUL MESOPOTAMIA =====
+// Ca MesoCafé, dar mai mare: cărămidă roșie, lemn, acoperiș în două ape
 const RW=192,RH=136;
-const REST=(()=>{const [c,g]=mkCanvas(RW,RH);
-  g.fillStyle='#5a5a6a';g.fillRect(44,26,4,14);g.fillRect(144,26,4,14);
-  g.fillStyle='#ffcf40';g.fillRect(14,0,164,28);g.fillStyle='#2a1238';g.fillRect(16,2,160,24);
-  txt('MESOPOTAMIA',96,7,'#ffd23f',2,'c','#b0300a',g);
-  g.fillStyle='#e2b066';g.fillRect(36,38,120,12);g.fillStyle='#c8924a';for(let y=41;y<50;y+=4)g.fillRect(36,y,120,1);
-  g.fillStyle='#e2b066';g.fillRect(36,39,120,10);
-  txt('FAST FOOD',96,40,'#7a2a0a',1,'c',null,g);
-  g.fillStyle='#e2b066';g.fillRect(20,50,152,10);g.fillStyle='#1f4fb0';g.fillRect(20,52,152,6);
-  g.fillStyle='#ffcf40';for(let i=2;i<150;i+=6)g.fillRect(20+i,54,2,2);
-  g.fillStyle='#e8bc74';g.fillRect(4,60,184,76);
-  g.fillStyle='#c8924a';for(let y=70;y<136;y+=6){g.fillRect(4,y,184,1);for(let x=4+((y/6|0)%2)*8;x<188;x+=16)g.fillRect(x,y-5,1,5);}
-  g.fillStyle='#1f4fb0';g.fillRect(4,60,184,5);g.fillStyle='#ffcf40';for(let x=8;x<186;x+=8)g.fillRect(x,62,2,1);
-  for(let i=0;i<23;i++){g.fillStyle=i%2?'#fff4e0':'#d8282f';g.fillRect(4+i*8,66,8,9);g.fillRect(5+i*8,75,6,1);g.fillRect(6+i*8,76,4,1);}
-  const win=(wx,cross)=>{g.fillStyle='#4a2410';g.fillRect(wx,86,48,34);g.fillStyle='#ffd86a';g.fillRect(wx+2,88,44,30);g.fillStyle='#ffeaa8';g.fillRect(wx+2,88,44,4);
-    g.fillStyle='#4a2410';if(cross)g.fillRect(wx+23,88,2,30);g.fillRect(wx+2,103,44,2);g.fillStyle='#c8924a';g.fillRect(wx-2,120,52,3);};
-  win(14,true);win(130,false);
-  // burger in left window
-  const bx=40,by=107;g.fillStyle='#d08a30';g.fillRect(bx+2,by,10,1);g.fillRect(bx+1,by+1,12,2);g.fillStyle='#fff';g.fillRect(bx+4,by+1,1,1);g.fillRect(bx+8,by+1,1,1);
-  g.fillStyle='#4ab040';g.fillRect(bx,by+3,14,1);g.fillStyle='#5a2a10';g.fillRect(bx+1,by+4,12,2);g.fillStyle='#d08a30';g.fillRect(bx+1,by+6,12,2);
-  // kebab in left upper
-  g.fillStyle='#8a8a9a';g.fillRect(25,90,1,12);g.fillStyle='#a0501a';g.fillRect(22,92,7,8);g.fillStyle='#c8702a';g.fillRect(23,92,2,8);
-  txt('DESCHIS',154,93,'#d8282f',1,'c',null,g);
-  g.fillStyle='#4ab040';g.fillRect(140,108,6,7);g.fillStyle='#d8282f';g.fillRect(150,106,8,9);g.fillStyle='#fff';g.fillRect(153,103,1,3);
-  // door
-  g.fillStyle='#4a2410';g.fillRect(80,90,32,46);g.fillRect(84,86,24,4);g.fillRect(88,84,16,2);
-  g.fillStyle='#8a4a22';g.fillRect(83,93,26,43);g.fillStyle='#6a3412';[[86,97],[97,97],[86,117],[97,117]].forEach(([x,y])=>g.fillRect(x,y,9,16));
-  g.fillStyle='#ffcf40';g.fillRect(104,114,2,3);g.fillStyle='#a07040';g.fillRect(76,133,40,3);
-  [[64,124],[118,124]].forEach(([x,y])=>{g.fillStyle='#b0502a';g.fillRect(x,y,10,12);g.fillStyle='#d06a3a';g.fillRect(x,y,10,2);pcirc(g,x+5,y-4,5,'#3a9a3a');g.fillStyle='#5ac04a';g.fillRect(x+3,y-7,2,2);});
-  return c;})();
 function doorRect(){return {x:goal.x*TS+83,y:192-RH+93,w:26,h:43};}
-function drawRestaurant(cx){
-  const x=goal.x*TS-cx,y=192-RH;
-  if(x>W+60||x<-RW-60)return;
-  // Iarna: brazi înzăpeziți în loc de palmieri și câte un troian lângă ziduri
-  if(theme.snow){fir(ctx,x-16,193,48,'#2b5a4a','#f4f8fc','#c4d4e2','#4a3a30');fir(ctx,x+RW+15,193,40,'#24503f','#f4f8fc','#c4d4e2','#4a3a30');
-    pcirc(ctx,x+8,193,6,'#f4f8fc');pcirc(ctx,x+RW-8,193,5,'#f4f8fc');}
-  else{ctx.drawImage(PALM,x-34,192-50);ctx.drawImage(PALM,x+RW+2,192-50);}
-  ctx.fillStyle='rgba(255,210,100,0.18)';ctx.fillRect(x+10,188,56,4);ctx.fillRect(x+126,188,56,4);
-  ctx.drawImage(REST,x,y);
-  if(theme.snow)restSnow(x,y);
-  restNeon(x,y);restDoor(cx);
+const restP=x0=>(px,py,w,h,col)=>{ctx.fillStyle=col;ctx.fillRect(x0+px,py,w,h);};
+// Döner: pită, carne, salată, roșii, ceapă, sos
+const DONER_ROWS=[
+"......kkkkkkkkkkkkkkkk........",
+"....kkbbbbbbbbbbbbbbbbkk......",
+"...kbbbBBBBbbbbbbbbbbbbbk.....",
+"..kbbBBbbbbbbbbbbbbbbbbbbk....",
+".kbbbbbbbbbbbbbbbbbbbbbbbbkg..",
+".kbbmmmmmmmmmmmmmmmmmmmmmmgg..",
+"kbbmMmmMmmmMmmMmmmMmmmMmmrggg.",
+"kbbrrwwppwwrrwwppwwrrwwppgg...",
+"kbgggggggggggggggggggggggk....",
+".kbbbbbbbbbbbbbbbbbbbbbbk.....",
+"..kkkkkkkkkkkkkkkkkkkkkk......"],DONER_PAL={k:'#3a2414',b:'#e8c890',B:'#f6e0b0',m:'#c8682a',M:'#8a3a18',r:'#d8282f',w:'#ffffff',p:'#9a3a9a',g:'#5ab83a'};
+// Rotit și mărit, pixel cu pixel (ang în grade, spre dreapta-sus)
+function rotPix(rows,pal,ang,sc){
+  const h=rows.length,w=Math.max(...rows.map(r=>r.length)),a=-ang*Math.PI/180,c=Math.cos(a),n=Math.sin(a);
+  const W2=Math.ceil((w*Math.abs(c)+h*Math.abs(n))*sc),H2=Math.ceil((w*Math.abs(n)+h*Math.abs(c))*sc);
+  const [cv,g]=mkCanvas(W2,H2);
+  for(let y=0;y<H2;y++)for(let x=0;x<W2;x++){
+    const dx=(x+0.5-W2/2)/sc,dy=(y+0.5-H2/2)/sc,sx=Math.floor(dx*c+dy*n+w/2),sy=Math.floor(-dx*n+dy*c+h/2);
+    const col=sy>=0&&sy<h&&pal[rows[sy][sx]];if(col){g.fillStyle=col;g.fillRect(x,y,1,1);}}
+  return cv;
 }
-// Luminițele de neon din jurul firmei
-function restNeon(x,y){
-  const NEON=['#ffe24a','#ff5ac8','#5ae8ff'];let i=0;
-  const dot=(dx,dy)=>{ctx.fillStyle=NEON[(i+(G.t>>3))%3];ctx.fillRect(x+dx,y+dy,2,2);i++;};
-  for(let dx=14;dx<176;dx+=6)dot(dx,0);for(let dy=6;dy<26;dy+=6)dot(176,dy);for(let dx=176;dx>14;dx-=6)dot(dx,26);for(let dy=26;dy>0;dy-=6)dot(14,dy);
+const DONER=rotPix(DONER_ROWS,DONER_PAL,25,1.6);
+// Semnul vertical, prins de peretele din dreapta, sub acoperiș
+function restBoard(x0){
+  const P=restP(x0),bx=RW+4,top=121,bw=34,bh=64;
+  for(const sy of [top+11,top+bh-8]){P(RW-2,sy,6,3,'#4a4a58');P(RW-2,sy,6,1,'#9a9aaa');}   // suporturile, de fier
+  P(bx,top,bw,bh,'#5a3a22');P(bx+2,top+2,bw-4,bh-4,'#f2e4c8');P(bx,top,bw,1,'#7a5232');
+  if(theme.snow)P(bx-1,top-2,bw+2,2,'#f4f8fc');
+  ['GUSTUL','CARE','NU SE','UITĂ'].forEach((l,k)=>tinyTxt(l,x0+bx+(bw>>1)-Math.floor(tinyW(l)/2),top+5+k*8+(k===3?2:0),'#a8442a'));
+  // Dönerul, mare, tăiat de marginea semnului
+  ctx.save();ctx.beginPath();ctx.rect(x0+bx+2,top+38,bw-4,bh-40);ctx.clip();
+  ctx.drawImage(DONER,x0+bx+bw-DONER.width+2,top+34);ctx.restore();
+}
+// Ferestrele luminate: ramă, geam, cruce
+const REST_WIN=[18,130];
+function restWindows(x0){
+  const P=restP(x0);
+  for(const wx of REST_WIN){P(wx-2,138,48,34,'#3a2414');P(wx,140,44,30,'#ffd23f');P(wx+1,141,42,28,'#ffe9a0');P(wx+1,141,42,8,'#fff6c8');
+    P(wx+21,141,2,28,'#fffaf0');P(wx+1,154,42,2,'#fffaf0');}
+}
+function restSills(x0){
+  const P=restP(x0);
+  for(const wx of REST_WIN){P(wx-4,170,52,3,'#a8743c');P(wx-4,170,52,1,'#c8945a');if(theme.snow)P(wx-4,169,52,1,'#f4f8fc');}
+}
+const restSignText=x0=>txt('MESOPOTAMIA',x0+96,115,'#ffd23f',1,'c','#7a2a0a');
+const restArrived=()=>G.state==='clear'&&G.final||G.state==='win';
+// Noaptea: ferestrele (și ușa) rămân găuri în stratul umbrit; lumina e desenată dedesubt
+const restNight=()=>!!theme.night;
+function drawRestaurant(cx){
+  const x0=Math.round(goal.x*TS-cx);if(x0>W+60||x0<-RW-160)return;
+  const P=restP(x0),snow=theme.snow;
+  if(snow){fir(ctx,x0-16,193,48,'#2b5a4a','#f4f8fc','#c4d4e2','#4a3a30');fir(ctx,x0+RW+62,193,40,'#24503f','#f4f8fc','#c4d4e2','#4a3a30');}
+  restBoard(x0);   // în spatele benzii
+  // Hornul de cărămidă
+  P(150,66,14,40,'#a8442a');for(let y=70;y<106;y+=4){P(150,y,14,1,'#7a2a18');P(150+((y>>2)%2?3:9),y+1,1,3,'#7a2a18');}
+  P(148,63,18,4,'#5a2a1a');if(snow){P(148,61,18,3,'#f4f8fc');P(150,60,13,1,'#f4f8fc');}
+  // Acoperișul în două ape
+  for(let y=84;y<112;y++){const t=(y-84)/28,l=Math.round(44-56*t),r=Math.round(148+56*t);
+    P(l,y,r-l,1,(y-84)%5===4?'#2a2026':'#3e3238');P(l,y,2,1,'#54464e');}
+  if(snow)for(let y=80;y<90;y++){const t=Math.max(0,(y-84)/28),l=Math.round(44-56*t)-1,r=Math.round(148+56*t)+1;P(l,y,r-l,1,y<88?'#f4f8fc':'#c8d8e8');}
+  // Banda neagră cu numele și dunga galbenă
+  P(-8,110,208,20,'#16121a');P(-8,110,208,1,'#2e2834');P(-8,128,208,2,'#ffd23f');
+  // Pereții de cărămidă roșie
+  P(0,130,192,52,'#a8442a');
+  for(let y=130,row=0;y<182;y+=6,row++){P(0,y+5,192,1,'#7a2a18');
+    for(let x=(row%2)*6;x<192;x+=12){P(x,y,1,5,'#7a2a18');if(vhash(x,row)%5===0)P(x+1,y,Math.min(11,191-x),5,'#b85434');}}
+  // Grinzile de lemn: sus, la colțuri, lângă ușă
+  P(0,130,192,3,'#5a3a22');P(0,130,192,1,'#7a5232');
+  for(const bx of [0,188,72,116]){P(bx,130,4,52,'#5a3a22');P(bx,130,1,52,'#7a5232');}
+  // Soclul din scânduri
+  P(0,182,192,10,'#8a5a30');P(0,182,192,1,'#a8743c');for(let x=0;x<192;x+=12)P(x,183,1,9,'#6a4020');
+  if(!restNight())restWindows(x0);
+  restSills(x0);restSignText(x0);
+  // Ușa de stejar, cu geam sus
+  P(80,146,32,46,'#3a2414');P(83,149,26,43,'#a8743c');P(86,152,20,10,'#ffe9a0');P(95,152,2,10,'#a8743c');
+  for(const [dx,dy] of [[86,166],[97,166],[86,179],[97,179]])P(dx,dy,9,10,'#946232');
+  P(104,174,2,3,'#ffd23f');P(78,143,36,3,'#3a2414');P(78,143,36,1,'#5a3a24');if(snow)P(78,142,36,1,'#f4f8fc');
+  P(76,190,40,2,'#5a3a2a');
+  // Felinarele de lângă ușă
+  for(const lx of [66,122]){P(lx+1,148,2,2,'#2a2026');P(lx,150,4,6,'#2a2026');P(lx+1,151,2,4,'#ffd23f');}
+  if(snow){pcirc(ctx,x0+6,193,6,'#f4f8fc');pcirc(ctx,x0+RW-6,193,5,'#f4f8fc');}
+  glow(x0+40,155,28,'255,214,130',0.22);glow(x0+152,155,28,'255,214,130',0.22);glow(x0+96,170,12,'255,214,130',0.18);
+  // Fumul din horn
+  for(let k=0;k<5;k++){const ph=(G.t*0.5+k*22)%110;ctx.globalAlpha=(1-ph/110)*0.75;
+    pcirc(ctx,x0+157+Math.sin(G.t*0.03+k)*2+ph*0.2,58-ph*0.6,2+ph*0.045,'#eef2f6');}
+  ctx.globalAlpha=1;
+  if(restNight())for(const wx of REST_WIN)ctx.clearRect(x0+wx-2,138,48,32);   // găuri pentru lumina de dedesubt
+  restDoor(cx);
+  drawEndBirds(cx);   // curcanii salvați
 }
 // Ușa luminată, când ai ajuns
 function restDoor(cx){
-  if(G.state==='clear'&&G.final||G.state==='win'){const d=doorRect();ctx.fillStyle='#ffe9a0';ctx.fillRect(d.x-cx,d.y,d.w,d.h);ctx.fillStyle='#ffd060';ctx.fillRect(d.x-cx,d.y+d.h-6,d.w,6);}
+  if(!restArrived())return;
+  const d=doorRect();
+  if(restNight()){ctx.clearRect(d.x-cx,d.y,d.w,d.h);return;}
+  ctx.fillStyle='#ffe9a0';ctx.fillRect(d.x-cx,d.y,d.w,d.h);ctx.fillStyle='#ffd060';ctx.fillRect(d.x-cx,d.y+d.h-6,d.w,6);
 }
-// Zăpada de pe restaurant: pe firmă
-function restSnow(x,y){
-  const cap=(sx,sy,w)=>{ctx.fillStyle='#c4d4e2';ctx.fillRect(sx,sy+1,w,2);ctx.fillStyle='#f4f8fc';ctx.fillRect(sx,sy,w,2);ctx.fillRect(sx+1,sy-1,w-2,1);
-    for(let i=3;i<w-2;i+=7){ctx.fillRect(sx+i,sy+2,1,1+(i*7)%3);}};
-  cap(x+13,y-2,166);cap(x+35,y+36,122);cap(x+19,y+48,154);
+// Noaptea, sub stratul umbrit: ferestrele și ușa luminate
+function drawRestaurantBehind(cx){
+  if(!goal||goal.type!=='restaurant')return;
+  const x0=Math.round(goal.x*TS-cx);if(x0>W+90||x0<-RW-90)return;
+  restWindows(x0);
+  if(restArrived()){const d=doorRect();ctx.fillStyle='#ffe9a0';ctx.fillRect(d.x-cx,d.y,d.w,d.h);ctx.fillStyle='#ffd060';ctx.fillRect(d.x-cx,d.y+d.h-6,d.w,6);}
 }
-// Noaptea: firma și ferestrele se văd luminate
+// Noaptea, peste umbră: firma și strălucirea
 function drawRestaurantLights(cx){
   if(!goal||goal.type!=='restaurant')return;
-  const x=goal.x*TS-cx,y=192-RH;if(x>W+90||x<-RW-90)return;
-  for(const [sx,sy,w,h] of [[16,2,160,24],[16,88,44,30],[132,88,44,30]])ctx.drawImage(REST,sx,sy,w,h,x+sx,y+sy,w,h);
-  glow(x+38,y+103,46,'255,200,110',0.35);glow(x+154,y+103,46,'255,200,110',0.35);glow(x+96,y+14,92,'255,190,80',0.16);
-  if(theme.snow)restSnow(x,y);
-  restNeon(x,y);restDoor(cx);
+  const x0=Math.round(goal.x*TS-cx);if(x0>W+90||x0<-RW-90)return;
+  restSignText(x0);
+  glow(x0+40,155,40,'255,200,110',0.35);glow(x0+152,155,40,'255,200,110',0.35);glow(x0+96,118,60,'255,190,80',0.14);
+  glow(x0+68,153,10,'255,210,120',0.5);glow(x0+124,153,10,'255,210,120',0.5);
+}
+// La ușă: intri apăsând sus
+const restAtDoor=()=>!!goal&&goal.type==='restaurant'&&!!player&&!player.dead&&overlap(player,doorRect());
+function drawRestHint(cx){
+  if(G.state!=='play'||G.talk||!restAtDoor())return;
+  const d=doorRect(),x=Math.round(d.x+d.w/2-cx)-4,y=d.y-16;
+  ctx.fillStyle='rgba(20,14,30,0.7)';ctx.fillRect(x,y,9,11);ctx.fillStyle='rgba(255,255,255,0.3)';ctx.fillRect(x,y,9,1);
+  txt('↑',x+2,y+2,'#e0d8c8',1,'l',null);
 }

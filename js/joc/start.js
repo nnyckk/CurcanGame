@@ -1,6 +1,6 @@
 'use strict';
 // ===== JOC NOU, ECRANUL DINAINTEA NIVELULUI =====
-function newGame(){G.carryBig=false;G.carryFire=false;G.carryIce=false;G.lives=3;G.score=0;G.coins=0;G.level=0;G.cp=null;G.slotUsed=null;G.bossMet=false;G.goldLv=-1;G.cafeSeen=false;G.tip=null;G.underOpen=-1;
+function newGame(){G.carryBig=false;G.carryFire=false;G.carryIce=false;G.lives=3;G.score=0;G.coins=0;G.level=0;G.cp=null;G.slotUsed=null;G.bossMet=false;G.goldLv=-1;G.cageLv=-1;G.cafeSeen=false;G.tip=null;G.underOpen=-1;
   G.fullRun=true;G.runDeaths=0;   // NEMURITOR: un joc întreg
   MOS.plays++;mosSave();toIntro(true);stopSong();}
 // Ecranul de dinaintea nivelului
@@ -19,6 +19,7 @@ function startLevel(quiet){
   G.frame=0;plats=m.plats.map(makePlat);boss=m.bossDef?makeBoss(m.bossDef):null;cafe=m.cafeDef?makeCafe(m.cafeDef):null;under=m.underDef?makeUnder(m.underDef):null;G.inUnder=false;G.subT=0;G.doorT=0;G.inCafe=false;G.talk=null;G.lift=0;golds=makeGolds(m);
   // Mobii puși pe o platformă care se mișcă stau pe ea de la început
   for(const e of enemies){const p=plats.find(p=>Math.abs(p.y-(e.y+e.h))<1&&e.x+e.w>p.x&&e.x<p.x+p.w);if(p)e.plat=p;}
+  makeCage(m);   // colivia și cine are cheia
   coins=m.coins.map(([x,y])=>({x:x*TS+8,y:y*TS+8,taken:false}));G.lvlCoins=0;   // bănuții luați acum
   items=[];parts=[];popups=[];booms=[];bumps=[];feathers=[];
   iceCrack=new Float32Array(cols);iceHole=new Int16Array(cols);iceTouch=new Int32Array(cols);
@@ -39,4 +40,4 @@ function startLevel(quiet){
   applyAudio();
   if(TEST)testMap();
 }
-function levelClear(final){goldSaveLevel();achLevelClear();G.carryBig=player.big;G.carryFire=player.fire;G.carryIce=player.ice;feathers=[];G.state='clear';G.final=final;G.stateT=0;G.tally=0;G.clearTime=G.time;stopSong();playSong('clear');player.vx=0;}
+function levelClear(final){goldSaveLevel();cageSaveLevel();achLevelClear();G.carryBig=player.big;G.carryFire=player.fire;G.carryIce=player.ice;feathers=[];G.state='clear';G.final=final;G.stateT=0;G.tally=0;G.clearTime=G.time;stopSong();playSong('clear');player.vx=0;}

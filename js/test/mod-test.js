@@ -22,7 +22,7 @@ const ARENA=TEST?LEVELS.push(TEST_LEVEL)-1:-1;
 function testLoad(lv,cp){
   const alive=player&&!player.dead;
   G.carryBig=alive&&player.big;G.carryFire=alive&&player.fire;G.carryIce=alive&&player.ice;
-  G.level=lv;G.slotUsed=null;G.bossMet=false;G.goldLv=-1;G.cafeSeen=false;G.underOpen=-1;
+  G.level=lv;G.slotUsed=null;G.bossMet=false;G.goldLv=-1;G.cageLv=-1;G.cafeSeen=false;G.underOpen=-1;
   G.lvlHurt=false;G.lvlSeen=false;G.fullRun=false;   // achievements: nivelul ales e luat de la început
   const x=cp>0?LEVELS[lv].build().cps[cp-1]:undefined;
   G.cp=x===undefined?null:{level:lv,x};
@@ -89,6 +89,7 @@ const TEST_CMDS={
   clear(){enemies=[];},
   goldskin(){G.testGold=!G.testGold;},   // curcanul de aur, pornit / oprit
   god(){G.god=!G.god;},
+  haskey(){G.testKey=!G.hasKey;G.hasKey=G.testKey;},   // cheia coliviei
   hitbox(){G.showHB=!G.showHB;},
   speed(d){G.speed=[1,0.5,0.25].includes(d.v)?d.v:1;},
   pause(){if(G.state!=='play')return;G.paused=!G.paused;sfx.pause();applyAudio();},
@@ -117,17 +118,20 @@ function testMap(){
   toParent({map:{level:G.level,arena:!!def.arena,bonus:!!def.bonus,num:def.arena?0:levelNum(G.level),theme:def.theme,name:th.name,cols,rows:grid.map(r=>r.join('')),
     cps:cps.map(c=>c.tx),goal,colors:{sky:th.sky,grass:th.grass,dirt:th.dirt,water:th.water.body,night:!!th.night},
     plats:plats.map(p=>({kind:p.kind,x:p.x0/TS,y:p.y0/TS,w:p.w/TS,ax:p.ax,range:p.range/TS})),
-    golds:golds.map(g=>({x:g.tx,y:g.ty,kind:g.kind}))}});
+    golds:golds.map(g=>({x:g.tx,y:g.ty,kind:g.kind})),cage:cage?{x:(cage.x-8)/TS,y:cage.y/TS-1}:null}});
 }
 // Starea, de 10 ori pe secundă
 function testStatus(){
   if(!player)return;
   const p=player,r1=v=>Math.round(v*10)/10;
   toParent({status:{level:G.level,state:G.state,form:!p.big?'small':p.fire?'fire':p.ice?'ice':'big',
-    god:!!G.god,hitbox:!!G.showHB,goldskin:!!G.testGold,speed:G.speed||1,paused:!!G.paused,
+    god:!!G.god,hitbox:!!G.showHB,goldskin:!!G.testGold,haskey:!!G.hasKey,speed:G.speed||1,paused:!!G.paused,
     px:r1((p.x+p.w/2)/TS),py:r1((p.y+p.h)/TS),cam:r1(cam.x/TS),view:W/TS,
     cp:G.cp&&G.cp.level===G.level?cps.findIndex(c=>c.tx===G.cp.x)+1:0,cpOn:cps.map(c=>c.on),
     gold:golds.map(g=>g.taken?2:g.ghost?1:0),
+    // Colivia: 0 încuiată, 1 deschisă acum, 2 salvată deja; cheia: unde e
+    cage:cage?(cage.st==='locked'?0:G.cageNow||G.cageHeld?1:2):-1,
+    key:G.hasKey?'got':keyIt?[r1((keyIt.x+2)/TS),r1((keyIt.y+keyIt.h)/TS)]:(k=>k?[r1((k.x+k.w/2)/TS),r1((k.y+k.h)/TS)]:null)(enemies.find(e=>e.key&&!e.dead&&!e.remove)),
     mobs:enemies.filter(e=>!e.dead&&!e.remove).map(e=>[r1((e.x+e.w/2)/TS),r1((e.y+e.h)/TS),e.frozen?'f':e.type==='bomb'?'b':e.boy?'u':'m'])
       .concat(boss&&(bossFighting()||boss.st==='wait')?[[r1((boss.x+boss.w/2)/TS),r1((boss.y+boss.h)/TS),'B']]:[])}});
 }

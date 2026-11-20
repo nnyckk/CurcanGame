@@ -17,7 +17,8 @@ LEVELS.push({id:'ferma',theme:0,tip:'GRĂUNTELE AURIU TE FACE MARE, FIULE!',buil
   m.cp(93);
   m.c(96,10,5);m.r(96,8,'BMHMB');
   // Un deal mare, cu un pasaj pe dedesubt și bănuți în el
-  m.e('boy',101);m.hill(103,[4,4,4,4,4,4,4,4,4,4,4]);m.tunnel(103,10,11,2);m.tunnel(105,9,7,1);m.e('boy',108,7);m.c(106,10,5);
+  m.e('boy',101);m.hill(103,[4,4,4,4,4,4,4,4,4,4,4]);m.tunnel(103,10,11,2);m.tunnel(105,9,7,1);m.e('boy',108,7);m.c(111,7,3);   // bănuții: sus pe deal, nu lângă colivie
+  m.colivie(108);   // colivia: în pasajul de sub deal
   m.e('bomb',115);m.sp(118,2);
   m.st(122,4,1);m.pit(126,128);m.c(126,6,3);m.st(129,4,-1);
   m.pana(127,3);   // pana 2: sus peste groapă

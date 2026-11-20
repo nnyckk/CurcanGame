@@ -124,6 +124,8 @@ function getTiles(ti){
   g.fillStyle='#6e4a30';g.fillRect(0,1,16,1);g.fillStyle='#462c1c';g.fillRect(0,6,16,1);g.fillRect(0,11,16,1);
   g.fillRect(9,2,1,4);g.fillRect(3,7,1,4);g.fillRect(12,12,1,4);
   g.fillStyle='#64422c';[[5,3],[13,8],[7,14],[1,13]].forEach(([x,y])=>g.fillRect(x,y,2,1));T.F=c;
+  // Sub alt rând de podea: fără muchia luminată de sus
+  [c,g]=mkCanvas(16,16);g.drawImage(T.F,0,0);g.fillStyle='#5a3a26';g.fillRect(0,0,16,2);g.fillStyle='#462c1c';g.fillRect(0,0,16,1);T.F2=c;
   [c,g]=mkCanvas(16,16);g.fillStyle='#b5793a';g.fillRect(0,0,16,6);g.fillStyle='#e0a860';g.fillRect(0,0,16,1);
   g.fillStyle='#5a3510';g.fillRect(0,5,16,1);g.fillRect(2,2,1,1);g.fillRect(13,2,1,1);g.fillStyle='#8a5424';g.fillRect(7,1,1,4);T['=']=c;
   // spikes

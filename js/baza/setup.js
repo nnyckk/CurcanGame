@@ -1,6 +1,8 @@
 'use strict';
 // ===== SETUP: ecranul, constantele de bază, utilitare =====
-const GAME_VERSION='0.9.9.2';
+// ?toate: pene, curcani și achievements, toate deblocate (fără să salveze)
+const ALL_OPEN=/[?&]toate\b/.test(location.search);
+const GAME_VERSION='1.0';
 // Modul de test: arenă de test, comenzi din test.html
 const TEST=/[?&]test\b/.test(location.search);
 const W=400,H=224,TS=16,ROWS=14,TAU=Math.PI*2;

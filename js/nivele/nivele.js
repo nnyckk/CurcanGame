@@ -39,6 +39,8 @@ function newMap(w){
     m.f(a,0,CAFE_W,CAFE_CEIL,'K');};   // K = tavanul
   // Pană de aur: 'open', 'brick' (P), 'hidden' (V) sau 'boss'
   m.pana=(x,y,kind='open')=>{m.golds.push({x,y,kind});if(kind==='brick')m.set(x,y,'P');else if(kind==='hidden')m.set(x,y,'V');};
+  // Colivia cu curcanul prins: x, rândul pe care stă
+  m.colivie=(x,y=12)=>{m.cageDef={x,y};};
   // Peștera de sub pământ: găurile x, x2 în sol; camera de la a, lată de w (în dreapta hărții); opt: fall, pool, gems
   m.under=(x,x2,a,w,opt={})=>{m.underDef={x,x2,a,w,opt};const SUB_CEIL=opt.ceil||7;   // găurile se deschid în joc
     m.f(a,0,w,SUB_CEIL,'D');m.f(a,12,w,2,'D');m.f(a,SUB_CEIL,1,12-SUB_CEIL,'D');m.f(a+w-1,SUB_CEIL,1,12-SUB_CEIL,'D');

@@ -4,9 +4,11 @@
 const TALK_WRAP=44,TALK_LIFT=28;
 // Cine vorbește: numele de pe etichetă și bustul din ramă
 const TALK_WHO={
-  old:{name:'MOȘ CURCAN',bust:(x,y)=>ctx.drawImage(OLD.r,6,0,22,20,x,y,22,20)},
+  old:{name:'MOȘ CURCAN',bust:(x,y)=>ctx.drawImage(OLD_BUST,6,0,22,20,x,y,22,20)},
   boss:{name:'FERMIERUL-ȘEF',bust:(x,y)=>ctx.drawImage(bossBust(),3,0,22,20,x,y,22,20)},
 };
+// Curcanii prinși: p0..p4
+CAPT_INFO.forEach((c,i)=>{TALK_WHO['p'+i]={name:c.name,bust:(x,y)=>ctx.drawImage(CAPT[i].L.r,3,1,19,20,x+1,y,19,20)};});
 // Litere mici: eticheta dialogului, cartonașele
 const TINY={A:[".#.","#.#","###","#.#","#.#"],B:["##.","#.#","##.","#.#","##."],C:[".##","#..","#..","#..",".##"],
   D:["##.","#.#","#.#","#.#","##."],E:["###","#..","##.","#..","###"],F:["###","#..","##.","#..","#.."],G:[".##","#..","#.#","#.#",".##"],
@@ -16,7 +18,7 @@ const TINY={A:[".#.","#.#","###","#.#","#.#"],B:["##.","#.#","##.","#.#","##."],
   Z:["###","..#",".#.","#..","###"],'Ș':[".##","#..",".#.","..#","##.","...",".#."],'Ț':["###",".#.",".#.",".#.",".#.","...",".#."],
   'Ă':["#.#",".#.","...",".#.","#.#","###","#.#","#.#"],'Â':[".#.","#.#","...",".#.","#.#","###","#.#","#.#"],
   'Î':[".#.","#.#","...",".#.",".#.",".#.",".#.",".#."],
-  '!':["#","#","#",".","#"],'?':["##.","..#",".#.","...",".#."],'-':["..","..","##","..",".."],' ':["..",".."]};
+  '!':["#","#","#",".","#"],'?':["##.","..#",".#.","...",".#."],'-':["..","..","##","..",".."],' ':["..",".."],"'":["#","#",".",".","."],J:["..#","..#","..#","#.#",".#."],'.':[".",".",".",".","#"]};
 const TINY_UP={'Ă':3,'Â':3,'Î':3};   // accentul stă deasupra rândului
 const tinyW=s=>[...s].reduce((w,ch)=>w+(TINY[ch]||TINY[' '])[0].length+1,0)-1;
 function tinyTxt(s,x,y,col){ctx.fillStyle=col;
@@ -38,7 +40,7 @@ function updateTalk(){
   }
 }
 function drawTalk(){
-  const T=G.talk;if(!T||G.state!=='play')return;
+  const T=G.talk;if(!T||(G.state!=='play'&&G.state!=='win'))return;
   // O casetă mică, jos la mijloc, ca să nu acopere camera
   const line=T.lines[T.i];
   drawTalkBox((W-TALK_BOX_W)/2,H-TALK_BOX_H-4,T.who||TALK_WHO.old,line,T.n,T.n>=[...line].length);
