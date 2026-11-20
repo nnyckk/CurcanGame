@@ -22,12 +22,16 @@ function pauseOpen(){G.paused=true;sfx.pause();applyAudio();openMenu('pause');}
 function pauseClose(){G.paused=false;sfx.pause();applyAudio();}
 function toMainMenu(){G.paused=false;applyAudio();G.state='title';stopSong();playSong('title');openMenu('main');}
 function openMenu(m,sel=0){if(m==='settings')MENU.settings=settingsItems();G.menu=m;G.sel=sel;G.hover=-1;}
+// MOD TEST: ascuns; ?dev îl pornește (ținut minte), ?dev=0 îl oprește
+const DEV=(()=>{const m=location.search.match(/[?&]dev(=(\w+))?\b/);
+  try{if(m){if(m[2]==='0')localStorage.removeItem('curcan_dev');else localStorage.setItem('curcan_dev','1');}
+    return localStorage.getItem('curcan_dev')==='1';}catch(e){return !!m&&m[2]!=='0';}})();
 // Paginile meniului: principal → SETĂRI → CONTROALE
 const MENU={
   main:[
     {label:'JOACĂ',act:()=>newGame()},
     {label:'SETĂRI',sub:true,act:()=>openMenu('settings')},
-    {label:'MOD TEST',act:()=>{location.href='test.html';}},
+    ...(DEV?[{label:'MOD TEST',act:()=>{location.href='test.html';}}]:[]),
     {label:'PENE',badge:'pene',act:()=>openMenu('pene')},
     {label:'CURCANI',badge:'custi',act:()=>openMenu('custi')},
     {label:'ACHIEVEMENTS',badge:'ach',act:()=>{G.achPage=0;openMenu('ach');}}],
