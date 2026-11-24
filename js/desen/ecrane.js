@@ -18,6 +18,7 @@ function drawTitle(){
   if(G.menu==='controls'){txtCute('CONTROALE',W/2,20,3,'#e8323e','#000000');drawControls();drawMenuButtons();return;}
   if(G.menu==='custi'){txtCute('CURCANI PRINȘI',W/2,30,3,'#e8323e','#000000');drawCageInfo();drawMenuButtons();return;}
   if(G.menu==='pene'){txtCute('PENE DE AUR',W/2,30,3,'#e8323e','#000000');drawGoldInfo();drawMenuButtons();return;}
+  if(G.menu==='mine'){txtCute('NIVELURILE MELE',W/2,10,3,'#e8323e','#000000');drawMineInfo();drawMenuButtons();return;}
   if(G.menu==='ach'){txtCute('ACHIEVEMENTS',W/2,5,3,'#e8323e','#000000');drawMenuButtons();drawAchInfo();return;}
   txtCute('CURCANUL',W/2,18,4,'#e8323e','#000000');
   txtCute('ÎN FUGĂ',W/2,59,3,'#e8323e','#000000');
@@ -39,6 +40,14 @@ function drawPauseMenu(){
 function drawMenuButtons(){
   menuRects().forEach((b,i)=>{
     const on=i===G.sel,it=b.it,ty=b.y+4;
+    if(b.hidden)return;
+    if(it.badge==='arrow'){drawMineArrow(b,it.scroll,i===G.hover);return;}
+    // Un nivel salvat: numele în stânga, biomul în dreapta
+    if(it.lvl||it.story){const l=it.lvl?it.lvl.L||{}:{},st=it.story;
+      if(on)uiBox(b.x,b.y,b.w,b.h,'#e8323e','#ffffff','#ff6a72','#a01822');else uiBox(b.x,b.y,b.w,b.h);
+      txt(it.label,b.x+7,ty,on?'#ffffff':st?'#ffd23f':'#d8e4f0',1,'l',on?'#7a0a10':null);
+      txt(st?'POVESTE · '+st.items.length:({ferma:'FERMĂ',iarna:'IARNĂ',desert:'DEȘERT'}[l.biome]||'FERMĂ')+(l.night?' NOAPTE':' ZI'),b.x+b.w-7,ty,on?'#ffd0d4':'#8a84a8',1,'r',null);
+      if(on)txt('→',b.x-11+((G.t>>4)%2),ty,'#ffffff',1,'l','#000');return;}
     // Insignele de jos: luminate doar cât e mouse-ul pe ele
     if(it.badge){if(it.badge==='custi')drawCageBadge(b,i===G.hover);else (it.badge==='ach'?drawAchBadge:drawGoldBadge)(b,i===G.hover);return;}
     if(it.ach){drawAchCell(b,on);return;}   // cartonașele din pagina ACHIEVEMENTS
@@ -217,9 +226,10 @@ function drawIntro(){
   ctx.drawImage(img,100-(img.width>>1),192-img.height+(Math.floor(G.t/5)%2?-1:0));
   if(th.snow)drawSnowfall();
   // „NIVELUL n” și numele nivelului
-  const lbl=def.bonus?'NIVEL BONUS':'NIVELUL '+levelNum(G.level),pw=[...lbl].length*6+13;
+  const own=!!def.custom,st=own&&!!G.story,lbl=st?(G.story.items[G.storyIdx].bonus?'NIVEL BONUS':'NIVELUL '+storyNum()):own?'NIVELUL TĂU':def.bonus?'NIVEL BONUS':'NIVELUL '+levelNum(G.level),pw=[...lbl].length*6+13;
   uiBox(Math.round(W/2-pw/2),12+dy,pw,15);txt(lbl,W/2,16+dy,'#ffffff',1,'c',null);
-  txtCute(th.name,W/2,40+dy,3,'#e8323e','#000000');
+  {const nm=own?custName():th.name;txtCute(nm,W/2,own&&[...nm].length>12?46+dy:40+dy,own&&[...nm].length>12?2:3,'#e8323e','#000000');}
+  if(!own){
   // Drumul spre MESOPOTAMIA: un nod pentru fiecare nivel
   const lv=LEVELS.filter(d=>!d.arena),N=lv.length,gap=40,x0=W/2-N*gap/2,ny=90+dy;
   for(let i=0;i<N;i++){const xa=x0+i*gap+7,xb=x0+(i+1)*gap-7;
@@ -235,6 +245,18 @@ function drawIntro(){
   // Sub fiecare nivel
   for(let i=0;i<N;i++){const n=goldCounts()[i]||0,cx=x0+i*gap;
     for(let j=0;j<n;j++){ctx.fillStyle=goldSaved(lv[i].id,j)?'#ffd23f':'rgba(255,255,255,0.25)';ctx.fillRect(cx-5+j*4,ny+16,2,2);}}
+  }else if(st){
+    // Drumul poveștii: un nod pe nivel (steluță la bonus), numele poveștii dedesubt
+    const its=G.story.items,N=its.length,gap=Math.min(40,Math.floor(320/Math.max(1,N))),x0=Math.round(W/2-(N-1)*gap/2),ny=90+dy;
+    for(let i=0;i<N-1;i++){const xa=x0+i*gap+7,xb=x0+(i+1)*gap-7;
+      if(i<G.storyIdx){ctx.fillStyle='#ffd23f';ctx.fillRect(xa,ny+6,xb-xa,2);}
+      else{ctx.fillStyle='rgba(255,255,255,0.45)';for(let x=xa+1;x<xb-1;x+=4)ctx.fillRect(x,ny+6,2,2);}}
+    for(let i=0;i<N;i++){const cx=x0+i*gap,x=cx-6,mark=col=>its[i].bonus?icon(STAR_ICON,x+3,ny+3,col):icon(DOT_ICON,x+4,ny+4,col);
+      if(i<G.storyIdx){uiBox(x,ny,13,13,'#ffd23f','#fff3b0','#ffe680','#b88a10');mark('#7a4a00');}
+      else if(i===G.storyIdx){uiBox(x,ny,13,13,'#e8323e','#ffffff','#ff6a72','#a01822');mark('#ffffff');ctx.drawImage(headImg(),cx-4,ny-11+Math.round(Math.sin(G.t*0.15)*1.5));}
+      else{uiBox(x,ny,13,13);mark(its[i].bonus?'#ffd23f':'#8a84a8');}}
+    txt(G.story.name,W/2,ny+18,'#d8e4f0',1,'c',null);
+  }
   // Sfatul ți-l dă Moș Curcan, în caseta lui de dialog
   const bx=W/2-TALK_BOX_W/2,by=124+dy,bh=TALK_BOX_H;
   drawTalkBox(bx,by,TALK_WHO.old,G.tip||def.tip,introTipN(),false);
@@ -250,4 +272,26 @@ function drawIntro(){
   ctx.fillStyle='rgba(255,255,255,0.2)';ctx.fillRect(44,iy+3,1,9);
   txt('SCOR',50,iy+4,'#ffd23f',1,'l',null);txt(pad(G.score,6),4+iw-6,iy+4,'#ffffff',1,'r',null);
   if(e<1){ctx.fillStyle=`rgba(13,11,20,${1-e})`;ctx.fillRect(0,0,W,H);}
+}
+// NIVELURILE MELE: lista goală, sau săgețile când sunt mai mult de 8
+function drawMineInfo(){
+  const n=MENU.mine.filter(mineRow).length;
+  if(!n){const x=50,w=W-100,y=70;uiBox(x,y,w,62);
+    txt('ÎNCĂ N-AI NICIUN NIVEL AL TĂU.',W/2,y+10,'#ffd23f',1,'c',null);
+    txt('FĂ UNUL ÎN EDITOR ȘI APASĂ SALVEAZĂ:',W/2,y+28,'#e8f4ff',1,'c',null);
+    txt('APARE AICI, GATA DE JUCAT.',W/2,y+42,'#e8f4ff',1,'c',null);return;}
+  if(n>MINE_VIS)txt((G.mineTop+1)+'-'+Math.min(n,G.mineTop+MINE_VIS)+' DIN '+n,W/2,42+MINE_VIS*18+1,'#8a84a8',1,'c',null);
+}
+function drawMineArrow(b,d,on){
+  if(on)uiBox(b.x,b.y,b.w,b.h,'#e8323e','#ffffff','#ff6a72','#a01822');else uiBox(b.x,b.y,b.w,b.h);
+  ctx.fillStyle='#ffffff';for(let i=0;i<4;i++){const w=1+i*2,y=d<0?b.y+5+i:b.y+9-i;ctx.fillRect(b.x+7-i,y,w,1);}
+}
+// Povestea terminată: titlul, numele ei, scorul
+function drawStoryEnd(){
+  ctx.fillStyle='rgba(10,8,20,0.78)';ctx.fillRect(0,0,W,H);
+  txtCute('POVESTE TERMINATĂ!',W/2,46,2,'#e8323e','#000000');
+  txt(G.story?G.story.name:'',W/2,84,'#ffd23f',1,'c',null);
+  txt((G.story?G.story.items.length:0)+' NIVELURI',W/2,100,'#d8e4f0',1,'c',null);
+  txt('SCOR '+pad(G.score,6),W/2,128,'#ffffff',2,'c','#000');
+  if(G.stateT>60&&(G.t>>5)%2===0)txt('ENTER - ÎNAPOI LA NIVELURI',W/2,176,'#7fff7f',1,'c',null);
 }

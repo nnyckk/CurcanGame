@@ -73,7 +73,7 @@ function updatePlay(){
   }
   items=items.filter(i=>!i.remove);
   for(const cp of cps){if(cp.on){cp.raise=Math.min(1,cp.raise+0.05);continue;}
-    if(!inRoom()&&player.x+player.w>cp.x+6){cp.on=true;G.cp={level:G.level,x:cp.tx};goldCheckpoint();cageCheckpoint();sfx.cp();popup('SALVAT!',cp.x+8,150,'#7fff7f');}}
+    if((cp.cave?inUnder():!inRoom())&&player.x+player.w>cp.x+6){cp.on=true;G.cp={level:G.level,x:cp.tx};goldCheckpoint();cageCheckpoint();sfx.cp();popup('SALVAT!',cp.x+8,(cp.gy||192)-42,'#7fff7f');}}
   if(G.state==='play'&&goal&&!inRoom()){
     if(goal.type==='sign'&&player.x+player.w>goal.x*TS+34)levelClear(false);
     else if(goal.type==='restaurant'&&restAtDoor()&&upPressed())levelClear(true);   // intri doar cu sus
@@ -103,9 +103,12 @@ function updateClear(){
   if(G.stateT>60){
     if(G.time>0){const d=Math.min(G.time,3);G.time-=d;G.score+=d*50;if(G.stateT%4===0)sfx.blip();}
     else if(++G.tally>90){
-      if(G.final){G.state='win';G.stateT=0;G.winTalk=false;G.photoT=0;saveHi();playSong('win');MOS.wins++;mosSave();
+      if(LEVELS[G.level].custom){if(EDIT)edStop();
+        else if(G.story&&G.storyIdx<G.story.items.length-1)storyLevel(G.storyIdx+1);   // povestea: nivelul următor, cu puterile de acum
+        else if(G.story){G.state='storyEnd';G.stateT=0;playSong('win');}
+        else if(startPressed())custBack();}   // nivelul tău: cartonașul rămâne până apeși
+      else if(G.final){G.state='win';G.stateT=0;G.winTalk=false;G.photoT=0;saveHi();playSong('win');MOS.wins++;mosSave();
         achUnlock('pofta');if(MOS.wins>=5)achUnlock('gustul');if(G.fullRun&&!G.runDeaths)achUnlock('nemuritor');}
-      else if(LEVELS[G.level].custom){if(EDIT)edStop();}   // nivelul din editor: înapoi la desenat
       else{G.level++;G.cp=null;toIntro(true);}
     }
   }
@@ -146,7 +149,8 @@ function update(){
     case 'dying':updateDying();updateFx();break;
     case 'clear':updateClear();updateFx();break;
     case 'win':updateWin();break;
-    case 'gameover':G.stateT++;if(G.stateT>90&&startPressed()){G.state='title';stopSong();playSong('title');}break;
+    case 'storyEnd':G.stateT++;updateFx();if(G.stateT>60&&startPressed())custBack();break;
+    case 'gameover':G.stateT++;if(G.stateT>90&&startPressed()){if(G.story)storyRestart();else if(G.custRun)custBack();else{G.state='title';stopSong();playSong('title');}}break;
   }
   updateAch();
   for(const k in pressed)delete pressed[k];

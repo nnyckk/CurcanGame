@@ -2,7 +2,7 @@
 // ===== SETUP: ecranul, constantele de bază, utilitare =====
 // ?toate: pene, curcani și achievements, toate deblocate (fără să salveze)
 const ALL_OPEN=/[?&]toate\b/.test(location.search);
-const GAME_VERSION='1.1';
+const GAME_VERSION='1.2';
 // Editorul de niveluri: jocul din editor.html (merge ca modul de test)
 const EDIT=/[?&]edit\b/.test(location.search);
 // Modul de test: arenă de test, comenzi din test.html
@@ -18,7 +18,7 @@ const INFO_VW=[...('V'+GAME_VERSION)].length*6,INFO_VH=8;
 const INFO={V:document.getElementById('infoV'),out:false,shown:false};
 INFO.V.width=INFO_VW;INFO.V.height=INFO_VH;
 function resize(){
-  const s=Math.min(innerWidth/W,innerHeight/H);const k=s>=2?Math.floor(s):s;
+  const s=Math.min(innerWidth/W,innerHeight/H);const k=EDIT||s<2?s:Math.floor(s);   // în editor: cât chenarul
   const cw=Math.floor(W*k);cv.style.width=cw+'px';cv.style.height=Math.floor(H*k)+'px';
   const side=(innerWidth-cw)/2;
   const sc=Math.min(Math.floor(k),Math.floor(side/(INFO_VW+8)));

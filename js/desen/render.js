@@ -10,12 +10,15 @@ function render(){
       ctx.fillStyle='#0d0b14';ctx.fillRect(0,0,W,H);
       txt('JOC TERMINAT',W/2,60,'#ff4a5a',3,'c','#4a0a10');
       ctx.drawImage(tkBig().OVER,W/2-10,100);
-      txt('SCOR '+pad(G.score,6),W/2,132,'#fff',1,'c',null);txt('RECORD '+pad(G.hi,6),W/2,146,'#ffd23f',1,'c',null);
-      if(G.stateT>90&&(G.t>>5)%2===0)txt('ENTER - ÎNCEARCĂ DIN NOU',W/2,176,'#9fe8ff',1,'c',null);
+      txt('SCOR '+pad(G.score,6),W/2,132,'#fff',1,'c',null);txt(G.story?G.story.name:G.custRun?custName():'RECORD '+pad(G.hi,6),W/2,146,'#ffd23f',1,'c',null);
+      if(G.stateT>90&&(G.t>>5)%2===0)txt(G.story?'ENTER - DE LA PRIMUL NIVEL':G.custRun?'ENTER - ÎNAPOI LA NIVELURI':'ENTER - ÎNCEARCĂ DIN NOU',W/2,176,'#9fe8ff',1,'c',null);
       break;
     default:
       drawWorld();drawHUD();
       if(G.state==='clear'&&G.stateT>60)drawClearCard();
+      if(G.state==='storyEnd')drawStoryEnd();
+      if(G.state==='clear'&&G.custRun&&!G.story&&G.tally>90){ctx.fillStyle='rgba(16,8,32,0.8)';ctx.fillRect(0,195,W,29);
+        txt('SCOR '+pad(G.score,6),W/2,199,'#9fe8ff',1,'c',null);if((G.t>>5)%2===0)txt('ENTER - ÎNAPOI LA NIVELURI',W/2,211,'#7fff7f',1,'c',null);}
       // Poza de grup: un flash alb
       if(G.state==='win'&&G.photoT&&G.photoT<12){ctx.fillStyle=`rgba(255,255,255,${1-G.photoT/12})`;ctx.fillRect(0,0,W,H);}
       // Finalul: doar scorul, jos; restul spune restaurantul

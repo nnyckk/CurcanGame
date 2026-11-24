@@ -2,9 +2,9 @@
 // ===== EDITORUL: partea din joc (index.html?edit, în editor.html) =====
 // Nivelul desenat: ultimul în LEVELS
 const CUSTOM={id:'custom',theme:0,tip:'',arena:true,custom:true,start:2,capt:0,L:null,build(){return customBuild(CUSTOM.L);}};
-const CUSTOM_IX=EDIT?LEVELS.push(CUSTOM)-1:-1;
+const CUSTOM_IX=LEVELS.push(CUSTOM)-1;   // și pentru NIVELURILE MELE din meniu
 const ED={marks:{sel:null,hi:null},tool:{mode:'paint',el:'D'},hover:null,down:null,lastShow:0,dirty:false,view:'',iconTheme:-1,region:'main'};
-function edUse(L){const o=edNorm(L);CUSTOM.L=o;CUSTOM.theme=edTheme(o);CUSTOM.song=edSong(CUSTOM.theme);CUSTOM.start=o.start;CUSTOM.capt=o.cage?o.cage.capt:0;}
+function edUse(L){const o=edNorm(L);CUSTOM.L=o;CUSTOM.theme=edTheme(o);CUSTOM.song=edSong(CUSTOM.theme);CUSTOM.start=o.start;CUSTOM.capt=o.cage?o.cage.capt:o.cave&&o.cave.cage?o.cave.cage.capt:0;CUSTOM.startCave=o.cave&&o.cstart!=null?o.cstart:undefined;}
 // Ca la modul de test: nivelul de la zero
 function edReset(){G.slotUsed=null;G.bossMet=false;G.goldLv=-1;G.cageLv=-1;G.cafeSeen=false;G.underOpen=-1;G.cageRun=false;
   G.lvlHurt=false;G.lvlSeen=false;G.fullRun=false;G.carryBig=false;G.carryFire=false;G.carryIce=false;G.paused=false;G.inCafe=false;G.inUnder=false;}
@@ -33,6 +33,7 @@ function edPlay(L,from,god){
 function edStop(){stopSong();const cx=cam.x,inside=!!G.inUnder;if(inside!==(ED.region==='cave'))ED.region=inside?'cave':'main';edShow(CUSTOM.L);cam.x=edCamClamp(cx);}
 // Un cadru în editor: camera, umbra, animațiile
 function edUpdate(){
+  if(innerWidth!==ED.vw||innerHeight!==ED.vh){ED.vw=innerWidth;ED.vh=innerHeight;resize();}   // mărimea ferestrei, verificată la fiecare cadru
   if(!grid)return;
   const sp=keys.ShiftLeft||keys.ShiftRight?14:6;
   if(keys.ArrowLeft||keys.KeyA)cam.x-=sp;if(keys.ArrowRight||keys.KeyD)cam.x+=sp;
@@ -63,7 +64,8 @@ function edIcons(){
     ghidden:u(can(16,16,g=>{g.globalAlpha=0.4;g.drawImage(GOLD_PANA,5,1);g.globalAlpha=1;g.strokeStyle='#ffd23f';g.setLineDash([2,2]);g.strokeRect(0.5,0.5,15,15);})),
     cage:u(draw(32,40,()=>drawCageBars(16,40,false,0))),
     mvx:u(plank(tiles['='])),mvy:u(plank(tiles['='])),fall:u(plank(PLANK_WORN[0])),
-    capt:CAPT.map(s=>u(s.L.r))},
+    capt:CAPT.map(s=>u(s.L.r)),
+    ...Object.fromEntries([0,1,2].flatMap(s=>[0,1,2].map(c=>['gem'+s+c,u(draw(40,40,()=>drawGems({x:15,y:38,dir:-1,c,sz:s},0)))])))},
     edTheme:{sky:theme.sky,grass:theme.grass,dirt:theme.dirt,water:theme.water.body,night:!!theme.night,snow:!!theme.snow}});
 }
 // Rândul pe care stă curcanul la start (ca în startLevel)
@@ -88,35 +90,36 @@ function edBox(b,cx,bad,fill){
 }
 function drawEditOverlay(){
   const cx=Math.round(cam.x),x0=Math.floor(cx/TS),x1=Math.min(cols-1,x0+W/TS+1),L=CUSTOM.L,main=ED.region==='main';
-  ctx.fillStyle='rgba(255,255,255,0.07)';
-  for(let x=-(cx%TS);x<W;x+=TS)ctx.fillRect(x,0,1,H);
-  for(let y=TS;y<H;y+=TS)ctx.fillRect(0,y,W,1);
+  if(ED.grid!==false){ctx.fillStyle='rgba(255,255,255,0.07)';   // grila (se poate ascunde)
+    for(let x=-(cx%TS);x<W;x+=TS)ctx.fillRect(x,0,1,H);
+    for(let y=TS;y<H;y+=TS)ctx.fillRect(0,y,W,1);}
   for(let ty=0;ty<ROWS;ty++)for(let tx=x0;tx<=x1;tx++){const c=grid[ty][tx],x=tx*TS-cx,y=ty*TS;
     // Blocul cu putere: semn roșu, ca să nu-l confunzi cu M
     if(c==='H'){ctx.fillStyle='#e8323e';ctx.fillRect(x+11,y+1,4,4);ctx.fillStyle='#fff';ctx.fillRect(x+12,y+2,2,2);}
     // Pana din cărămidă și pana ascunsă
     else if(c==='P')ctx.drawImage(GOLD_PANA,x+5,y+1);
     else if(c==='V'){ctx.globalAlpha=0.45;ctx.drawImage(GOLD_PANA,x+5,y+1);ctx.globalAlpha=1;ctx.strokeStyle='rgba(255,210,63,0.8)';ctx.setLineDash([2,2]);ctx.strokeRect(x+0.5,y+0.5,TS-1,TS-1);ctx.setLineDash([]);}}
-  if(main){
-    // Startul
-    const sx=L.start,sy=edStartRow(sx)*TS;
+  // Startul: pe drum sau în peșteră
+  {const cs=Number.isInteger(L.cstart);if(main!==cs){const sx=main?L.start:edZone().a+L.cstart,sy=edStartRow(sx)*TS;
     ctx.globalAlpha=0.9;ctx.drawImage(TKS.A.r,sx*TS-cx,sy-16);ctx.globalAlpha=1;
-    edLabel('START',sx*TS-cx+8,sy-24,'#ffd23f');
+    edLabel('START',sx*TS-cx+8,sy-24,'#ffd23f');}}
+  if(main){
     // Găurile peșterii
     if(under)for(const [hx,s] of [[under.x,'INTRARE'],[under.x2,'IEȘIRE']]){const x=hx*TS-cx;
       ctx.strokeStyle='rgba(159,232,255,0.9)';ctx.setLineDash([3,2]);ctx.strokeRect(x+0.5,12*TS+0.5,SUB_SHAFT*TS-1,2*TS-1);ctx.setLineDash([]);
       edLabel(s,x+TS,12*TS-8,'#9fe8ff');}
   }
   // Locul coliviei, mereu: verde = liber, roșu = stricat
-  if(main&&L.cage)edCageZone(L.cage.x,L.cage.y,cx,!!edCageWhy(L,L.cage.x,L.cage.y));
+  {const CZ=main?L:L.cave,ca=main?0:edZone().a;if(CZ&&CZ.cage)edCageZone(CZ.cage.x+ca,CZ.cage.y,cx,!!edCageWhy(CZ,CZ.cage.x,CZ.cage.y));}
   // Aerul de deasupra găurilor peșterii
   if(main&&L.cave)for(const k of ['in','out'])edBox(edHoleBox(L,k),cx,!!edHoleWhy(L,k),true);
   // Drumul fiecărei platforme: verde = liber, roșu = ceva în cale
-  if(main)for(const p of L.plats)edBox(edPlatBox(p),cx,!!edPlatWhy(L,p),p.kind==='move');
+  const PZ=main?L:L.cave,pa=main?0:edZone().a,sh=b=>({x0:b.x0+pa,x1:b.x1+pa,y0:b.y0,y1:b.y1});   // în peșteră: coordonatele camerei
+  if(PZ)for(const p of PZ.plats||[])edBox(sh(edPlatBox(p)),cx,!!edPlatWhy(PZ,p),p.kind==='move');
   // Mânerele platformelor: capătul (lungimea) și capătul drumului (cât merge)
-  if(main)for(const p of L.plats){const on=ED.tool.mode==='move',a=on?1:0.55;ctx.globalAlpha=a;
-    const ex=(p.x+p.w)*TS-cx;ctx.fillStyle='#14121c';ctx.fillRect(ex-3,p.y*TS-1,3,8);ctx.fillStyle='#ffd23f';ctx.fillRect(ex-2,p.y*TS,1,6);
-    if(p.kind==='move'){const hx=(p.ax==='x'?p.x+p.w-1+p.range:p.x+((p.w-1)>>1))*TS-cx+8,hy=(p.ax==='x'?p.y:p.y+p.range)*TS+3;
+  if(PZ)for(const p of PZ.plats||[]){const on=ED.tool.mode==='move',a=on?1:0.55;ctx.globalAlpha=a;
+    const ex=(p.x+pa+p.w)*TS-cx;ctx.fillStyle='#14121c';ctx.fillRect(ex-3,p.y*TS-1,3,8);ctx.fillStyle='#ffd23f';ctx.fillRect(ex-2,p.y*TS,1,6);
+    if(p.kind==='move'){const hx=(pa+(p.ax==='x'?p.x+p.w-1+p.range:p.x+((p.w-1)>>1)))*TS-cx+8,hy=(p.ax==='x'?p.y:p.y+p.range)*TS+3;
       ctx.fillStyle='#14121c';ctx.fillRect(hx-3,hy-3,7,7);ctx.fillStyle='#ffd23f';ctx.fillRect(hx-2,hy-2,5,5);ctx.fillStyle='#14121c';ctx.fillRect(hx,hy,1,1);}
     ctx.globalAlpha=1;}
   // În cameră: puțul în care cazi și cel prin care ieși
@@ -138,23 +141,25 @@ function drawEditOverlay(){
   if(t.mode==='erase'||(d&&d.b===2)){box('#ff4a4a');return;}
   if(t.mode==='move'){box('#9fe8ff');return;}
   if(t.mode==='pointer'){box('#ffffff');return;}
+  if(t.mode==='pick'){box('#7fff7f');return;}
   const e=t.el,o=t.opt||{};ctx.globalAlpha=0.6;
   if(e==='water'||e==='I'){ctx.fillStyle=e==='I'?'#dff4ff':theme.water.body;ctx.fillRect(X,12*TS+(e==='I'?0:5),TS,e==='I'?6:2*TS-5);}
   else if(ED_TILES.includes(e)){const img=e==='D'?(ED.region==='cave'?tiles.D:tiles.G):e==='Z'?tiles.ZG:e==='W'?tiles.WG:e==='Y'?tiles.Yv[0]:e==='M'?tiles.M[0]:e==='H'?({ice:tiles.A,fire:tiles.R}[o.kind]||tiles.M)[0]:tiles[e];if(img)ctx.drawImage(img,X,Y);}
   else if(e==='coin')ctx.drawImage(COIN,X+2,Y+2);
   else if(e==='boy'||e==='man')ctx.drawImage((e==='boy'?BOY:MAN).A.r,X,Y+TS-20);
   else if(e==='bomb')ctx.drawImage(BOMB.A.r,X,Y+TS-16);
-  else if(e==='cp'){ctx.fillStyle='#cfd3dc';ctx.fillRect(X+7,146,2,46);ctx.fillStyle='#8a8a9a';ctx.fillRect(X+9,148,12,9);}
+  else if(e==='cp'){const dy=ED.region==='cave'?edStartRow(h.x)*TS-192:0;ctx.fillStyle='#cfd3dc';ctx.fillRect(X+7,146+dy,2,46);ctx.fillStyle='#8a8a9a';ctx.fillRect(X+9,148+dy,12,9);}
   else if(e==='start')ctx.drawImage(TKS.A.r,X,edStartRow(h.x)*TS-16);
   else if(e==='gopen')ctx.drawImage(GOLD_PANA,X+5,Y+1);
   else if(e==='gbrick'){ctx.drawImage(tiles.B,X,Y);ctx.drawImage(GOLD_PANA,X+5,Y+1);}
   else if(e==='ghidden')ctx.drawImage(GOLD_PANA,X+5,Y+1);
-  else if(e==='cage'){const cy=Math.min(13,h.y+1),bad=!!edCageWhy(L,h.x,cy);edCageZone(h.x,cy,cx,bad);ctx.globalAlpha=0.75;drawCageBars(X+8,cy*TS,false,0);}
+  else if(e==='cage'){const cy=Math.min(13,h.y+1),CZ=ED.region==='main'?L:L.cave,bad=!!edCageWhy(CZ,h.x-edZone().a,cy);edCageZone(h.x,cy,cx,bad);ctx.globalAlpha=0.75;drawCageBars(X+8,cy*TS,false,0);}
   else if(e==='mvx'||e==='mvy'||e==='fall'){
     // Cât tragi, atât de lungă e
     const drag=d&&d.b!==2,w=drag?Math.abs(h.x-d.x)+1:(o.w|0)||(e==='fall'?1:3),PX=drag?Math.min(h.x,d.x)*TS-cx:X,PY=drag?d.y*TS:Y;
-    {const gx=drag?Math.min(h.x,d.x):h.x,gy=drag?d.y:h.y,gp=e==='fall'?{kind:'fall',x:gx,y:gy,w}:{kind:'move',x:gx,y:gy,w,ax:e==='mvx'?'x':'y',range:Math.max(1,Math.min((o.range|0)||1,e==='mvy'?13-gy:L.w-gx-w))};
-      edBox(edPlatBox(gp),cx,!!edPlatWhy({...L,plats:L.plats.filter(p=>!(p.x===gx&&p.y===gy))},gp),true);}
+    {const GZ=ED.region==='main'?L:L.cave,za=edZone().a,gx=(drag?Math.min(h.x,d.x):h.x)-za,gy=drag?d.y:h.y;
+      const gp=e==='fall'?{kind:'fall',x:gx,y:gy,w}:{kind:'move',x:gx,y:gy,w,ax:e==='mvx'?'x':'y',range:Math.max(1,Math.min((o.range|0)||1,e==='mvy'?13-gy:GZ.w-gx-w))};
+      const b=edPlatBox(gp);edBox({x0:b.x0+za,x1:b.x1+za,y0:b.y0,y1:b.y1},cx,!!edPlatWhy({...GZ,plats:(GZ.plats||[]).filter(p=>!(p.x===gx&&p.y===gy))},gp),true);}
     for(let i=0;i<w;i++)ctx.drawImage(e==='fall'?PLANK_WORN[i%2]:tiles['='],PX+i*TS,PY);
     if(e!=='fall'){const r=(o.range|0)||1;ctx.fillStyle='rgba(255,255,255,0.8)';
       if(e==='mvx')for(let x=PX+2;x<PX+(w+r)*TS-2;x+=4)ctx.fillRect(x,PY+3,1,1);else for(let y=PY+2;y<=PY+r*TS+6;y+=4)ctx.fillRect(PX+w*TS/2,y,1,1);}
@@ -164,10 +169,16 @@ function drawEditOverlay(){
   else if(e==='cafe'){ctx.fillStyle='#6e5040';ctx.fillRect(X,139,96,53);ctx.fillStyle='#3e3238';ctx.fillRect(X-6,98,108,26);}
   else if(e==='cavein'||e==='caveout'){const k=e==='cavein'?'in':'out',tc={...L,cave:L.cave?{...L.cave,[k==='in'?'x':'x2']:h.x}:{x:h.x,x2:h.x}};
     edBox(edHoleBox(tc,k),cx,!!edHoleWhy(tc,k),true);ctx.fillStyle='#9fe8ff';ctx.fillRect(X,12*TS,SUB_SHAFT*TS,2*TS);}
-  else if(e==='gem')ctx.fillStyle='#a070f0',ctx.fillRect(X+5,Y+4,6,12);
-  else if(e==='bat')ctx.fillStyle='#3a3048',ctx.fillRect(X+2,Y+4,12,5);
-  else if(e==='icicle'){ctx.fillStyle='#8a7a6a';for(let i=0;i<10;i++)ctx.fillRect(X+3+(i>>1),Y+i,10-i,1);}
-  else if(e==='pool'){const dr=d&&d.b!==2,ax=dr?Math.min(d.x,h.x):h.x,w=dr&&d.x!==h.x?Math.abs(h.x-d.x)+1:3;ctx.fillStyle='#4a8ad0';ctx.fillRect(ax*TS-cx,Y+12,w*TS,4);}
+  else if(e==='gem'||e==='bat'||e==='icicle'||e==='pool'){
+    // Tavanul de deasupra și podeaua de dedesubt: acolo se lipește
+    const SOL='DXBMHAR',dr=e==='pool'&&d&&d.b!==2,sx=dr?d.x:h.x,sy=dr?d.y:h.y,inS=SOL.includes(grid[sy][sx]);
+    let hr=sy;while(hr>0&&!SOL.includes(grid[hr-1][sx]))hr--;let fr=sy;while(fr<ROWS&&!SOL.includes(grid[fr][sx]))fr++;
+    const z=edZone(),wall=h.x-z.a<=1||h.x-z.a>=z.w-2;
+    if(inS);
+    else if(e==='bat'){ctx.fillStyle='#3a3048';ctx.fillRect(X+2,hr*TS,12,5);}
+    else if(e==='icicle'){ctx.fillStyle='#8a7a6a';for(let i=0;i<10;i++)ctx.fillRect(X+3+(i>>1),hr*TS+i,10-i,1);}
+    else if(e==='pool'){const ax=dr?Math.min(d.x,h.x):h.x,w=dr&&d.x!==h.x?Math.abs(h.x-d.x)+1:3;ctx.fillStyle='#4a8ad0';ctx.fillRect(ax*TS-cx,fr*TS-4,w*TS,4);}
+    else{ctx.fillStyle='#a070f0';if(wall)ctx.fillRect(X+4,Y+5,8,6);else if(h.y-hr<=1)ctx.fillRect(X+5,hr*TS,6,12);else ctx.fillRect(X+5,fr*TS-12,6,12);}}
   else if(e==='cin'||e==='cout'){ctx.fillStyle=e==='cin'?'#9fe8ff':'#7fff7f';ctx.fillRect(X,0,SUB_SHAFT*TS,6*TS);}
   ctx.globalAlpha=1;box('rgba(255,255,255,0.8)');
 }
@@ -175,6 +186,7 @@ function drawEditOverlay(){
 const ED_CMDS={
   edHello(){edIcons();ED.view='';},
   edLevel(d){if(G.state==='edit'||G.state==='title')edShow(d.L);else edUse(d.L);},
+  edGrid(d){ED.grid=!!d.v;},
   edTool(d){ED.tool={mode:d.mode,el:d.el,opt:d.opt||{}};},
   edCam(d){if(G.state==='edit'){const z=edZone();cam.x=edCamClamp((z.a+(+d.x||0))*TS);}},
   edRegion(d){if(G.state!=='edit')return;ED.region=d.r==='cave'&&under?'cave':'main';G.inUnder=ED.region==='cave';cam.x=edCamClamp(G.inUnder?under.a*TS:(under?under.x*TS-W/2:0));ED.view='';},
@@ -205,7 +217,7 @@ if(EDIT){
   // Scurtăturile ajung la panou și când jocul are focusul
   addEventListener('keydown',e=>{
     if(G.state!=='edit')return;
-    const k=(e.ctrlKey||e.metaKey)?(e.code==='KeyZ'?(e.shiftKey?'redo':'undo'):e.code==='KeyY'?'redo':null):({KeyP:'pointer',KeyB:'paint',KeyE:'erase',KeyR:'rect',KeyV:'move',Escape:'esc',Delete:'del',Backspace:'del'})[e.code]||null;
+    const k=(e.ctrlKey||e.metaKey)?(e.code==='KeyZ'?(e.shiftKey?'redo':'undo'):e.code==='KeyY'?'redo':e.code==='KeyS'?'save':null):({KeyP:'pointer',KeyB:'paint',KeyE:'erase',KeyR:'rect',KeyV:'move',KeyI:'pick',KeyG:'grid',Escape:'esc',Delete:'del',Backspace:'del'})[e.code]||(e.key==='?'?'help':null);
     if(k){e.preventDefault();toParent({edKey:k});}
   });
 }

@@ -80,3 +80,15 @@ function pickTip(first){
   const pool=(first||Math.random()<0.4?own:all).filter(t=>t!==G.tip);
   return pool.length?pool[Math.random()*pool.length|0]:def.tip;
 }
+// La nivelul făcut de tine
+const CUST_TIPS={first:['UN NIVEL FĂCUT DE TINE, FIULE! SĂ VEDEM DACĂ-L POȚI ȘI TERMINA.','AI PUS TU CAPCANELE, DECI ȘTII UNDE SUNT... NU-I AȘA?','CINE FACE DRUMUL, ÎL ȘI ALEARGĂ. HAI, FIULE!'],
+  again:['NU-I BAI, FIULE. ȘI CEL CARE L-A FĂCUT MAI CADE.','PREA GREU? POȚI SĂ-L SCHIMBI ÎN EDITOR. DAR ÎNTÂI MAI ÎNCEARCĂ O DATĂ!','ȚI-AI ÎNTINS SINGUR CURSA, FIULE. ACUM SARI PESTE EA.']};
+// Și sfaturile obișnuite: după biom, pene, colivie; după o viață pierdută, ce ți-a spus și în joc
+function custTip(first){
+  const L=CUSTOM.L||{},th=THEMES[CUSTOM.theme]||THEMES[0],ng=(L.golds||[]).length+(L.cave?(L.cave.golds||[]).length:0),cage=!!(L.cage||(L.cave&&L.cave.cage));
+  const own=CUST_TIPS[first?'first':'again'];
+  const more=first?[...(th.night?TIPS.night:[]),...(th.snow?TIPS.snow:[]),...(ng?TIPS.gold.filter((t,i)=>i||ng===3):[]),...(cage?TIPS.capt:[]),...TIPS.all,...(th.snow?[]:TIPS.fire)]
+    :[...mosLines(false),...TIPS.all];
+  const pick=a=>{const p=a.filter(t=>t!==G.tip);return p.length?p[Math.random()*p.length|0]:a[0];};
+  return Math.random()<(first?0.3:0.35)?pick(own):pick(more);
+}

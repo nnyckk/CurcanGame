@@ -31,7 +31,7 @@ const achGot=id=>ACH_ALL||!!ACH_SAVE[id];
 const achCount=()=>ACH.filter(a=>achGot(a.id)).length;
 // quiet = fără casetă
 function achUnlock(id,quiet){
-  if(achGot(id)||!ACH.some(a=>a.id===id))return;
+  if(G.custRun||achGot(id)||!ACH.some(a=>a.id===id))return;   // nivelul tău: nu deblochează nimic
   ACH_SAVE[id]=Date.now();try{localStorage.setItem(ACH_KEY,JSON.stringify(ACH_SAVE));}catch(e){}
   if(!quiet)achToasts.push({id,t:0});
 }

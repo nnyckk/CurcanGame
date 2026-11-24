@@ -1,6 +1,6 @@
 'use strict';
 // ===== JOC NOU, ECRANUL DINAINTEA NIVELULUI =====
-function newGame(){G.carryBig=false;G.carryFire=false;G.carryIce=false;G.lives=3;G.score=0;G.coins=0;G.level=0;G.cp=null;G.slotUsed=null;G.bossMet=false;G.goldLv=-1;G.cageLv=-1;G.cafeSeen=false;G.tip=null;G.underOpen=-1;
+function newGame(){G.custRun=false;G.carryBig=false;G.carryFire=false;G.carryIce=false;G.lives=3;G.score=0;G.coins=0;G.level=0;G.cp=null;G.slotUsed=null;G.bossMet=false;G.goldLv=-1;G.cageLv=-1;G.cafeSeen=false;G.tip=null;G.underOpen=-1;
   G.fullRun=true;G.runDeaths=0;   // NEMURITOR: un joc întreg
   MOS.plays++;mosSave();toIntro(true);stopSong();}
 // Ecranul de dinaintea nivelului
@@ -8,7 +8,7 @@ const introTipN=()=>Math.max(0,(G.stateT-18)*1.2);
 // Sfatul se alege înainte ca Moș Curcan să-și noteze nivelul nou
 function toIntro(first){
   if(first){G.lvlDeaths=0;G.underOpen=-1;G.lvlHurt=false;G.lvlSeen=false;}
-  G.state='intro';G.stateT=0;G.tip=pickTip(first);
+  G.state='intro';G.stateT=0;G.tip=LEVELS[G.level].custom?custTip(first):pickTip(first);
   if(first&&!LEVELS[G.level].arena){MOS.last=G.level;MOS.best=Math.max(MOS.best,G.level);mosSave();}
 }
 // quiet = doar pregătește nivelul, fără muzică
@@ -25,7 +25,9 @@ function startLevel(quiet){
   iceCrack=new Float32Array(cols);iceHole=new Int16Array(cols);iceTouch=new Int32Array(cols);
   const atCp=G.cp&&G.cp.level===G.level;
   // La reapariție, punctele de salvare până la cel atins sunt deja ridicate
-  cps=m.cps.map(x=>{const done=atCp&&x<=G.cp.x;return {x:x*TS,tx:x,on:done,raise:done?1:0};});
+  // În peșteră: steagul stă pe podeaua coloanei (gy)
+  const inCaveX=x=>!!under&&x>=under.a&&x<under.a+under.w;
+  cps=m.cps.map(x=>{const done=atCp&&x<=G.cp.x,cave=inCaveX(x);let r=12;if(cave)while(r>0&&solid(tileAt(x,r-1)))r--;return {x:x*TS,tx:x,on:done,raise:done?1:0,cave,gy:r*TS};});
   const sx=(atCp?G.cp.x:def.start!==undefined?def.start:2)*TS+3;   // start: coloana din editor
   const big=!!G.carryBig;
   // Pe sol, chiar dacă pământul de acolo e mai sus (insulă înălțată, deal)
@@ -34,9 +36,14 @@ function startLevel(quiet){
   G.growT=0;
   G.time=300;G.frame=0;G.paused=false;G.tally=0;
   cam.x=clamp(player.x-W*0.4,0,cols*TS-W);
+  if(atCp&&inCaveX(G.cp.x)){G.inUnder=true;cam.x=underCam();}   // checkpointul din peșteră
+  // Startul din peșteră (nivelul din editor)
+  if(!atCp&&def.startCave!=null&&under){G.inUnder=true;player.x=(under.a+def.startCave)*TS+3;
+    let cy=12;const c0=[Math.floor(player.x/TS),Math.floor((player.x+11)/TS)];while(cy>0&&c0.some(c=>solid(tileAt(c,cy-1))))cy--;
+    player.y=cy*TS-player.h;cam.x=underCam();}
   lakeLife=initLakeLife();
   G.state='play';if(quiet)return;
-  playSong(def.song||'main');
+  playSong(G.inUnder?'cave':def.song||'main');
   applyAudio();
   if(TEST)testMap();
 }

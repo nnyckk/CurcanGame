@@ -36,7 +36,8 @@ function subTeleport(){
     G.inUnder=true;achCave();const c=G.subAt==='in'?u.en:u.ex;p.x=c*TS+(SUB_SHAFT*TS-p.w)/2;p.y=-p.h;p.vy=1;playSong('cave');
     cam.x=underCam();
   }else{
-    G.inUnder=false;holeBurst(u.x2,true);p.x=u.x2*TS+(SUB_SHAFT*TS-p.w)/2;p.y=12*TS-p.h;p.vy=-6.5;p.vx=1.6;p.face=1;p.pop=20;p.walkOff=false;p.airMax=WALK_AIR;playSong(LEVELS[G.level].song||'main');
+    // Pornit din peșteră: găurile se deschid acum, ca după intrare
+    G.inUnder=false;if(!holesOpen()){openHoles();G.underOpen=G.level;}holeBurst(u.x2,true);p.x=u.x2*TS+(SUB_SHAFT*TS-p.w)/2;p.y=12*TS-p.h;p.vy=-6.5;p.vx=1.6;p.face=1;p.pop=20;p.walkOff=false;p.airMax=WALK_AIR;playSong(LEVELS[G.level].song||'main');
     cam.x=clamp(p.x+p.w/2-W*0.42,0,camMax());
   }
 }
@@ -56,26 +57,29 @@ const ceilY=tx=>{let y=SUB_CEIL;while(y<12&&grid[y][tx]==='D')y++;return y*TS;};
 const floorY=tx=>{let y=ceilY(tx)/TS;while(y<12&&!'DX'.includes(grid[y][tx]))y++;return y*TS;};
 function caveDeco(){
   const u=under;if(u.deco)return u.deco;
-  const o=u.opt||{},col=i=>u.a+i,falls=(o.fall||[]).map(col),pools=(o.pools||(o.pool?[o.pool]:[])).map(p=>[col(p[0]),col(p[1])]);
+  const o=u.opt||{},col=i=>u.a+i,fl=(o.fall||[]).map(f=>typeof f==='number'?[col(f),null]:[col(f[0]),f[1]]),falls=fl.filter(f=>f[1]===null||f[1]*TS===ceilY(f[0])).map(f=>f[0]),pools=(o.pools||(o.pool?[o.pool]:[])).map(p=>[col(p[0]),col(p[1]),p[2]]);
   const d={pit:[],tites:[],mites:[],webs:[],shrooms:[],bats:[],drips:[],roots:[],gems:[],falls:[],pools:[],rings:[]};
-  d.pools=pools.map(p=>({x0:p[0]*TS+2,x1:(p[1]+1)*TS-2,y:floorY(p[0])}));
+  d.pools=pools.map(p=>({x0:p[0]*TS+2,x1:(p[1]+1)*TS-2,y:p[2]!=null?p[2]*TS:floorY(p[0])}));   // y = podeaua aleasă
   const shaft=tx=>(tx>=u.en&&tx<u.en+SUB_SHAFT)||(tx>=u.ex&&tx<u.ex+SUB_SHAFT);
   for(let tx=u.a+1;tx<u.a+u.w-1;tx++){if(shaft(tx))continue;const h=vhash(tx,77);
     // Cât loc e sub tavan până la primul bloc
     const cy=ceilY(tx);let free=cy/TS;while(free<12&&grid[free][tx]==='.')free++;
-    const pi=pools.findIndex(p=>tx>=p[0]&&tx<=p[1]),room=free*TS-cy-2,overPool=pi>=0;
+    const pi=d.pools.findIndex((pl,i)=>tx>=pools[i][0]&&tx<=pools[i][1]&&pl.y===floorY(tx)),room=free*TS-cy-2,overPool=pi>=0;
     // Deasupra blocurilor nu atârnă nimic: trebuie să te poți urca pe ele
     const nearBlock=[tx-1,tx,tx+1].some(c=>[8,9,10].some(r=>'MHUARBP'.includes(grid[r][c])));
     if(nearBlock&&!falls.includes(tx))continue;
-    if(falls.includes(tx))d.falls.push({x:tx*TS+3,y:cy,len:Math.min(26,room),w:10,big:true,st:'wait',t:0,vy:0,floor:floorY(tx)});
+    if(falls.includes(tx)){}   // țurțurele care cade: mai jos
     else if(h%3===0||overPool)d.tites.push({x:tx*TS+1+(h>>>3)%8,y:cy,len:Math.min(10+(h>>>7)%13,room),w:4+(h>>>11)%5,pool:overPool?d.pools[pi]:null});
     if(grid[12][tx]!=='D'){if(grid[12][tx]==='.'&&grid[13][tx]==='.')d.pit.push(tx);continue;}   // groapa cu țepi de piatră: doar unde e gaură în podea
     if(h%3===1&&grid[11][tx]==='.'&&!overPool)d.mites.push({x:tx*TS+1+(h>>>13)%8,y:floorY(tx),len:8+(h>>>15)%9,w:4+(h>>>17)%4});
     if(h%9===4&&!overPool)d.shrooms.push({x:tx*TS+4+(h>>>19)%7,y:floorY(tx)});
     if(h%9===2&&!falls.includes(tx))d.roots.push({x:tx*TS+3+(h>>>21)%10,y:cy,len:14+(h>>>23)%18,ph:h%17});
   }
+  // Țurțurii care cad: atârnă de tavanul ales (oricare, nu doar cel de sus)
+  for(const [tx,ry] of fl){const cy=ry===null?ceilY(tx):ry*TS;let fr=cy/TS,fy=cy/TS;while(fr<12&&grid[fr][tx]==='.')fr++;while(fy<13&&!'DX'.includes(grid[fy][tx]))fy++;
+    d.falls.push({x:tx*TS+3,y:cy,len:Math.max(8,Math.min(26,fr*TS-cy-2)),w:10,big:true,st:'wait',t:0,vy:0,floor:fy*TS});}
   d.webs.push({x:(u.a+1)*TS,y:ceilY(u.a+1),dir:1},{x:(u.a+u.w-1)*TS,y:ceilY(u.a+u.w-2),dir:-1});
-  for(const i of o.bats||[6,16]){const hx=col(i)*TS+8,hy=ceilY(col(i));d.bats.push({hx,hy,x:hx,y:hy+1,vx:0,vy:0,st:'hang',t:0,ph:i});}
+  for(const i of o.bats||[6,16]){const bx=typeof i==='number'?i:i[0],hx=col(bx)*TS+8,hy=typeof i==='number'?ceilY(col(bx)):i[1]*TS;d.bats.push({hx,hy,x:hx,y:hy+1,vx:0,vy:0,st:'hang',t:0,ph:bx});}
   // Pietre în pereți, tavan și podea: pe tile-urile de pământ ale camerei
   d.stones=[];for(let tx=u.a;tx<u.a+u.w;tx++)for(let ty=0;ty<ROWS;ty++){if(grid[ty][tx]!=='D')continue;const h=vhash(tx,ty*13+5);
     if(h%6===0)d.stones.push({x:tx*TS+2+(h>>>3)%10,y:ty*TS+2+(h>>>7)%10,n:2+(h>>>11)%3,s:h>>>13});}
@@ -95,8 +99,9 @@ function caveDeco(){
   // Pe jos: întâi foarte mare, apoi mic, apoi mare; în pereți: stânga mic, dreapta mare
   let nf=0,k=0;for(const g of o.gems||[]){   // k: culoarea, pe rând
     if(typeof g==='number')d.gems.push({x:col(g)*TS+3,y:floorY(col(g)),dir:-1,c:(u.a+k++)%3,sz:[2,0,1][nf++%3]});
-    else if(g[0]==='C')d.gems.push({x:col(g[1])*TS+3,y:ceilY(col(g[1])),dir:3,c:(u.a+k++)%3,sz:(k%2)});   // din tavan: mici și mijlocii
-    else{const wl=g[0]==='L';d.gems.push({x:wl?(u.a+1)*TS:(u.a+u.w-1)*TS,y:g[1]*TS+8,dir:wl?1:2,c:(u.a+k++)%3,sz:wl?0:1});}}
+    else if(g[0]==='F'){const a=k++;d.gems.push({x:col(g[1])*TS+3,y:g[2]*TS,dir:-1,c:g[4]??(u.a+a)%3,sz:g[3]??[2,0,1][nf++%3]});}   // pe podeaua aleasă
+    else if(g[0]==='C'){const a=k++;d.gems.push({x:col(g[1])*TS+3,y:g[2]!=null?g[2]*TS:ceilY(col(g[1])),dir:3,c:g[4]??(u.a+a)%3,sz:g[3]??(k%2)});}   // din tavan
+    else{const wl=g[0]==='L',a=k++;d.gems.push({x:wl?(u.a+1)*TS:(u.a+u.w-1)*TS,y:g[1]*TS+8,dir:wl?1:2,c:g[3]??(u.a+a)%3,sz:g[2]??(wl?0:1)});}}
   d.webs=d.webs.filter(wb=>!d.gems.some(g=>Math.abs(g.x-wb.x)<24&&Math.abs(g.y-wb.y)<28));   // fără pânză peste cristale
   return u.deco=d;
 }
@@ -112,7 +117,7 @@ function updateCaveLife(){
   // Prin baltă: stropi mici când mergi
   if(p.onGround&&inPool(px,p.y+p.h)&&Math.abs(p.vx)>0.5&&G.t%6===0)poolSplash(px,3);
   for(const s of d.falls){
-    if(s.st==='wait'&&Math.abs(px-(s.x+s.w/2))<22&&p.y>s.y){s.st='shake';s.t=0;sfx.bump();}
+    if(s.st==='wait'&&Math.abs(px-(s.x+s.w/2))<22&&p.y>s.y&&p.y<s.floor){s.st='shake';s.t=0;sfx.bump();}
     else if(s.st==='shake'&&++s.t>=28)s.st='fall';
     else if(s.st==='fall'){s.vy=Math.min(s.vy+0.35,7);s.y+=s.vy;
       if(!p.dead&&overlap(p,{x:s.x+1,y:s.y+s.len*0.3,w:s.w-2,h:s.len*0.7}))hurt(0);
@@ -138,7 +143,7 @@ function batTarget(b){
 }
 function updateBat(b,px,p){
   b.t++;
-  if(b.st==='hang'){if(b.t>60&&Math.abs(px-b.hx)<48&&p.y<b.hy+96){b.st='fly';b.t=0;b.x=b.hx;b.y=b.hy+1;b.vx=px<b.hx?1.5:-1.5;b.vy=1;batTarget(b);batSound(b);}return;}
+  if(b.st==='hang'){if(b.t>60&&Math.abs(px-b.hx)<48&&p.y<b.hy+96&&p.y>b.hy-8){b.st='fly';b.t=0;b.x=b.hx;b.y=b.hy+1;b.vx=px<b.hx?1.5:-1.5;b.vy=1;batTarget(b);batSound(b);}return;}
   if(b.st==='fly'&&b.t>260){b.st='back';b.t=0;batRoost(b);}
   if(b.st==='fly'&&(b.t%70===0||Math.hypot(b.tx-b.x,b.ty-b.y)<10))batTarget(b);
   // Se îndreaptă spre țintă, cu o fluturare
@@ -155,7 +160,9 @@ function batRoost(b){
   const u=under;let x=clamp(b.x,(u.a+1)*TS+BAT_HW,(u.a+u.w-1)*TS-BAT_HW);
   const sh=c=>(c>=u.en&&c<u.en+SUB_SHAFT)||(c>=u.ex&&c<u.ex+SUB_SHAFT);
   for(let k=0;k<6&&(sh(Math.floor((x-BAT_HW)/TS))||sh(Math.floor((x+BAT_HW)/TS)));k++)x+=x<(u.a+u.w/2)*TS?TS:-TS;   // nu sub puțuri
-  const hy=Math.max(ceilY(Math.floor((x-BAT_HW)/TS)),ceilY(Math.floor((x+BAT_HW)/TS)));
+  // Tavanul de deasupra lui (nu neapărat cel de sus)
+  const up=tx=>{let r=Math.max(0,Math.min(13,Math.floor(b.y/TS)));while(r<13&&solid(grid[r][tx]))r++;while(r>0&&!solid(grid[r-1][tx]))r--;return r*TS;};
+  const hy=Math.max(up(Math.floor((x-BAT_HW)/TS)),up(Math.floor((x+BAT_HW)/TS)));
   b.hx=x;b.hy=hy;b.tx=x;b.ty=hy+1;
 }
 // Chițăie doar dacă se vede
