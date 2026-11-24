@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Curcanul în Fugă — Editor de niveluri</title>
+<style>
+  :root{
+    --bg:#0d0b14;--panel:#15111e;--card:#1d1829;--card2:#262037;--line:#2e2840;--line2:#433a5c;
+    --text:#ece8f4;--muted:#9a94ad;--dim:#6f6886;--accent:#ffd23f;--accent-ink:#2a1d00;--danger:#ff6a6a;
+    --glow:0 0 0 1px var(--accent),0 0 14px rgba(255,210,63,.5);--lit-bg:#5a4610;--lit-text:#fff3b0;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{background:var(--bg);color:var(--text);font:13px/1.35 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column;overflow:hidden}
+  button,input{font:inherit;color:inherit}
+  button{cursor:pointer;-webkit-tap-highlight-color:transparent}
+  button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  button:disabled{opacity:.35;cursor:not-allowed}
+  kbd{display:inline-block;min-width:18px;padding:0 4px;border:1px solid var(--line2);border-bottom-width:2px;border-radius:4px;
+    background:var(--card);font:10.5px/1.5 ui-monospace,Consolas,monospace;color:var(--muted);text-align:center}
+
+  /* ---- Bara de sus */
+  .bar{flex:none;display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;padding:10px 14px;background:var(--panel);border-bottom:1px solid var(--line)}
+  h1{display:flex;align-items:center;gap:8px;font-size:15px;margin:0 6px 0 0;color:var(--accent);white-space:nowrap}
+  h1 img{image-rendering:pixelated;width:24px;height:24px}
+  .back{color:var(--muted);font-size:12px;text-decoration:none;padding:5px 8px;border:1px solid var(--line);border-radius:6px;white-space:nowrap}
+  .back:hover{color:var(--accent);border-color:var(--line2)}
+  .fld{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px}
+  .fld input{width:150px;padding:5px 8px;background:var(--card);border:1px solid var(--line);border-radius:7px;text-transform:uppercase;color:var(--text)}
+  .seg{display:flex;gap:2px;padding:2px;background:var(--card);border:1px solid var(--line);border-radius:8px}
+  .seg button{display:flex;align-items:center;gap:5px;padding:5px 9px;border:0;border-radius:6px;background:none;color:var(--muted);font-size:12px;white-space:nowrap}
+  .seg button:hover:not(:disabled){color:var(--text);background:var(--card2)}
+  .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:600;box-shadow:0 0 10px rgba(255,210,63,.55)}
+  .len{display:flex;align-items:center;gap:4px;color:var(--muted);font-size:12px}
+  .len b{min-width:34px;text-align:center;color:var(--text);font:600 12px ui-monospace,Consolas,monospace}
+  .btn{display:flex;align-items:center;gap:6px;padding:5px 10px;background:var(--card);border:1px solid var(--line);border-radius:7px;white-space:nowrap;font-size:12.5px}
+  .btn:hover:not(:disabled){background:var(--card2);border-color:var(--line2)}
+  .btn:active:not(:disabled){transform:translateY(1px)}
+  .btn.sq{padding:4px 8px;font-weight:700}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:700}
+  .btn.primary:hover:not(:disabled){background:#ffe070;border-color:#ffe070}
+  .btn.stop{background:#c8323e;border-color:#ff6a72;color:#fff;font-weight:700}
+  .btn.stop:hover{background:#e04050}
+  .grp{display:flex;align-items:center;gap:6px}
+  .sp{flex:1}
+  .chk{display:flex;align-items:center;gap:5px;color:var(--muted);font-size:12px;cursor:pointer;white-space:nowrap}
+  .chk input{accent-color:var(--accent)}
+  .px{flex:none;width:12px;height:12px}
+
+  /* ---- Stânga: panoul cu elemente */
+  .body{flex:1;min-height:0;display:flex;gap:14px;padding:14px}
+  aside{flex:none;width:252px;display:flex;flex-direction:column;gap:10px;overflow-y:auto;padding-right:2px;scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+  section{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px}
+  h2{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 7px;font-weight:600}
+  .modes{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+  .mode{display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--card);border:1px solid var(--line);border-radius:7px;font-size:12px;text-align:left}
+  .mode kbd{margin-left:auto}
+  .mode:hover{background:var(--card2);border-color:var(--line2)}
+  .mode[aria-pressed="true"]{background:var(--lit-bg);border-color:var(--accent);color:var(--lit-text);font-weight:600;box-shadow:var(--glow)}
+  .els{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+  .el{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px 5px;background:var(--card);border:1px solid var(--line);border-radius:7px;font-size:11px;line-height:1.15;text-align:center}
+  .el:hover:not(:disabled){background:var(--card2);border-color:var(--line2)}
+  .el .ic{display:flex;align-items:flex-end;justify-content:center;height:34px}
+  .el img{image-rendering:pixelated;display:block}
+  .el[aria-pressed="true"]{background:var(--lit-bg);border-color:var(--accent);color:var(--lit-text);font-weight:600;box-shadow:var(--glow)}
+  .el svg.px{width:21px;height:21px;margin-bottom:4px}
+  .el[hidden]{display:none}
+  .stack{display:flex;flex-direction:column;gap:6px}
+  .row{display:flex;align-items:center;gap:8px}
+  .row .lbl{flex:none;width:44px;color:var(--muted);font-size:12px}
+  .row .seg{flex:1}
+  .row .seg button{flex:1;justify-content:center;padding:5px 2px}
+  section[hidden]{display:none}
+  .opt{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--muted);font-size:12px}
+  .opt + .opt{margin-top:6px}
+  .capts{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+  .capt{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 1px;background:var(--card);border:1px solid var(--line);border-radius:7px;font-size:9.5px;line-height:1.1;text-align:center}
+  .capt img{image-rendering:pixelated;width:33px;height:40px}
+  .capt[aria-pressed="true"]{background:var(--lit-bg);border-color:var(--accent);color:var(--lit-text);box-shadow:var(--glow)}
+  .hint{margin:0;color:var(--dim);font-size:11.5px;line-height:1.5}
+  /* Butoanele mari; cel de ștergere e roșu și stă departe */
+  .btn.big{width:100%;justify-content:center;padding:10px;margin-top:8px;font-size:13px;font-weight:600}
+  .danger-zone{margin-top:16px;padding-top:12px;border-top:1px dashed var(--line2)}
+  .danger-zone .btn{margin-top:0}
+  .btn.danger{background:#3a1418;border-color:#c8323e;color:#ffb0b4}
+  .btn.danger:hover:not(:disabled){background:#c8323e;border-color:#ff6a72;color:#fff}
+  /* Fereastra de confirmare */
+  .modal{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:rgba(8,6,14,.72)}
+  .modal[hidden]{display:none}
+  .modal .box{width:min(380px,calc(100vw - 32px));background:var(--panel);border:1px solid var(--line2);border-radius:12px;padding:18px;box-shadow:0 10px 40px rgba(0,0,0,.6)}
+  .modal h3{margin:0 0 8px;font-size:16px;color:#ff8a90}
+  .modal p{margin:0 0 16px;color:var(--muted);line-height:1.45}
+  .modal .acts{display:flex;justify-content:flex-end;gap:10px}
+  .modal .acts .btn{padding:9px 16px;font-size:13px}
+  /* ---- Dreapta: elementul ales și setările lui */
+  aside.props{width:236px}
+  .ihead{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;margin-bottom:8px}
+  .ihead .big{display:flex;align-items:center;justify-content:center;width:100%;min-height:84px;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:8px}
+  .ihead .big img{image-rendering:pixelated;display:block}
+  .ihead .big svg.px{width:42px;height:42px;color:var(--accent)}
+  .ihead b{display:block;font-size:14px;color:var(--accent)}
+  .ihead small{display:block;margin-top:3px;color:var(--muted);font-size:12px;line-height:1.4}
+  .ictx{margin:0 0 8px;padding:5px 8px;border-radius:6px;background:var(--card);color:var(--muted);font-size:11.5px;text-align:center}
+  .props .opt b{min-width:64px;text-align:center}
+  .seg.pw button{flex:1;flex-direction:column;justify-content:center;gap:4px;padding:7px 2px}
+  .seg.pw img{image-rendering:pixelated;width:32px;height:32px;display:block}
+  .props .capts{grid-template-columns:repeat(2,1fr);gap:6px}
+  .props .capt{flex-direction:row;justify-content:flex-start;gap:6px;padding:4px 6px;font-size:11.5px;text-align:left}
+  .props .capt img{width:33px;height:40px}
+  .hint b{color:var(--muted);font-weight:600}
+
+  /* ---- Dreapta: jocul și harta mică */
+  main{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:8px}
+  iframe{border:2px solid var(--line);border-radius:6px;background:#000;display:block}
+  main.playing iframe{border-color:var(--accent);box-shadow:var(--glow)}
+  .mapbox{align-self:stretch;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:7px 10px 8px}
+  .maphead{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-bottom:5px;font-size:12px}
+  #status{color:var(--muted)}
+  #pos{font:12px ui-monospace,Consolas,monospace;color:var(--muted);white-space:nowrap}
+  #map{display:block;width:100%;height:64px;border-radius:5px;background:#000;cursor:pointer;touch-action:none}
+  .keys{display:flex;flex-wrap:wrap;justify-content:center;gap:4px 14px;margin:0;color:var(--muted);font-size:12px}
+  .keys span{display:inline-flex;align-items:center;gap:4px}
+</style>
+</head>
+<body>
+<header class="bar">
+  <a class="back" href="index.html">← Meniu</a>
+  <h1><img id="logo" alt="">Editor de niveluri</h1>
+  <label class="fld">Nume <input id="name" maxlength="24" spellcheck="false" autocomplete="off"></label>
+  <div class="seg" id="biome" role="group" aria-label="Biomul">
+    <button data-biome="ferma"><i data-px="sun"></i>Fermă</button>
+    <button data-biome="iarna"><i data-px="flake"></i>Iarnă</button>
+    <button data-biome="desert"><i data-px="palm"></i>Deșert</button>
+  </div>
+  <div class="seg" id="time" role="group" aria-label="Zi sau noapte">
+    <button data-night="0"><i data-px="sun"></i>Zi</button>
+    <button data-night="1"><i data-px="moon"></i>Noapte</button>
+  </div>
+  <div class="len" title="Lungimea nivelului, în pătrate">Lungime
+    <button class="btn sq" data-len="-10" title="Scoate 10 coloane de la capăt">−</button><b id="len">60</b><button class="btn sq" data-len="10" title="Adaugă 10 coloane cu pământ la capăt">+</button></div>
+  <div class="grp">
+    <button class="btn" id="undo" title="Anulează (Ctrl+Z)"><i data-px="undo"></i>Anulează</button>
+    <button class="btn" id="redo" title="Refă (Ctrl+Y)"><i data-px="redo"></i>Refă</button>
+    <button class="btn" id="new" title="Pornește de la o pânză goală (se poate anula)"><i data-px="x"></i>Nou</button>
+  </div>
+  <span class="sp"></span>
+  <div class="grp">
+    <label class="chk" title="Nimic nu te rănește când testezi (apa și gropile tot te omoară)"><input type="checkbox" id="god" checked>Invincibil</label>
+    <button class="btn" id="here" title="Testează din stânga ecranului de acum"><i data-px="play"></i>De aici</button>
+    <button class="btn primary" id="test" title="Joacă nivelul de la start"><i data-px="play"></i>Testează</button>
+  </div>
+</header>
+
+<div class="body">
+  <aside id="pal">
+    <section>
+      <h2>Unelte</h2>
+      <div class="modes" id="modes"></div>
+    </section>
+    <section id="caveIn" hidden>
+      <h2>Camera peșterii</h2>
+      <div class="stack">
+        <div class="len">Lungime <button class="btn sq" data-clen="-5" title="Scoate 5 coloane din cameră">−</button><b id="clen">30</b><button class="btn sq" data-clen="5" title="Adaugă 5 coloane la cameră">+</button></div>
+        <button class="btn" id="surface"><i data-px="back"></i>Înapoi la suprafață</button>
+      </div>
+    </section>
+    <section data-zone="main"><h2>Teren</h2><div class="els" data-group="teren"></div></section>
+    <section data-zone="cave" hidden><h2>Teren</h2><div class="els" data-group="cteren"></div></section>
+    <section><h2>Blocuri</h2><div class="els" data-group="blocuri"></div></section>
+    <section data-zone="main"><h2>Platforme</h2><div class="els" data-group="platforme"></div></section>
+    <section><h2>Obiecte</h2><div class="els" data-group="obiecte"></div></section>
+    <section><h2>Inamici</h2><div class="els" data-group="inamici"></div></section>
+    <section data-zone="cave" hidden><h2>Decorul peșterii</h2><div class="els" data-group="decor"></div></section>
+    <section data-zone="main" id="caveOut">
+      <h2>Peștera secretă</h2>
+      <div class="els" data-group="pestera"></div>
+      <button class="btn big" id="enterCave" title="Arată camera peșterii, ca s-o desenezi"><i data-px="enter"></i>Intră în peșteră</button>
+      <div class="danger-zone">
+        <button class="btn big danger" id="delCave" title="Scoate peștera din nivel (te întreabă înainte)"><i data-px="x"></i>Șterge peștera</button>
+      </div>
+    </section>
+    <section data-zone="main"><h2>Final și cafenea</h2><div class="els" data-group="final"></div></section>
+    <section>
+      <p class="hint"><b>Click</b> pune elementul ales, <b>trage</b> ca să desenezi.<br>
+        <b>Click dreapta</b> șterge, oricare ar fi unealta.<br>
+        <b>Dreptunghi:</b> tragi un dreptunghi și se umple (cu click dreapta se golește).<br>
+        <b>În peșteră</b> tavanul, podeaua și pereții sunt pământ: îi ștergi și îi desenezi cum vrei. Groapa cu țepi o faci punând țepi jos.<br>
+        <b>Mutare:</b> tragi inamici, bănuți, pene, checkpointuri, startul, colivia, finalul, cafeneaua, platformele sau găurile peșterii.<br>
+        Marginile și iarba terenului se fac singure. Cel mult 3 pene, o colivie, un final, o cafenea și o peșteră.</p>
+    </section>
+  </aside>
+
+  <main id="main">
+    <iframe id="frame" src="index.html?edit" title="Nivelul, în joc"></iframe>
+    <div class="mapbox">
+      <div class="maphead"><span id="status">Se încarcă jocul…</span><span id="pos"></span></div>
+      <canvas id="map" aria-label="Harta nivelului: click ca să mergi acolo"></canvas>
+    </div>
+    <p class="keys">
+      <span><kbd>←</kbd><kbd>→</kbd> / rotița: mută harta</span>
+      <span><kbd>Shift</kbd> mai repede</span>
+      <span><kbd>P</kbd> pointer</span><span><kbd>B</kbd> pensulă</span><span><kbd>E</kbd> gumă</span><span><kbd>R</kbd> dreptunghi</span><span><kbd>V</kbd> mutare</span><span><kbd>Delete</kbd> șterge bucata</span>
+      <span><kbd>Ctrl</kbd>+<kbd>Z</kbd> / <kbd>Ctrl</kbd>+<kbd>Y</kbd></span>
+    </p>
+  </main>
+
+  <aside id="props" class="props" aria-label="Elementul ales și setările lui"></aside>
+</div>
+
+<div class="modal" id="ask" hidden role="dialog" aria-modal="true" aria-labelledby="askT">
+  <div class="box">
+    <h3 id="askT"></h3>
+    <p id="askP"></p>
+    <div class="acts"><button class="btn" id="askNo">Nu, lasă</button><button class="btn danger" id="askYes"></button></div>
+  </div>
+</div>
+<script src="js/editor/format.js"></script>
+<script src="js/editor/editor.js"></script>
+</body>
+</html>

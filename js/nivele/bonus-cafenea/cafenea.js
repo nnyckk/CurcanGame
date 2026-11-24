@@ -39,7 +39,7 @@ function cafeDust(c){
 function setSlotTiles(c,ch){for(let j=0;j<2;j++)for(let i=0;i<2;i++)grid[c.sy+j][c.sx+i]=ch;}
 const inCafe=()=>!!cafe&&!!G.inCafe;
 // Cea mai din dreapta poziție a camerei afară
-const camMax=()=>cafe?(cafe.a-3)*TS-W:under?(under.a-3)*TS-W:cols*TS-W;
+const camMax=()=>{const r=[cafe&&cafe.a,under&&under.a].filter(Boolean);return r.length?(Math.min(...r)-3)*TS-W:cols*TS-W;};
 // Ușa în fața căreia stă curcanul: 'in' = ușa căsuței
 function cafeDoor(){
   const p=player;if(!cafe||!p||p.dead||!p.onGround||G.doorT>0)return null;

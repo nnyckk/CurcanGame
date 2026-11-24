@@ -26,7 +26,7 @@ function startLevel(quiet){
   const atCp=G.cp&&G.cp.level===G.level;
   // La reapariție, punctele de salvare până la cel atins sunt deja ridicate
   cps=m.cps.map(x=>{const done=atCp&&x<=G.cp.x;return {x:x*TS,tx:x,on:done,raise:done?1:0};});
-  const sx=atCp?G.cp.x*TS+3:2*TS+3;
+  const sx=(atCp?G.cp.x:def.start!==undefined?def.start:2)*TS+3;   // start: coloana din editor
   const big=!!G.carryBig;
   // Pe sol, chiar dacă pământul de acolo e mai sus (insulă înălțată, deal)
   let gy=12;const gx=[Math.floor(sx/TS),Math.floor((sx+11)/TS)];while(gy>0&&gx.some(c=>solid(tileAt(c,gy-1))))gy--;

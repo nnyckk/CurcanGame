@@ -18,10 +18,12 @@ const lakeSeen=x=>x>cam.x-16&&x<cam.x+W+16;
 // În celelalte niveluri
 const POND_MIN=7;
 function initLakeLife(){
-  const full=!!theme.lake,wet=c=>c==='.'||c==='I';
+  // Nivelul din editor, la fermă: apa lată de 8+ pătrate e lac, cu rațe și pești (noaptea: broaște și pești)
+  const own=!!LEVELS[G.level]&&!!LEVELS[G.level].custom&&!!theme.farm;
+  const full=!!theme.lake||(own&&!theme.night),wet=c=>c==='.'||c==='I';
   const L={full,spans:[],ducks:[],shadows:[],flies:[],fish:[],ripples:[],frogs:[],fishT:60,quackT:600,rippleT:40};
   for(let x=0;x<cols;x++){if(!waterCol(x))continue;let e=x;while(e+1<cols&&waterCol(e+1))e++;
-    if(full||e-x+1>=POND_MIN)L.spans.push({a:x*TS,b:(e+1)*TS,n:e-x+1});x=e;}
+    if(own?e-x+1>=8:full||e-x+1>=POND_MIN)L.spans.push({a:x*TS,b:(e+1)*TS,n:e-x+1});x=e;}
   if(!L.spans.length)return null;
   const frogOn=(s,wx,px)=>L.frogs.push({s,wx,px,st:0,t:0,croak:0,croakT:rnd(60,300),x:0,y:0,vx:0,vy:0});
   for(const s of L.spans){

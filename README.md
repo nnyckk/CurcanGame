@@ -135,6 +135,17 @@ Deschide `test.html` (sau apasă MOD TEST în meniu). E un laborator: fără cro
 
 Butoanele folosesc chiar sprite-urile din joc. Același mod se poate deschide și direct, cu `index.html?test` (doar jocul, fără panou). Din panou te întorci la meniu cu „← Meniu”.
 
+## Editorul de niveluri
+
+Deschide `editor.html`. Jocul stă în mijloc, nemișcat, iar tu desenezi pe el:
+
+- **Bara de sus:** numele nivelului, biomul (Fermă, Iarnă, Deșert, fiecare zi sau noapte), lungimea (± câte 10 coloane), Anulează / Refă, Nou, Testează (de la start) și De aici (din stânga ecranului), cu invincibil.
+- **Uneltele:** pointer (P: click pe orice ca să vezi ce e; la platforme și colivie îi schimbi setările în dreapta), pensulă (B), gumă (E), dreptunghi (R), mutare (V: tragi orice, chiar și blocuri; pentru o bucată întreagă tragi întâi un dreptunghi pe un loc gol, apoi o muți; Delete o șterge, Esc o lasă). Click dreapta șterge oricând.
+- **Elementele:** teren (pământ, dealuri din spate, tunel, piatră, gheață iarna, apă, țepi, scânduri), blocuri (cărămidă, M, cu putere), bănuți, checkpointuri, startul, pene de aur (vizibilă, în cărămidă, ascunsă; cel mult 3), colivia (alegi curcanul; are nevoie de pământ drept și loc liber în stânga, unde sare curcanul eliberat; cheia o are un ucenic sau fermier oarecare), finalul (semn sau restaurant), MesoCafé, platforme (care se mișcă ↔ sau ↕, cu lățime și rază, și care cad) și inamicii.
+- **Peștera:** pui intrarea (pământul crăpat) și ieșirea, apoi „Intră în peșteră” și desenezi camera. Tavanul, podeaua și pereții sunt pământ obișnuit: îi ștergi și îi desenezi cum vrei (doar pereții din margine rămân). Groapa cu țepi o faci punând țepi jos. Muți puțul în care cazi și pe cel prin care ieși, alegi lungimea camerei și pui bănuți, pene, inamici, cristale, lilieci, țurțuri care cad și oricâte bălți (le tragi cât de late vrei).
+- Marginile, colțurile și iarba terenului se fac singure, ca în nivelurile din joc. La fermă, o apă lată de 8+ pătrate primește singură rațe și pești.
+- Harta de jos arată tot nivelul; click pe ea ca să mergi acolo. Ce desenezi se ține minte în browser până data viitoare.
+
 ## Tehnic
 
 Jocul nu are biblioteci externe și nu are nevoie de server: `index.html` încarcă fișierele din `js/` cu `<script>` obișnuite, deci merge și deschis direct din folder (dublu-click).
@@ -147,6 +158,7 @@ Jocul nu are biblioteci externe și nu are nevoie de server: `index.html` încar
 
 ```
 index.html                 pagina și lista de scripturi (ordinea lor contează)
+editor.html                editorul de niveluri (jocul e într-un iframe, cu ?edit)
 css/style.css              stilurile paginii
 js/
   baza/                    setup (ecranul, utilitare), fontul pixel, sprite-uri din text, input
@@ -173,6 +185,7 @@ js/
   joc/                     starea jocului, fizica, pornirea nivelului, update, meniul, dialogul, achievements
   desen/                   ordinea desenării: fundal, lume, HUD, ecrane, render
   test/                    modul de test (folosit de test.html)
+  editor/                  editorul: formatul nivelului, partea din joc, panoul din editor.html
   main.js                  bucla principală (ultimul script)
 ```
 

@@ -5,6 +5,7 @@ function render(){
   switch(G.state){
     case 'title':drawTitle();break;
     case 'intro':drawIntro();break;
+    case 'edit':drawWorld();drawEditOverlay();break;   // editorul de niveluri
     case 'gameover':
       ctx.fillStyle='#0d0b14';ctx.fillRect(0,0,W,H);
       txt('JOC TERMINAT',W/2,60,'#ff4a5a',3,'c','#4a0a10');

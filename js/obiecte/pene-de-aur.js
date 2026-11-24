@@ -80,7 +80,7 @@ function goldSaveLevel(){
   const before=goldOK();let mask=GOLD_SAVE[def.id]||0;
   for(const i of new Set([...G.goldHeld,...G.goldNow])){G.goldRun.push(i);if(!(mask&(1<<i)))G.goldNew.push(i);mask|=1<<i;}
   G.goldHeld=[];G.goldNow=[];
-  if(!G.goldRun.length)return;
+  if(!G.goldRun.length||def.custom)return;   // nivelurile proprii nu intră în progres
   GOLD_SAVE[def.id]=mask;goldStore();
   if(!before&&goldOK())G.goldUnlockNow=true;   // curcanul de aur se pornește doar din setări
 }

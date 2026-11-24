@@ -31,6 +31,10 @@ THEMES.push(Object.assign({},THEMES[1],{name:'MINUS GRADE',night:true,sun:null,m
   sky:['#070a1c','#0b1230','#121c44','#1c2a58']}));
 // Popasul la MesoCafe: pădurea de brazi ziua, cu alt nume
 THEMES.push(Object.assign({},THEMES[1],{name:'BONUS'}));
+// Deșertul ziua (editorul): cer cald, soare, dune și ziguraturi de nisip
+THEMES.push(Object.assign({},THEMES[2],{name:'DEȘERTUL ZIUA',sky:['#5aaee6','#7cc2ee','#a8d6f0','#f0dcae'],moon:null,stars:false,
+  sun:{x:326,y:40,r:15,c:'#fff8d8',c2:'#ffe6a0'},far:'#e2b878',farL:'#f2cc92',midC:'#d4a25c',midL:'#ecc07c',midD:'#b8884a',
+  clouds:true,cloudN:2,cloudC:'#ffffff',cloudS:'#f2e2c8',water:{body:'#3a8ee8',deep:'#2662b8',top:'#a8e0ff',foam:'#ffffff',glint:'#ffffff'}}));
 const tileCache={},bgCache={};
 function getTiles(ti){
   if(tileCache[ti])return tileCache[ti];
@@ -114,6 +118,7 @@ function getTiles(ti){
     return c;});
   T.M=mBlock(['#f2b630','#f7c850','#ffd970'],'#7a3e0a','#fff0b0','#b8701a','#6a2a0a');
   T.A=mBlock(['#8ccfee','#a4dcf4','#c0e8fa'],'#24507a','#f0fbff','#5a98c4','#1a3a5e');
+  T.R=mBlock(['#e8402c','#f2603e','#ff8a5a'],'#5c0c12','#ffe0d0','#b02a1e','#4a0a0e');   // blocul de foc
   [c,g]=mkCanvas(16,16);g.fillStyle='#4a2a10';g.fillRect(0,0,16,16);g.fillStyle='#9a6030';g.fillRect(1,1,14,14);
   g.fillStyle='#b07840';g.fillRect(1,1,14,1);g.fillStyle='#4a2a10';[[2,2],[13,2],[2,13],[13,13]].forEach(([x,y])=>g.fillRect(x,y,1,1));T.U=c;
   [c,g]=mkCanvas(16,16);g.fillStyle='#3a3a48';g.fillRect(0,0,16,16);g.fillStyle='#8a8fa0';g.fillRect(1,1,14,14);

@@ -12,7 +12,7 @@ function drawHUD(){
   if(G.hasKey)drawPix(KEY_PIX,kx,3);
   else if(cage&&cage.st==='locked')icon(KEY_PIX.map(r=>r.replace(/[^.]/g,'#')),kx,3,'#4a4466');
   txt('SCOR '+pad(G.score,6),W/2,4,'#fff',1,'c');
-  txt(TEST?(LEVELS[G.level].arena?'ARENĂ':'TEST '+levelTag(G.level)):'NIVEL '+levelTag(G.level),262,4,'#9fe8ff');
+  txt(TEST?(LEVELS[G.level].custom?'EDITOR':LEVELS[G.level].arena?'ARENĂ':'TEST '+levelTag(G.level)):'NIVEL '+levelTag(G.level),262,4,'#9fe8ff');
   txt('TIMP '+pad(G.time,3),W-5,4,(G.time<=100&&(G.t>>4)%2)?'#ff5050':'#fff',1,'r');
   drawBossBar();
 }

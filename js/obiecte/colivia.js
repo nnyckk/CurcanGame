@@ -18,15 +18,17 @@ const KEY_BIG=mkSprite([".kkkkk.","kYyyyYk","kyk.kYk","kYk.kYk","kYYYYYk",".kkYk
 function makeCage(m){
   if(G.cageLv!==G.level){G.cageLv=G.level;G.cageHeld=false;}
   G.cageNow=false;G.hasKey=!!(TEST&&G.testKey);keyIt=null;cage=null;   // modul test: cu cheia
-  const d=m.cageDef,id=LEVELS[G.level].id,i=CAPT_INFO.findIndex(c=>c.id===id);
+  const def=LEVELS[G.level],d=m.cageDef,id=def.id,i=def.custom?(def.capt|0):CAPT_INFO.findIndex(c=>c.id===id);   // nivelul din editor: curcanul ales acolo
   if(!d||i<0)return;
   const free=cageSaved(id)||G.cageHeld;
   cage={i,x:d.x*TS+8,y:d.y*TS,st:free?'empty':'locked',shake:0,t:0,b:null,door:free?1:0};
   // Eliberat înainte de checkpoint: stă tot lângă ușă
   if(G.cageHeld&&!cageSaved(id)){cage.st='out';cage.b={x:cage.x+CAPT_OUT-5,y:cage.y-14,w:10,h:14,vy:0};}
   if(free)return;
-  // Cheia: la un ucenic sau fermier, nu în primul sfert
-  const pool=enemies.filter(e=>e.type==='man'&&e.x>=cols*TS/4&&!(under&&e.x>=under.a*TS));
+  // Cheia: la un ucenic sau fermier, nu în primul sfert (editor: oriunde)
+  const men=enemies.filter(e=>e.type==='man'),road=men.filter(e=>!(under&&e.x>=under.a*TS));
+  let pool=def.custom?road:road.filter(e=>e.x>=cols*TS/4);
+  if(def.custom&&!pool.length)pool=men;   // doar în peșteră: tot el o are
   if(pool.length)pool[Math.random()*pool.length|0].key=true;
 }
 // Lângă curcanul eliberat: poți vorbi cu el
@@ -65,6 +67,7 @@ function cageSaveLevel(){
   const got=G.cageHeld||G.cageNow;G.cageHeld=false;G.cageNow=false;
   if(!got)return;
   G.cageRun=true;
+  if(def.custom)return;   // nivelurile proprii nu intră în progres
   if(!cageSaved(def.id)){G.cageNew=true;CAGE_SAVE[def.id]=1;try{localStorage.setItem(CAGE_KEY,JSON.stringify(CAGE_SAVE));}catch(e){}}
   if(cageOK())achUnlock('eliberator');
 }
@@ -175,7 +178,9 @@ function drawKeys(cx){
 const CAPT_SPOTS=[22,44,64,128,150];
 function drawEndBirds(cx){
   // Stau afară tot timpul; și cel eliberat chiar acum, în nivelul ăsta
-  const x0=goal.x*TS-cx,saved=CAPT_INFO.map((c,i)=>i).filter(i=>{const id=CAPT_INFO[i].id;return cageSaved(id)||(id===LEVELS[G.level].id&&(G.cageNow||G.cageHeld));});
+  const def=LEVELS[G.level],x0=goal.x*TS-cx;
+  // Nivelul din editor: doar curcanul eliberat aici
+  const saved=def.custom?(cage&&(G.cageNow||G.cageHeld||G.cageRun)?[cage.i]:[]):CAPT_INFO.map((c,i)=>i).filter(i=>{const id=CAPT_INFO[i].id;return cageSaved(id)||(id===def.id&&(G.cageNow||G.cageHeld));});
   const pj=G.photoT>=14&&G.photoT<34?Math.round(Math.sin((G.photoT-14)/20*Math.PI)*8):0;
   saved.forEach((i,n)=>{const sx=CAPT_SPOTS[n],face=sx<96?1:-1;
     const hop=(G.t+n*41)%150<12?Math.round(Math.sin(((G.t+n*41)%150)/12*Math.PI)*3):0;

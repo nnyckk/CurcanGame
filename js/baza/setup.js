@@ -2,9 +2,11 @@
 // ===== SETUP: ecranul, constantele de bază, utilitare =====
 // ?toate: pene, curcani și achievements, toate deblocate (fără să salveze)
 const ALL_OPEN=/[?&]toate\b/.test(location.search);
-const GAME_VERSION='1.0';
+const GAME_VERSION='1.1';
+// Editorul de niveluri: jocul din editor.html (merge ca modul de test)
+const EDIT=/[?&]edit\b/.test(location.search);
 // Modul de test: arenă de test, comenzi din test.html
-const TEST=/[?&]test\b/.test(location.search);
+const TEST=EDIT||/[?&]test\b/.test(location.search);
 const W=400,H=224,TS=16,ROWS=14,TAU=Math.PI*2;
 const cv=document.getElementById('game');
 // „let”: noaptea

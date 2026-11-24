@@ -22,6 +22,8 @@ function updatePlay(){
     if(G.time<=0){G.time=0;die('time');return;}}
   updatePlats();
   updatePlayer();
+  // Nivelul din editor: perete nevăzut la capătul drumului
+  {const dl=LEVELS[G.level];if(dl.custom&&dl.L&&!inRoom()){const mx=dl.L.w*TS-player.w;if(player.x>mx){player.x=mx;player.vx=0;}}}
   // După restaurant: perete nevăzut, la marginea ecranului
   if(goal&&goal.type==='restaurant'&&!inRoom()){const mx=camMax()+W-2-player.w;if(player.x>mx){player.x=mx;player.vx=0;}}
   if(G.state!=='play'){updateFx();return;}
@@ -103,22 +105,25 @@ function updateClear(){
     else if(++G.tally>90){
       if(G.final){G.state='win';G.stateT=0;G.winTalk=false;G.photoT=0;saveHi();playSong('win');MOS.wins++;mosSave();
         achUnlock('pofta');if(MOS.wins>=5)achUnlock('gustul');if(G.fullRun&&!G.runDeaths)achUnlock('nemuritor');}
+      else if(LEVELS[G.level].custom){if(EDIT)edStop();}   // nivelul din editor: înapoi la desenat
       else{G.level++;G.cp=null;toIntro(true);}
     }
   }
 }
 function updateWin(){
   // Întâi Moș Curcan, din casetă: după câți curcani ai salvat
-  if(!G.winTalk){G.winTalk=true;openTalk([captEndLine(cageFound(),cageTotal())]);}
+  const own=!!LEVELS[G.level].custom;   // nivelul din editor: fără replica de final și fără poză
+  if(!G.winTalk){G.winTalk=true;if(!own)openTalk([captEndLine(cageFound(),cageTotal())]);}
   G.lift=(G.lift||0)+((G.talk?TALK_LIFT:0)-(G.lift||0))*0.25;if(G.lift<0.5&&!G.talk)G.lift=0;
   if(G.talk){updateTalk();updateFx();return;}
   // Toți salvați: poza de grup
-  if(!G.photoT&&cageOK()){G.photoT=1;sfx.pop();}else if(G.photoT)G.photoT++;
+  if(!G.photoT&&cageOK()&&!own){G.photoT=1;sfx.pop();}else if(G.photoT)G.photoT++;
   G.stateT++;
   if(G.stateT%28===1){const x=cam.x+40+Math.random()*(W-80),y=30+Math.random()*70;const cols=['#ff4a5a','#ffd23f','#5ad0ff','#7fff7f','#ff8ae0','#ffffff'];const c=cols[Math.random()*cols.length|0];
     for(let i=0;i<34;i++){const a=i/34*TAU,s=1.2+Math.random()*1.4;parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,g:0.035,life:55,max:55,col:i%3?c:'#fff',s:2});}sfx.pop();}
   updateFx();
   if(G.stateT>120&&startPressed()){
+    if(EDIT){edStop();return;}   // editorul: înapoi la desenat
     if(TEST){G.cp=null;startLevel();return;}   // în modul de test nu există meniu
     G.state='title';stopSong();playSong('title');}
 }
@@ -126,8 +131,9 @@ function toggleMusic(){G.music=!G.music;saveSettings();applyAudio();}
 function update(){
   G.t++;
   if(pressed.KeyM)toggleMusic();
-  if(TEST&&pressed.KeyR)TEST_CMDS.reset();
+  if(TEST&&pressed.KeyR&&G.state!=='edit')TEST_CMDS.reset();
   switch(G.state){
+    case 'edit':edUpdate();break;   // editorul de niveluri
     case 'title':cam.x+=0.6;if(AC&&!seq.song)playSong('title');break;
     // Ecranul de dinaintea nivelului stă până apeși ENTER / SPACE
     case 'intro':G.stateT++;
@@ -146,4 +152,5 @@ function update(){
   for(const k in pressed)delete pressed[k];
   if(TOUCH_UI)TOUCH_UI.classList.toggle('door',G.state==='play'&&(!!cafeAction()||cageNear()||captNear()||restAtDoor()));
   if(TEST&&G.t%6===0)testStatus();
+  if(EDIT)edSendView();
 }
