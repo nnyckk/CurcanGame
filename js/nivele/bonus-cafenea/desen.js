@@ -47,27 +47,74 @@ function drawCafeRoom(cx){
   // Brâul și lambriul din lemn închis, cu panouri
   P(L,170,RW,3,'#6a4428');P(L,170,RW,1,'#8a5a38');P(L,172,RW,1,'#3a2414');P(L,173,RW,19,'#40281a');
   for(let x=L+3;x<R-14;x+=16){P(x,175,13,15,'#4a2e1e');P(x,175,13,1,'#5a3a26');P(x,189,13,1,'#2e1c12');P(x+12,175,1,15,'#2e1c12');}
-  // Firma MesoCafé pe o tăbliță mică cu ramă de alamă
-  const sx=(CAFE_SLOT+1)*TS;
-  P(sx-27,T+10,54,13,BR);P(sx-27,T+10,54,1,BRL);P(sx-26,T+11,52,11,'#16121a');
-  ctx.drawImage(MESO_LOGO,x0+sx-(MESO_LOGO.width>>1),T+13);
   // Lămpile de alamă, atârnate de grindă, cu becuri calde
   for(const lx of [120,240]){P(lx,T+8,1,10,'#1a100a');P(lx-1,T+18,3,2,BRD);
     // Abajurul, ca un clopot, și becul
     for(let k=0;k<5;k++){const w=7+2*Math.min(k,3);P(lx-(w>>1),T+20+k,w,1,k===0?BRL:BR);}
     P(lx-6,T+24,13,1,BRD);P(lx-2,T+25,5,2,'#fff0b0');P(lx-1,T+27,3,1,'#ffe080');
     glow(x0+lx,T+28,44,'255,190,110',0.4);}
-  // Fereastra mică
-  const W0=(px,py,w,h,col)=>P(px+6,py-14,w,h,col);
-  W0(98,140,24,26,'#2a1a12');W0(100,142,20,22,'#8aa6bc');W0(100,157,20,7,'#dfe8f0');
-  W0(104,151,1,6,'#3a2a20');for(let j=0;j<3;j++)W0(104-j,146+j*2,1+j*2,2,'#24463a');
-  W0(115,153,1,4,'#3a2a20');for(let j=0;j<2;j++)W0(115-j,149+j*2,1+j*2,2,'#24463a');
-  for(let i=0;i<6;i++){const fx=100+(i*13+Math.floor(G.t*0.2))%20,fy=142+(i*7+Math.floor(G.t*0.35+i*5))%22;W0(fx,fy,1,1,'#ffffff');}
-  W0(109,142,2,22,'#2a1a12');W0(100,152,20,1,'#2a1a12');
-  for(const [x,d] of [[95,1],[121,-1]]){W0(x,138,4,30,'#7a1e24');W0(x+(d>0?1:2),138,1,30,'#5a141a');W0(x+(d>0?3:0),138,1,29,'#9a2a30');}
-  W0(93,137,34,1,BR);W0(97,166,26,2,'#5a3a24');
+  // Fereastra: afară e ca în nivel (iarnă, fermă sau deșert; zi sau noapte). La blocuri: mai lată, mai spre mijloc
+  const big=cafe.game==='blocks',fx=big?136:104,fy=big?108:126,fw=big?48:24,fh=big?28:26,ix=fx+2,iy=fy+2,iw=fw-4,ih=fh-4,sc=iw/20;
+  const A=o=>Math.round(o*sc),Wp=(px,py,w,h,col)=>P(ix+px,iy+py,w,h,col);   // A: locul pe lățime, scalat cu geamul
+  const snow=!!theme.snow,des=theme===THEMES[2]||theme===THEMES[7],nt=!!theme.moon;
+  const sky=nt?'#141c40':snow?'#8aa6bc':des?'#9ccbea':'#7cc4f0';
+  const gnd=snow?(nt?'#7c8aa8':'#dfe8f0'):des?(nt?'#5a4a4a':'#e6c074'):(nt?'#1e3a26':'#5ab04a');
+  if(big){
+    // La blocuri: fără geam; un perete de galerie cu 6 tablouri, între cele două lămpi
+    const fr=(px,py,w,h)=>{P(px,py,w,h,BR);P(px,py,w,1,BRL);P(px,py+h-1,w,1,BRD);P(px+w-1,py,1,h,BRD);};
+    const In=(px,py)=>(x,y,w,h,c)=>P(px+1+x,py+1+y,w,h,c);   // în ramă
+    // 1. Un apus mic, lat
+    fr(121,124,18,10);{const Q=In(121,124);Q(0,0,16,8,'#f0b070');Q(0,0,16,2,'#e8905a');Q(11,1,2,2,'#fff0a0');Q(0,5,16,3,'#5a6a34');Q(3,4,6,1,'#5a6a34');}
+    // 2. Portretul unui curcan bătrân, cu pălărie
+    fr(137,103,14,18);{const Q=In(137,103);
+      Q(0,0,12,16,'#4a6a8a');Q(2,10,8,6,'#7a4a2a');Q(3,9,6,1,'#7a4a2a');Q(4,4,4,6,'#f4f0e8');Q(5,3,2,1,'#f4f0e8');
+      Q(6,5,1,1,'#1a1a1a');Q(8,6,2,1,'#f0a020');Q(7,7,1,2,'#d02020');Q(3,2,6,1,'#3a2a1a');Q(4,0,4,2,'#3a2a1a');}
+    // 3. Peisajul mare: munți, un câmp, o căsuță și un copac
+    fr(154,112,37,23);{const Q=In(154,112);
+      Q(0,0,35,21,'#9cc8e0');Q(0,9,35,3,'#b8d8e8');
+      for(let i=0;i<9;i++){Q(4-i+4,4+i,1+i*2,1,'#7a8aa0');Q(20-i+5,6+i,1+i*2,1,'#8a9ab0');}
+      Q(0,13,35,8,'#7a9a4a');Q(0,13,35,1,'#8aaa5a');Q(0,18,35,3,'#6a8a3a');
+      Q(8,10,7,4,'#e8dcc0');Q(7,9,9,1,'#c84a3a');Q(8,8,7,1,'#c84a3a');Q(9,7,5,1,'#c84a3a');Q(11,11,2,3,'#6a4428');
+      Q(27,11,1,4,'#5a3a20');Q(25,7,5,4,'#3a7a3a');Q(26,6,3,1,'#3a7a3a');}
+    // 4. Un oval cu o floare
+    {const ox=196,oy=101,ow=12,oh=16,row=(y,inset)=>{const t=(y-(oh-1)/2)/((oh-1)/2),w=Math.round((ow/2-inset)*Math.sqrt(Math.max(0,1-t*t)));return w;};
+      for(let y=0;y<oh;y++){const w=row(y,0);if(w>0)P(ox+ow/2-w,oy+y,w*2,1,y<2?BRL:y>oh-3?BRD:BR);}
+      for(let y=1;y<oh-1;y++){const w=row(y,1.5);if(w>0)P(ox+ow/2-w,oy+y,w*2,1,'#3a2a4a');}
+      P(ox+5,oy+8,1,5,'#3a7a3a');P(ox+6,oy+10,2,1,'#3a7a3a');P(ox+4,oy+5,3,3,'#e86a9a');P(ox+5,oy+4,1,5,'#e86a9a');P(ox+3,oy+6,5,1,'#e86a9a');P(ox+5,oy+6,1,1,'#ffe060');}
+    // 5. Ceașca de cafea, mică
+    fr(201,125,14,12);{const Q=In(201,125);Q(0,0,12,10,'#c8b088');Q(0,8,12,2,'#8a5a34');Q(2,7,8,1,'#e8e2d8');Q(3,3,5,4,'#f4f0e8');Q(4,3,3,1,'#5a3010');Q(8,4,1,2,'#f4f0e8');Q(5,0,1,2,'#fff8f0');}
+    // 6. Pana de aur, pe verde închis, înaltă
+    fr(218,104,11,23);{const Q=In(218,104);Q(0,0,9,21,'#24402e');Q(0,0,9,1,'#2e5038');ctx.drawImage(GOLD_PANA,x0+219+1,107);}
+  }else{
+  P(fx,fy,fw,fh,'#2a1a12');P(ix,iy,iw,ih,sky);P(ix,iy+15,iw,ih-15,gnd);
+  // Cerul: stele și lună noaptea, soare ziua (iarna, cerul e înnorat)
+  if(nt){for(const [sx,sy] of [[2,2],[6,6],[12,1],[18,7],[3,9],[14,5],[9,3]])if(((G.t>>4)+sx)%7)Wp(A(sx),sy,1,1,'#e8ecff');
+    Wp(A(16),1,3,4,'#f4f0d0');Wp(A(16)+1,1,2,3,sky);}
+  else if(!snow){const x=A(16);Wp(x-1,2,3,3,'#fff0a0');Wp(x,1,1,5,'#fff0a0');Wp(x-2,3,5,1,'#fff0a0');}
+  if(snow){
+    const pine=nt?'#1a3a2e':'#24463a';
+    Wp(A(4),9,1,6,'#3a2a20');for(let j=0;j<3;j++)Wp(A(4)-j,4+j*2,1+j*2,2,pine);
+    Wp(A(15),11,1,4,'#3a2a20');for(let j=0;j<2;j++)Wp(A(15)-j,7+j*2,1+j*2,2,pine);
+    if(big){Wp(A(10),12,1,3,'#3a2a20');for(let j=0;j<2;j++)Wp(A(10)-j,8+j*2,1+j*2,2,pine);}
+    for(let i=0,n=Math.round(6*sc);i<n;i++){const x=(i*13+Math.floor(G.t*0.2))%iw,y=(i*7+Math.floor(G.t*0.35+i*5))%ih;Wp(x,y,1,1,'#ffffff');}
+  }else if(des){
+    // O dună în spate și cactuși
+    const dn=nt?'#4a3c40':'#d8ac60',cac=nt?'#24402a':'#3a8a3a';
+    Wp(0,13,iw,2,dn);Wp(A(4),12,A(8),1,dn);
+    const cactus=x=>{Wp(x,6,2,9,cac);Wp(x-2,9,1,3,cac);Wp(x-2,11,2,1,cac);Wp(x+3,8,1,3,cac);Wp(x+2,10,2,1,cac);};
+    cactus(A(4));Wp(A(15),12,1,3,cac);Wp(A(15)-1,13,3,1,cac);if(big)cactus(A(11));
+  }else{
+    // Copaci rotunzi și o tufă
+    const leaf=nt?'#1e3a28':'#3a9a3a',leafL=nt?'#2a4a34':'#5ab84a',tree=x=>{Wp(x+2,10,1,5,'#5a3a20');Wp(x,6,5,4,leaf);Wp(x+1,5,3,1,leaf);Wp(x+1,6,2,1,leafL);};
+    tree(A(3));if(big)tree(A(11));Wp(A(14),13,4,2,leaf);Wp(A(15),12,2,1,leaf);
+  }
+  // Ramele, perdelele, galeria și pervazul
+  P(ix+(iw>>1)-1,iy,2,ih,'#2a1a12');P(ix,iy+10,iw,1,'#2a1a12');
+  for(const [x,d] of [[fx-3,1],[fx+fw-1,-1]]){P(x,fy-2,4,fh+4,'#7a1e24');P(x+(d>0?1:2),fy-2,1,fh+4,'#5a141a');P(x+(d>0?3:0),fy-2,1,fh+3,'#9a2a30');}
+  P(fx-5,fy-3,fw+10,1,BR);P(fx-1,fy+fh,fw+2,2,'#5a3a24');
+  }
   // Un tablou mic și ceasul de perete
-  P(214,140,16,12,BR);P(214,140,16,1,BRL);P(215,141,14,10,'#c8a878');P(215,147,14,4,'#9a7a50');P(220,144,4,3,'#7a5a38');
+  if(!big){P(214,140,16,12,BR);P(214,140,16,1,BRL);P(215,141,14,10,'#c8a878');P(215,147,14,4,'#9a7a50');P(220,144,4,3,'#7a5a38');}
   pcirc(ctx,x0+296,128,5,BR);pcirc(ctx,x0+296,128,4,'#f0e4c8');P(296,125,1,3,'#2a1a12');P(296,128,2,1,'#2a1a12');P(295,127,2,2,'#2a1a12');
   // Raftul din spatele tejghelei: sticle, borcane
   P(254,150,64,2,'#2a1a12');P(254,150,64,1,'#4a3020');
@@ -111,6 +158,11 @@ function drawCafeFrame(cx){
   for(const x of [L-5,R]){P(x,top,5,fy-top,'#2a1a12');P(x+(x<L?4:0),top,1,fy-top,'#4a3020');}
   // Grinda de jos, ca cea de sus
   P(L-5,fy,R-L+10,8,'#2a1a12');P(L-5,fy,R-L+10,1,'#4a3020');P(L-5,fy+7,R-L+10,1,'#1a100a');
+  // Firma MesoCafé: deasupra camerei, ca un titlu, de două ori mai mare
+  const lw=MESO_LOGO.width*2,lh=MESO_LOGO.height*2,mx=(L+R)>>1,bw=lw+18,bh=lh+10,by=top-bh-6;
+  P(mx-(bw>>1),by,bw,bh,'#c8962c');P(mx-(bw>>1),by,bw,1,'#e8c060');P(mx-(bw>>1),by+bh-1,bw,1,'#8a6418');
+  P(mx-(bw>>1)+2,by+2,bw-4,bh-4,'#16121a');
+  ctx.drawImage(MESO_LOGO,x0+mx-(lw>>1),by+5,lw,lh);
 }
 // Blocul-slot, desenat o dată
 function drawSlotBlock(x,y,used){
@@ -138,6 +190,8 @@ function drawSlotIcon(r,cx,cy){
 }
 // Bătrânelul, cu o respirație lentă
 function drawCafeNPC(cx){
+  if(cafe.game==='cups')drawCups(cx);   // masa cu ceștile, în spatele curcanului
+  if(cafe.game==='blocks')drawNotes(cx);
   const c=cafe,x=Math.round(c.npcX-cx);if(x<-40||x>W+40)return;
   const img=OLD[oldFace()>0?'r':'l'],y=CAFE_FLOOR*TS-OLD_H,b=(G.t%110)<14?1:0;
   ctx.drawImage(img,0,0,OLD_W,OLD_H-3,x,y+b,OLD_W,OLD_H-3);ctx.drawImage(img,0,OLD_H-3,OLD_W,3,x,y+OLD_H-3,OLD_W,3);

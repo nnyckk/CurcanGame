@@ -21,11 +21,20 @@ const MESO_LOGO=(()=>{
   for(const [ch,y] of word){g.fillStyle=y?'#ffd23f':'#ffffff';
     L[ch].forEach((r,j)=>{for(let i=0;i<r.length;i++)if(r[i]==='#')g.fillRect(x+i,j,1,1);});x+=L[ch][0].length+1;}
   return c;})();
+// În jocul principal, mini-jocul se alege la întâmplare o dată pe nivel (rămâne la fel după o viață pierdută)
+const CAFE_RANDOM=['slot','cups','blocks'];
+function cafeGameFor(d){
+  if(LEVELS[G.level].custom)return d.game||'slot';
+  if(G.cafeLv!==G.level||!G.cafeGame){G.cafeLv=G.level;G.cafeGame=CAFE_RANDOM[Math.random()*CAFE_RANDOM.length|0];}
+  return G.cafeGame;
+}
 function makeCafe(d){
   const used=!!G.slotUsed&&G.slotUsed.level===G.level;
   const c={x:d.x,a:d.a,sx:d.a+CAFE_SLOT,sy:CAFE_SLOT_Y,i:used?G.slotUsed.res:0,lastI:0,iT:0,lock:0,res:used?G.slotUsed.res:-1,
-    done:used,bump:-1,met:false,react:-1,reactT:0,bonks:0,dust:[],npcX:d.a*TS+276-OLD_W/2};   // bătrânelul: în fața tejghelei
-  if(used)setSlotTiles(c,'E');
+    game:cafeGameFor(d),mg:null,done:used,bump:-1,met:false,react:-1,reactT:0,bonks:0,dust:[],npcX:d.a*TS+276-OLD_W/2};   // bătrânelul: în fața tejghelei
+  if(c.game!=='slot')setSlotTiles(c,'.');   // alt mini-joc: fără blocul-slot
+  if(c.game==='blocks')notesPlace(c,true);
+  else if(used)setSlotTiles(c,'E');
   return c;
 }
 // Câte un pumn de praf din fiecare loc din tavan
@@ -64,7 +73,7 @@ function slotHit(){
 }
 function slotPrize(){
   const c=cafe,r=c.res,x=(c.sx+1)*TS,y=c.sy*TS;
-  c.done=true;c.bump=0;c.react=r;c.reactT=55;setSlotTiles(c,'E');G.slotUsed={level:G.level,res:r};MOS.slot=r;mosSave();   // comentariul vine puțin
+  c.done=true;c.bump=0;c.react=r;c.reactT=55;if(c.game==='slot')setSlotTiles(c,'E');G.slotUsed={level:G.level,res:r};if(c.game==='slot'){MOS.slot=r;mosSave();}   // comentariul vine puțin
   // Boaba de foc / afina: ți se pune direct
   if(r===SLOT_FIRE||r===SLOT_ICE){const p=player,px=p.x+p.w/2;sparkle(px,p.y+p.h/2);if(r===SLOT_FIRE)powerFire(px,p.y);else powerIce(px,p.y);}
   else if(r===SLOT_2UP){G.lives+=2;sfx.oneup();popup('+2 VIEȚI!',x,y-16,'#7fff7f');sparkle(x,y-6);}
@@ -75,14 +84,16 @@ const oldFace=()=>player.x+player.w/2<cafe.npcX+OLD_W/2?-1:1;
 function updateCafe(){
   const c=cafe,p=player;
   if(c.bump>=0&&++c.bump>=BUMPY.length)c.bump=-1;
-  if(!c.done&&c.lock===0){const ni=Math.floor(G.t/SLOT_STEP)%4;if(ni!==c.i){c.lastI=c.i;c.i=ni;c.iT=G.t;}}
+  if(c.game==='cups')updateCups(c);
+  if(c.game==='blocks')updateNotes(c);
+  if(c.game==='slot'&&!c.done&&c.lock===0){const ni=Math.floor(G.t/SLOT_STEP)%4;if(ni!==c.i){c.lastI=c.i;c.i=ni;c.iT=G.t;}}
   if(c.lock>0){if(c.lock%8===0)sfx.tick();if(--c.lock===0)slotPrize();}
   if(!inCafe()){c.dust.length=0;return;}
   cafeDust(c);
   p.x=clamp(p.x,c.a*TS+CAFE_L+2,c.a*TS+CAFE_R-2-p.w);
   // Prima dată când intri, bătrânelul te salută
   if(!G.talk&&G.doorT===0){
-    if(!c.met){c.met=true;openTalk(c.done?['BINE AI REVENIT, FIULE!',CAFE_BYE]:cafeHello());}
+    if(!c.met){c.met=true;openTalk(c.done?['BINE AI REVENIT, FIULE!',CAFE_BYE]:cafeHello(c.game));}
     else if(c.reactT>0&&--c.reactT===0)openTalk([CAFE_REACT[c.react],CAFE_BYE]);
   }
   // Fumul din pipă

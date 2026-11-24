@@ -36,6 +36,7 @@ function hitBlock(tx,ty,top){
   else if(c==='V'){grid[ty][tx]='U';bumps.push({tx,ty,t:0});sfx.bump();goldFromTile(tx,ty);}   // blocul invizibil apare
   else if(c==='S')slotHit();   // blocul-slot din cafenea
   else if(c==='E'){sfx.bump();cafeBonk();}   // blocul-slot gol
+  else if(c==='N')noteHit(tx,ty);   // blocurile lui Moș
   else sfx.bump();
   if(!'MHARBPVS'.includes(c))return;   // doar blocurile pline lovesc ce e deasupra; pământul și blocul gol nu
   for(const e of enemies){if(e.dead||e.remove||!e.active)continue;

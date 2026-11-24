@@ -6,7 +6,11 @@ const CAFE_REACT=['PANĂ DE FOC! O SĂ-ȚI ÎNCĂLZEASCĂ IARNA!','AFINĂ ÎNGHE
   'DOUĂ VIEȚI! AZI E ZIUA TA NOROCOASĂ!','NIMIC... NU-I BAI, CAFEAUA E DIN PARTEA CASEI!'];
 const CAFE_BYE='DRUM BUN SPRE MESOPOTAMIA!';
 // Dacă ai mai fost la el în alt joc, te ține minte
-function cafeHello(){
+// Ce spune despre mini-joc (blocul-slot e în CAFE_HELLO)
+const CAFE_GAME_HELLO={cups:'HAI LA MINE SĂ-ȚI TESTEZ ATENȚIA, FIULE! GHICEȘTI UNDE E BOABA DE AUR?',
+  blocks:'HAI LA MINE SĂ TE ÎNVĂȚ O MELODIE, FIULE! REPETĂ DUPĂ MINE ȘI PRIMEȘTI O RĂSPLATĂ.'};
+function cafeHello(game='slot'){
+  if(game!=='slot')return CAFE_HELLO.slice(0,3).concat(CAFE_GAME_HELLO[game]||[]);
   if(MOS.cafe<=1)return CAFE_HELLO;
   const l=['IAR TU, FIULE? BINE AI REVENIT LA MESOCAFÉ!'];
   if(MOS.slot>=0)l.push(`DATA TRECUTĂ AI LUAT ${MOS_SLOT[MOS.slot]} DE LA BLOC.`);

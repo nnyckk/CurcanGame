@@ -29,7 +29,7 @@ function updatePlay(){
   if(G.state!=='play'){updateFx();return;}
   updateUnder();
   if(cafe){updateCafe();const d=cafeAction();
-    if(d&&upPressed()){if(d==='talk')openTalk([cafeLine()]);else{G.doorT=DOOR_T;G.doorTo=d;player.vx=0;sfx.bell();}}}
+    if(d&&upPressed()){if(d==='talk'){if(cafe.game==='cups')cupsTalk(cafe);else if(cafe.game==='blocks')notesTalk(cafe);else openTalk([cafeLine()]);}else{G.doorT=DOOR_T;G.doorTo=d;player.vx=0;sfx.bell();}}}
   for(const e of enemies){
     if(e.remove)continue;
     if(!e.active){if(e.x<cam.x+W+24&&e.x>cam.x-80)e.active=true;else continue;}

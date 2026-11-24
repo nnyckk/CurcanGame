@@ -43,6 +43,11 @@ const PX={
   copy:['####...','#..#...','#..####','####..#','...#..#','...#..#','...####'],
   up:['...#...','..###..','.#####.','#######','..###..','..###..','..###..'],
   down:['..###..','..###..','..###..','#######','.#####.','..###..','...#...'],
+  slot:['#######','#.....#','#.###.#','#.#.#.#','#.###.#','#.....#','#######'],
+  cup:['.......','..###..','.#####.','.#####.','.####.#','.#####.','#######'],
+  note:['..#####','..#...#','..#...#','..#...#','.##..##','###.###','.#...#.'],
+  mouse:['.......','##...##','##.#.##','.#####.','.#.#.#.','..###..','...#...'],
+  temp:['...#...','..#.#..','..#.#..','..###..','..###..','.#####.','..###..'],
   pit:['.......','#..#..#','#..#..#','##.##.#','#######','#######','#######'],
 };
 function pix(name){
@@ -96,7 +101,12 @@ const ICON_K={boy:2,man:2,bomb:2,start:2,coin:2,gopen:2,cage:0.85,mvx:1,mvy:1,fa
 // Opțiunile elementelor (lățimea platformei, raza, curcanul din colivie)
 const POWER={normal:'H',ice:'A',fire:'R'},POWER_NAMES={normal:'Normală',ice:'Gheață',fire:'Foc'};
 const kindOf=c=>c==='A'?'ice':c==='R'?'fire':'normal';
-const OPT={H:{kind:'normal'},mvx:{w:3,range:6,speed:3},mvy:{w:3,range:4,speed:3},fall:{w:1},cage:{capt:0},gem:{sz:1,c:0}};
+const OPT={H:{kind:'normal'},mvx:{w:3,range:6,speed:3},mvy:{w:3,range:4,speed:3},fall:{w:1},cage:{capt:0},gem:{sz:1,c:0},cafe:{game:'slot'}};
+const CAFE_GAMES=[{id:'slot',name:'Blocul-slot',px:'slot',d:'Dai cu capul în bloc fix când arată ce vrei.'},
+  {id:'cups',name:'Ghicește ceșcuța',px:'cup',d:'Moș ascunde premiul sub o ceașcă și le amestecă.'},
+  {id:'blocks',name:'Blocurile lui Moș',px:'note',d:'Moș aprinde blocurile într-o ordine; tu le lovești la fel. Trei runde.'},
+  {id:'mouse',name:'Prinde șoricelul',px:'mouse',d:'Vine în curând.',soon:true},
+  {id:'hotcold',name:'Cald sau rece',px:'temp',d:'Vine în curând.',soon:true}];
 const GEM_SZ=['Mic','Mijlociu','Mare'],GEM_CN=['Mov','Albastru','Verde'];
 const gemSC=g=>g[0]==='L'||g[0]==='R'?[g[2],g[3]]:[g[3],g[4]];
 $('#modes').innerHTML=MODES.map(m=>`<button class="mode" data-mode="${m.id}" data-tip="${m.name}|${m.k}|${m.d}"><i data-px="${m.id}"></i>${m.name}<kbd>${m.k}</kbd></button>`).join('');
@@ -287,7 +297,7 @@ function applyAt(x,y,erase,first){
   if(e==='cp'){if(L.cps.includes(x))return false;L.cps.push(x);L.cps.sort((a,b)=>a-b);return true;}
   if(e==='start'){if(L.start===x&&L.cstart==null)return false;L.start=x;L.cstart=null;return true;}
   if(e==='sign'||e==='rest'){L.goal={type:e==='sign'?'sign':'restaurant',x};return true;}
-  if(e==='cafe'){L.cafe={x,game:'slot'};return true;}
+  if(e==='cafe'){L.cafe={x,game:(L.cafe&&L.cafe.game)||OPT.cafe.game};return true;}
   if(e==='mvx'||e==='mvy'||e==='fall'){z.plats=z.plats.filter(p=>!(p.x===x&&p.y===y));
     z.plats.push(e==='fall'?{kind:'fall',x,y,w:o.w}:{kind:'move',x,y,w:o.w,ax:e==='mvx'?'x':'y',range:o.range});return true;}
   if(e==='cavein'){if(x>L.w-2)return false;
@@ -352,7 +362,7 @@ function pickAt(x,y){
 }
 function pointAt(x,y){
   const d=pick(x,y);
-  sel=d&&['plat','pwidth','range'].includes(d.k)?{k:'plat',o:d.o}:d&&d.k==='cage'?{k:'cage'}:null;
+  sel=d&&['plat','pwidth','range'].includes(d.k)?{k:'plat',o:d.o}:d&&d.k==='cage'?{k:'cage'}:d&&d.k==='cafe'?{k:'cafe'}:null;
   if(!d&&'HAR'.includes(zone().grid[y][x]))sel={k:'tile',x,y,z:region};
   if(!d&&!inMain()){const g=gemAt(L.cave,x,y);if(g&&typeof g!=='number')sel={k:'gem',o:g};}   // cristalul: îi schimbi mărimea și culoarea   // blocul cu putere: îi schimbi puterea
   insp=elAt(x,y);if(!insp)status('Aici nu e nimic.');
@@ -406,7 +416,7 @@ function onPtr(p){
     if(p.t==='down'){begin();
       if(inR(selR,p.x,p.y)){startChunk(p.x,p.y);return;}
       drag=pick(p.x,p.y);
-      sel=drag&&['plat','pwidth','range'].includes(drag.k)?{k:'plat',o:drag.o}:drag&&drag.k==='cage'?{k:'cage'}:null;
+      sel=drag&&['plat','pwidth','range'].includes(drag.k)?{k:'plat',o:drag.o}:drag&&drag.k==='cage'?{k:'cage'}:drag&&drag.k==='cafe'?{k:'cafe'}:null;
       if(drag){selR=null;marks();drawProps();return;}
       if(zone().grid[p.y][p.x]!=='.'){selR={x0:p.x,y0:p.y,x1:p.x,y1:p.y};startChunk(p.x,p.y);return;}   // un bloc / o bucată: o apuci direct
       selR=null;marq={x:p.x,y:p.y};marks();drawProps();return;}
@@ -712,7 +722,7 @@ const DESC={D:'Pământ. Iarba, marginile și colțurile se pun singure.',Z:'Dea
   cp:'Checkpoint: dacă mori, reapari aici.',start:'De aici pornește curcanul.',gopen:'Pană de aur la vedere, greu de luat.',
   gbrick:'Pană de aur într-o cărămidă: iese când o spargi.',ghidden:'Pană de aur într-un bloc invizibil: apare când îl lovești.',
   cage:'Colivia cu un curcan prins. Cheia o are un ucenic sau un fermier.',sign:'Semnul de final: treci de el și termini nivelul.',
-  rest:'Restaurantul MESOPOTAMIA: intri pe ușă cu ↑ și termini jocul.',cafe:'MesoCafé: înăuntru, Moș Curcan și mini-jocul.',
+  rest:'Restaurantul MESOPOTAMIA: intri pe ușă cu ↑ și termini jocul.',cafe:'MesoCafé: înăuntru, Moș Curcan și mini-jocul ales mai jos.',
   mvx:'Platformă care merge stânga-dreapta.',mvy:'Platformă care urcă și coboară.',fall:'Platformă care se sfărâmă după ce stai pe ea, apoi revine.',
   boy:'Ucenic: se plimbă, nu te urmărește.',man:'Fermier cu furcă: te urmărește și te împunge.',bomb:'Bombă: își aprinde fitilul când te apropii.',
   cavein:'Intrarea în peșteră: pământ crăpat, îl spargi cu săritură + ↓.',caveout:'Ieșirea din peșteră, la suprafață.',
@@ -726,6 +736,7 @@ function propTarget(){
   if((tool.el==='cage'&&tool.mode!=='pointer')||(sel&&sel.k==='cage'&&anyCage()))return {o:anyCage()||OPT.cage,live:!!anyCage(),el:'cage'};
   if(sel&&sel.k==='tile'&&sel.z===region&&'HAR'.includes(zone().grid[sel.y][sel.x]))return {o:{kind:kindOf(zone().grid[sel.y][sel.x])},live:true,el:'H'};
   if(sel&&sel.k==='gem'&&region==='cave'&&L.cave&&L.cave.gems.includes(sel.o)){const [s,c]=gemSC(sel.o);return {o:{sz:s??1,c:c??0},live:true,el:'gem'};}
+  if((tool.el==='cafe'&&tool.mode==='paint')||(sel&&sel.k==='cafe'&&L.cafe&&inMain()))return {o:L.cafe||OPT.cafe,live:!!L.cafe,el:'cafe'};
   if(tool.mode==='pointer')return {o:null,live:false,el:insp,info:true};
   return {o:OPT[tool.el]||null,live:false,el:tool.el};
 }
@@ -750,6 +761,9 @@ function drawProps(){
     h+=step('w','Lungime (pătrate)');
     if(t.el!=='fall')h+=step('range',t.el==='mvx'?'Cât merge → (pătrate)':'Cât coboară ↓ (pătrate)')+step('speed','Viteză',ED_SPEED_NAMES[(o.speed||3)-1]);
     if(t.live)h+='<button class="btn" data-del="plat" style="margin-top:8px">'+pix('x')+'Șterge platforma</button>';
+  }else if(o&&t.el==='cafe'){
+    h+='<p class="ictx">'+(t.live?'Cafeneaua pusă · coloana '+o.x:'Pentru cafeneaua pe care o pui')+'</p><div class="opt"><span>Mini-jocul dinăuntru</span></div><div class="capts games">'+
+      CAFE_GAMES.map(g=>'<button class="capt" data-cgame="'+g.id+'" aria-pressed="'+((o.game||'slot')===g.id)+'"'+(g.soon?' disabled':'')+' data-tip="'+g.name+'||'+g.d+'">'+pix(g.px)+'<span>'+g.name+'</span></button>').join('')+'</div>';
   }else if(t.el==='cage'){
     h+=`<p class="ictx">${t.live?`Colivia pusă · coloana ${anyCage().x}${L.cage?'':' (în peșteră)'}`:'Pentru colivia pe care o pui'}</p><div class="capts">`+CAPT_NAMES.map((n,i)=>
       `<button class="capt" data-capt="${i}" aria-pressed="${(o.capt|0)===i}" title="${n}">${ICONS.capt&&ICONS.capt[i]?`<img src="${ICONS.capt[i]}" alt="">`:''}<span>${n}</span></button>`).join('')+'</div>';
@@ -767,6 +781,7 @@ propsBox.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||
   if(b.dataset.kind){const k=b.dataset.kind;
     if(t.live){const z=zone(),c=POWER[k];if(z.grid[sel.y][sel.x]!==c){begin();setT(z,sel.x,sel.y,c);commit();}}else{OPT.H.kind=k;sendTool();drawProps();}
     return;}
+  if(b.dataset.cgame){const g=b.dataset.cgame;OPT.cafe.game=g;if(L.cafe&&L.cafe.game!==g){begin();L.cafe.game=g;commit();}else{sendTool();drawProps();}return;}
   if(b.dataset.capt!==undefined){const c=+b.dataset.capt;OPT.cage.capt=c;{const cg=anyCage();if(cg&&cg.capt!==c){begin();cg.capt=c;commit();}}sendTool();drawProps();return;}
   const key=b.dataset.o;if(!key)return;
   const ZW=zone().w,max=key==='speed'?5:key==='w'?(t.live?ZW-o.x:ZW):t.el==='mvy'?(t.live?13-o.y:13):(t.live?ZW-o.x-o.w:ZW);

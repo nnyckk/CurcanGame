@@ -22,7 +22,7 @@ const ARENA=TEST?LEVELS.push(TEST_LEVEL)-1:-1;
 function testLoad(lv,cp){
   const alive=player&&!player.dead;
   G.carryBig=alive&&player.big;G.carryFire=alive&&player.fire;G.carryIce=alive&&player.ice;
-  G.level=lv;G.slotUsed=null;G.bossMet=false;G.goldLv=-1;G.cageLv=-1;G.cafeSeen=false;G.underOpen=-1;
+  G.level=lv;G.slotUsed=null;G.cafeLv=-1;G.bossMet=false;G.goldLv=-1;G.cageLv=-1;G.cafeSeen=false;G.underOpen=-1;
   G.lvlHurt=false;G.lvlSeen=false;G.fullRun=false;   // achievements: nivelul ales e luat de la început
   const x=cp>0?LEVELS[lv].build().cps[cp-1]:undefined;
   G.cp=x===undefined?null:{level:lv,x};

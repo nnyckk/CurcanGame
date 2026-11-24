@@ -7,6 +7,8 @@ const edTheme=L=>{const b=ED_BIOMES[L.biome]||ED_BIOMES.ferma;return L.night?b.n
 const edSong=t=>t===3?'night':t===1||t===5?'winter':undefined;
 // Terenul și blocurile care se pot desena
 const ED_TILES='DZWYXI^=BMHAR';   // H, A, R = bloc cu putere: normală, gheață, foc
+// Mini-jocurile din cafenea (blocks, mouse, hotcold: vin pe rând)
+const ED_CAFE_GAMES=['slot','cups','blocks','mouse','hotcold'];
 const ED_MOBS=['boy','man','bomb'];
 const ED_GOLD_KINDS=['open','brick','hidden'];
 // Viteza platformei care se mișcă: 1–5, în pătrate pe secundă
@@ -59,7 +61,7 @@ function edNorm(L){
   o.cage=L.cage&&inX(L.cage.x)?{x:L.cage.x,y:edInt(L.cage.y,1,13,12),capt:edInt(L.cage.capt,0,4,0)}:null;
   o.plats=edPlats(L.plats,inX);
   o.goal=L.goal&&(L.goal.type==='sign'||L.goal.type==='restaurant')&&inX(L.goal.x)?{type:L.goal.type,x:L.goal.x}:null;
-  o.cafe=L.cafe&&inX(L.cafe.x)?{x:L.cafe.x,game:'slot'}:null;
+  o.cafe=L.cafe&&inX(L.cafe.x)?{x:L.cafe.x,game:ED_CAFE_GAMES.includes(L.cafe.game)?L.cafe.game:'slot'}:null;
   const c=L.cave;o.cave=null;o.cstart=null;
   if(c&&inX(c.x)&&inX(c.x2)){
     const cw=edInt(c.w,ED_CAVE_MIN,ED_CAVE_MAX,30),cx=x=>Number.isInteger(x)&&x>=0&&x<cw,rng=r=>Array.isArray(r)&&cx(r[0])&&cx(r[1])&&r[0]<=r[1]?[r[0],r[1]]:null;
@@ -151,7 +153,7 @@ function customBuild(L){
     let ceil=12;for(let x=1;x<cv.w-1;x++){if((x>=cv.in&&x<cv.in+2)||(x>=cv.out&&x<cv.out+2))continue;let y=0;while(y<12&&cv.grid[y][x]==='D')y++;ceil=Math.min(ceil,y);}
     m.underDef={x:cv.x,x2:cv.x2,a,w:cv.w,opt:{ceil:Math.max(2,Math.min(7,ceil)),gems:cv.gems,bats:cv.bats,fall:cv.fall,pools:cv.pools,in:cv.in,out:cv.out}};
     objs(cv,a);plats(cv.plats,a);for(const x of cv.cps)m.cp(a+x);if(cv.cage)m.colivie(a+cv.cage.x,cv.cage.y);}
-  if(L.cafe)m.cafe(L.cafe.x,ca);
+  if(L.cafe)m.cafe(L.cafe.x,ca,L.cafe.game);
   return m.done();
 }
 

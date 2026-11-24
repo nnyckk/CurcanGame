@@ -1,6 +1,6 @@
 'use strict';
 // ===== JOC NOU, ECRANUL DINAINTEA NIVELULUI =====
-function newGame(){G.custRun=false;G.carryBig=false;G.carryFire=false;G.carryIce=false;G.lives=3;G.score=0;G.coins=0;G.level=0;G.cp=null;G.slotUsed=null;G.bossMet=false;G.goldLv=-1;G.cageLv=-1;G.cafeSeen=false;G.tip=null;G.underOpen=-1;
+function newGame(){G.custRun=false;G.cafeLv=-1;G.carryBig=false;G.carryFire=false;G.carryIce=false;G.lives=3;G.score=0;G.coins=0;G.level=0;G.cp=null;G.slotUsed=null;G.bossMet=false;G.goldLv=-1;G.cageLv=-1;G.cafeSeen=false;G.tip=null;G.underOpen=-1;
   G.fullRun=true;G.runDeaths=0;   // NEMURITOR: un joc întreg
   MOS.plays++;mosSave();toIntro(true);stopSong();}
 // Ecranul de dinaintea nivelului

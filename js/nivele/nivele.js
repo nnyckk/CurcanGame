@@ -35,7 +35,8 @@ function newMap(w){
   // Boss-ul la x; poiana între a și b
   m.boss=(x,a,b)=>{m.bossDef={x,a,b};};
   // Căsuța MesoCafe la x; camera ei la a (în dreapta hărții)
-  m.cafe=(x,a)=>{m.cafeDef={x,a};m.f(a,CAFE_FLOOR,CAFE_W,ROWS-CAFE_FLOOR,'F');m.f(a+CAFE_SLOT,CAFE_SLOT_Y,2,2,'S');
+  m.cafe=(x,a,game='slot')=>{m.cafeDef={x,a,game};   // game: mini-jocul dinăuntru
+   m.f(a,CAFE_FLOOR,CAFE_W,ROWS-CAFE_FLOOR,'F');m.f(a+CAFE_SLOT,CAFE_SLOT_Y,2,2,'S');
     m.f(a,0,CAFE_W,CAFE_CEIL,'K');};   // K = tavanul
   // Pană de aur: 'open', 'brick' (P), 'hidden' (V) sau 'boss'
   m.pana=(x,y,kind='open')=>{m.golds.push({x,y,kind});if(kind==='brick')m.set(x,y,'P');else if(kind==='hidden')m.set(x,y,'V');};
