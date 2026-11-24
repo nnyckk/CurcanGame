@@ -36,7 +36,10 @@ const MENU={
     ...(DEV?[{label:'MOD TEST',act:()=>{location.href='test.html';}}]:[]),
     {label:'PENE',badge:'pene',act:()=>openMenu('pene')},
     {label:'CURCANI',badge:'custi',act:()=>openMenu('custi')},
-    {label:'ACHIEVEMENTS',badge:'ach',act:()=>{G.achPage=0;openMenu('ach');}}],
+    {label:'ACHIEVEMENTS',badge:'ach',act:()=>{G.achPage=0;openMenu('ach');}},
+    {label:'NOUTĂȚI',badge:'news',act:()=>openMenu('news')}],
+  news:[
+    {label:'ÎNAPOI',act:()=>menuBack()}],
   settings:[],   // vezi settingsItems
   // Pauza din joc (ESC)
   pause:[
@@ -56,13 +59,19 @@ const MENU={
     {label:'<',pg:-1,act:()=>{}},{label:'>',pg:1,act:()=>{}}]),
 };
 const mainIx=l=>Math.max(0,MENU.main.findIndex(it=>it.label===l));
+// NOUTĂȚI: ce aduce versiunea de acum, pe grupe (rânduri scurte, încap în cartonaș)
+const NEWS=[
+  {t:'NIVELURILE TALE',items:['EDITOR DE NIVELURI','NIVELURILE MELE, ÎN MENIU','POVEȘTI DE PÂNĂ LA 10','COD DE PARTAJARE']},
+  {t:'CAFENEAUA',items:['GHICEȘTE CEȘCUȚA','BLOCURILE LUI MOȘ','JOCUL, ALES LA ÎNTÂMPLARE','GEAMUL ARATĂ CE E AFARĂ']},
+  {t:'ÎN JOC',items:['BLOCURI DE FOC ȘI DE GHEAȚĂ','DEȘERTUL, ACUM ȘI ZIUA','CĂRĂMIZILE LASĂ FUNDALUL']}];
+const newsBadgeRect=()=>({x:106+(BADGE_W+4)*3,y:H-19,w:74,h:15});
 // Înapoi: o pagină mai sus
 function menuBack(){
   if(G.menu==='controls')openMenu('settings',MENU.settings.findIndex(it=>it.label==='CONTROALE'));
   else if(G.menu==='settings')openMenu(G.state==='play'?'pause':'main',G.state==='play'?2:mainIx('SETĂRI'));
   else if(G.menu==='mine')openMenu('main',mainIx('NIVELURILE MELE'));
   else if(G.menu==='pause')pauseClose();
-  else if(G.menu==='pene'||G.menu==='custi'||G.menu==='ach')openMenu('main',0);
+  else if(G.menu==='pene'||G.menu==='custi'||G.menu==='ach'||G.menu==='news')openMenu('main',0);
 }
 // Unde stă fiecare buton, în pixeli de joc
 // Insignele de jos, în dreapta recordului: PENE, ACHIEVEMENTS
@@ -73,8 +82,8 @@ function menuRects(){
   const m=G.menu,items=MENU[m],h=15;
   if(m==='ach')return achRects(items);
   if(m==='mine')return mineRects(items);
-  const L=m==='main'?{w:112,gap:3,y0:98}:m==='settings'?{w:168,gap:4,y0:76}:m==='pause'?{w:120,gap:5,y0:78}:m==='pene'?{w:96,gap:0,y0:168}:m==='custi'?{w:96,gap:0,y0:186}:{w:96,gap:0,y0:156};
-  return items.map((it,i)=>it.badge?Object.assign({it},it.badge==='ach'?achBadgeRect():it.badge==='custi'?cageBadgeRect():goldBadgeRect())
+  const L=m==='main'?{w:112,gap:3,y0:98}:m==='settings'?{w:168,gap:4,y0:76}:m==='pause'?{w:120,gap:5,y0:78}:m==='pene'?{w:96,gap:0,y0:168}:m==='custi'?{w:96,gap:0,y0:186}:m==='news'?{w:96,gap:0,y0:204}:{w:96,gap:0,y0:156};
+  return items.map((it,i)=>it.badge?Object.assign({it},it.badge==='ach'?achBadgeRect():it.badge==='news'?newsBadgeRect():it.badge==='custi'?cageBadgeRect():goldBadgeRect())
     :{it,x:W/2-L.w/2,y:L.y0+i*(h+L.gap)+(m==='settings'&&i===items.length-1?6:0),w:L.w,h});
 }
 function menuHit(e){

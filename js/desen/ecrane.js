@@ -18,6 +18,7 @@ function drawTitle(){
   if(G.menu==='controls'){txtCute('CONTROALE',W/2,20,3,'#e8323e','#000000');drawControls();drawMenuButtons();return;}
   if(G.menu==='custi'){txtCute('CURCANI PRINȘI',W/2,30,3,'#e8323e','#000000');drawCageInfo();drawMenuButtons();return;}
   if(G.menu==='pene'){txtCute('PENE DE AUR',W/2,30,3,'#e8323e','#000000');drawGoldInfo();drawMenuButtons();return;}
+  if(G.menu==='news'){txtCute('NOUTĂȚI',W/2,8,3,'#e8323e','#000000');drawNewsInfo();drawMenuButtons();return;}
   if(G.menu==='mine'){txtCute('NIVELURILE MELE',W/2,10,3,'#e8323e','#000000');drawMineInfo();drawMenuButtons();return;}
   if(G.menu==='ach'){txtCute('ACHIEVEMENTS',W/2,5,3,'#e8323e','#000000');drawMenuButtons();drawAchInfo();return;}
   txtCute('CURCANUL',W/2,18,4,'#e8323e','#000000');
@@ -49,6 +50,7 @@ function drawMenuButtons(){
       txt(st?'POVESTE · '+st.items.length:({ferma:'FERMĂ',iarna:'IARNĂ',desert:'DEȘERT'}[l.biome]||'FERMĂ')+(l.night?' NOAPTE':' ZI'),b.x+b.w-7,ty,on?'#ffd0d4':'#8a84a8',1,'r',null);
       if(on)txt('→',b.x-11+((G.t>>4)%2),ty,'#ffffff',1,'l','#000');return;}
     // Insignele de jos: luminate doar cât e mouse-ul pe ele
+    if(it.badge==='news'){drawNewsBadge(b,i===G.hover);return;}
     if(it.badge){if(it.badge==='custi')drawCageBadge(b,i===G.hover);else (it.badge==='ach'?drawAchBadge:drawGoldBadge)(b,i===G.hover);return;}
     if(it.ach){drawAchCell(b,on);return;}   // cartonașele din pagina ACHIEVEMENTS
     if(it.pg){drawAchArrow(b,i===G.hover);return;}
@@ -294,4 +296,18 @@ function drawStoryEnd(){
   txt((G.story?G.story.items.length:0)+' NIVELURI',W/2,100,'#d8e4f0',1,'c',null);
   txt('SCOR '+pad(G.score,6),W/2,128,'#ffffff',2,'c','#000');
   if(G.stateT>60&&(G.t>>5)%2===0)txt('ENTER - ÎNAPOI LA NIVELURI',W/2,176,'#7fff7f',1,'c',null);
+}
+// Insigna NOUTĂȚI, lângă celelalte: steluță și textul
+function drawNewsBadge(b,on){
+  const {x,y,w,h}=b;if(on)uiBox(x,y,w,h,'#e8323e','#ffffff','#ff6a72','#a01822');else uiBox(x,y,w,h);
+  icon(STAR_ICON,x+5,y+4,on?'#ffffff':'#ffd23f');txt('NOUTĂȚI',x+w-6,y+4,'#ffffff',1,'r',on?'#7a0a10':null);
+}
+// Pagina NOUTĂȚI: versiunea, apoi trei cartonașe (două sus, unul lat jos)
+function drawNewsInfo(){
+  txt('VERSIUNEA '+GAME_VERSION,W/2,36,'#ffd23f',1,'c','#000');
+  const card=(g,x,y,w,cols)=>{const rows=Math.ceil(g.items.length/cols),h=24+rows*12;uiBox(x,y,w,h);
+    txt(g.t,x+8,y+6,'#ffd23f',1,'l',null);ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(x+8,y+16,w-16,1);
+    g.items.forEach((t,i)=>{const cx=x+10+(i%cols)*((w-16)/cols),cy=y+21+Math.floor(i/cols)*12;
+      ctx.fillStyle='#ffd23f';ctx.fillRect(cx,cy+2,2,2);txt(t,cx+6,cy,'#e8f4ff',1,'l',null);});};
+  card(NEWS[0],24,50,172,1);card(NEWS[1],204,50,172,1);card(NEWS[2],24,128,352,2);
 }
