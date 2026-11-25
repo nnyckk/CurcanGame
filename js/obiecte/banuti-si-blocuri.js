@@ -40,7 +40,7 @@ function hitBlock(tx,ty,top){
   else sfx.bump();
   if(!'MHARBPVS'.includes(c))return;   // doar blocurile pline lovesc ce e deasupra; pământul și blocul gol nu
   for(const e of enemies){if(e.dead||e.remove||!e.active)continue;
-    if(overlap(e,{x:tx*TS,y:ty*TS-4,w:TS,h:5})){if(e.frozen)shatter(e,200);else if(e.type==='man')killMan(e,2,200);else lightBomb(e);}}
+    if(!moleSafe(e)&&overlap(e,{x:tx*TS,y:ty*TS-4,w:TS,h:5})){if(e.frozen)shatter(e,200);else if(e.type==='man')killMan(e,2,200);else lightBomb(e);}}
 }
 // Ce rămâne în spate după cărămidă: tunelul sau dealul de dedesubt, dacă e înconjurată (nu cer în lateral)
 function brickBack(tx,ty){

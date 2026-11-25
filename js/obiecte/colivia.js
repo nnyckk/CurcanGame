@@ -28,6 +28,7 @@ function makeCage(m){
   // Cheia: la un ucenic sau fermier, nu în primul sfert (editor: oriunde)
   const men=enemies.filter(e=>e.type==='man'),road=men.filter(e=>!(under&&e.x>=under.a*TS));
   let pool=def.custom?road:road.filter(e=>e.x>=cols*TS/4);
+  if(def.custom)pool=pool.concat(men.filter(e=>e.mole&&!pool.includes(e)));   // cârtițele din peșteră pot ține și ele cheia
   if(def.custom&&!pool.length)pool=men;   // doar în peșteră: tot el o are
   if(pool.length)pool[Math.random()*pool.length|0].key=true;
 }
@@ -164,7 +165,7 @@ function drawCageHint(cx){
 }
 // Cheia la brâu și cheia căzută
 function drawKeys(cx){
-  for(const e of enemies){if(!e.key||e.dead||e.remove)continue;
+  for(const e of enemies){if(!e.key||e.dead||e.remove||(e.mole&&!moleOut(e)&&!(e.ph==='dig'&&e.t<14)))continue;
     const sx=Math.round(e.x-cx);if(sx<-20||sx>W+20)continue;
     const kx=sx+(e.dir>0?-1:8),ky=Math.round(e.y)+8;ctx.drawImage(KEY_SM,kx,ky);
     if(G.t%90<8){ctx.fillStyle='#ffffff';ctx.fillRect(kx,ky+1,3,1);ctx.fillRect(kx+1,ky,1,3);}}

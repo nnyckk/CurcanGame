@@ -26,6 +26,7 @@ function drawWorld(){
   for(const cp of cps)drawCP(cp,cx);
   // Noaptea, bănuții și power-up-urile luminează
   for(const it of items)if(!night||it.rise>0)drawItem(it);
+  for(const e of enemies)drawMoleSink(e,cx);   // cârtița care intră/iese: pământul o acoperă
   drawTiles(cx);
   if(inUnder())drawCaveLife(cx);else drawHoleCracks(cx);   // stalactite, lilieci, pânze / crăpăturile de deasupra peșterii
   drawPlats(cx);

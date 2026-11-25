@@ -17,6 +17,7 @@ function updateMan(e){
     if(e.deadT<=0)e.remove=true;return;}
   if(e.sink){sinkStep(e);return;}
   if(e.frozen){updateFrozen(e);return;}
+  if(e.mole){updateMole(e);return;}
   const dx=(player.x+player.w/2)-(e.x+5),dy=(player.y+player.h)-(e.y+e.h);
   // Chemat de boss: intră pe jos în poiană
   if(e.enter){
@@ -33,7 +34,7 @@ function updateMan(e){
     // Atac cu furca: trage furca înapoi
     e.atk++;e.vx=0;
     const st=e.atk-MAN_WIND_T;
-    if(st===1)sfx.stab();
+    if(st===1)mobSfx(e,'stab');
     if(st>0&&st<=6&&e.onGround&&groundAhead(e,e.dir))e.vx=e.dir*1.4;
     if(st>0&&st<=10&&!player.dead&&overlap(player,forkBox(e)))hurt(e.dir);
     if(st>=MAN_STAB_T){e.atk=0;e.cd=50;}
@@ -46,13 +47,13 @@ function updateMan(e){
       else see=false;
     }else see=!player.dead&&Math.abs(dx)<140&&Math.abs(dy)<56;
     if(see&&theme.night)G.lvlSeen=true;   // te-a văzut un fermier cu felinar
-    if(see&&!e.chasing){e.alert=28;e.puzzled=0;if(G.t-G.lastAlert>30){sfx.alert();G.lastAlert=G.t;}}
+    if(see&&!e.chasing){e.alert=28;e.puzzled=0;if(G.t-G.lastAlert>30){mobSfx(e,'alert');G.lastAlert=G.t;}}
     e.chasing=see;
     if(e.puzzled>0){e.puzzled--;e.vx=0;if(e.puzzled===35)e.dir*=-1;}
     else if(e.alert>0){e.alert--;e.vx=0;if(Math.abs(dx)>2)e.dir=Math.sign(dx);}
     else if(e.chasing&&!(e.lost>0)&&!e.cd&&e.onGround&&Math.abs(dx)<30&&Math.abs(dy)<12){
       // Curcanul e foarte aproape și la aceeași înălțime
-      e.atk=1;e.vx=0;e.dir=Math.sign(dx)||e.dir;sfx.windup();
+      e.atk=1;e.vx=0;e.dir=Math.sign(dx)||e.dir;mobSfx(e,'windup');
     }else{
       if(e.chasing&&Math.abs(tdx)>6)e.dir=Math.sign(tdx);
       const sp=e.chasing?0.8:0.35;e.vx=e.dir*sp;
@@ -66,7 +67,7 @@ function updateMan(e){
   moveY(e);
   if(e.y+e.h>WATER_Y&&overPit(e)){enterWater(e);return;}
   // Ajuns totuși cu picioarele pe țepi
-  if(e.onGround&&standsOnSpikes(e)){killMan(e,2,200);sfx.stomp();return;}
+  if(e.onGround&&standsOnSpikes(e)){killMan(e,2,200);mobSfx(e,'stomp');return;}
   if(moving)e.anim+=e.chasing?1.6:1;
   if(e.y>H+20){if(e.key)keyDrop(e,true);e.remove=true;}
 }

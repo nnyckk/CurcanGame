@@ -63,7 +63,7 @@ const mainIx=l=>Math.max(0,MENU.main.findIndex(it=>it.label===l));
 const NEWS=[
   {t:'NIVELURILE TALE',items:['EDITOR DE NIVELURI','NIVELURILE MELE, ÎN MENIU','POVEȘTI DE PÂNĂ LA 10','COD DE PARTAJARE']},
   {t:'CAFENEAUA',items:['GHICEȘTE CEȘCUȚA','BLOCURILE LUI MOȘ','JOCUL, ALES LA ÎNTÂMPLARE','GEAMUL ARATĂ CE E AFARĂ']},
-  {t:'ÎN JOC',items:['BLOCURI DE FOC ȘI DE GHEAȚĂ','DEȘERTUL, ACUM ȘI ZIUA','CĂRĂMIZILE LASĂ FUNDALUL']}];
+  {t:'ÎN JOC',items:['CÂRTIȚA MINER, MOB NOU','SUNETELE DE DEPARTE, MAI ÎNCET','BLOCURI DE FOC ȘI DE GHEAȚĂ','DEȘERTUL, ACUM ȘI ZIUA','CĂRĂMIZILE LASĂ FUNDALUL']}];
 const newsBadgeRect=()=>({x:106+(BADGE_W+4)*3,y:H-19,w:74,h:15});
 // Înapoi: o pagină mai sus
 function menuBack(){

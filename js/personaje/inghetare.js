@@ -10,7 +10,7 @@ function freeze(e){
   const again=e.frozen>0;e.frozen=FREEZE_T;
   if(again)return;   // deja înghețat: doar reîncepe timpul
   e.vx=0;e.slideDir=0;e.slideT=0;e.kickT=0;
-  if(e.type==='man'){e.atk=0;e.alert=0;e.chasing=false;e.puzzled=0;e.lost=0;}
+  if(e.type==='man'){e.atk=0;e.alert=0;e.chasing=false;e.puzzled=0;e.lost=0;if(e.mole){e.ph='walk';e.t=0;}}
   else{e.lit=0;e.sit=false;}
   for(let i=0;i<8;i++)parts.push({x:e.x+Math.random()*e.w,y:e.y+Math.random()*e.h,vx:(Math.random()-0.5)*0.6,vy:-0.3-Math.random()*0.5,g:0,life:18,max:18,col:i%2?'#ffffff':'#bfe8ff',s:1});
   sfx.freezeHit();
@@ -44,7 +44,7 @@ function updateFrozen(e){
   // Împins în boss: se sparge de el
   if(e.slideDir&&Math.abs(e.vx)>0.3&&bossFighting()&&overlap(e,boss)){shatter(e,200);return;}
   if(e.slideDir&&Math.abs(e.vx)>0.3)for(const o of enemies){
-    if(o===e||!o.active||o.dead||o.remove||o.sink||!overlap(e,o))continue;
+    if(o===e||!o.active||o.dead||o.remove||o.sink||moleSafe(o)||!overlap(e,o))continue;
     // Mor amândoi: alt înghețat se sparge și el
     if(o.frozen)shatter(o,200);
     else{if(o.type==='man')killMan(o,2,200);else knockBomb(o);sfx.stomp();}
@@ -55,7 +55,7 @@ function updateFrozen(e){
 // Un dușman înghețat: sprite-ul lui albăstrit
 function drawFrozen(e,sx){
   const sh=e.frozen<THAW_WARN&&(G.t>>1)%2?1:0,f=e.dir>0?'r':'l';
-  if(e.type==='man')ctx.drawImage((e.boy?BOY:MAN).ICE[f],sx-3+sh,Math.round(e.y-2));
+  if(e.type==='man')ctx.drawImage((e.mole?MOLE:e.boy?BOY:MAN).ICE[f],sx-3+sh,Math.round(e.y-2));
   else ctx.drawImage(BOMB.ICE[f],sx-2+sh,Math.round(e.y-4));
   const x=sx-2+sh,y=Math.round(e.y)-3,w=e.w+4,h=e.h+3;
   ctx.globalAlpha=0.45;ctx.fillStyle='#bfeaff';ctx.fillRect(x,y,w,h);ctx.globalAlpha=1;

@@ -33,7 +33,7 @@ function updateFeathers(){
     // Boss-ul: pana de gheață îl brumează
     if(bossFighting()&&overlap(f,boss)){if(f.ice)bossIceHit();puffFeather(f);continue;}
     for(const e of enemies){
-      if(!e.active||e.dead||e.remove||e.sink||offstage(e)||!overlap(f,e))continue;
+      if(!e.active||e.dead||e.remove||e.sink||offstage(e)||moleSafe(e)||!overlap(f,e))continue;
       if(f.ice){if(!e.frozen)achFreeze();freeze(e);}   // pana de gheață îngheață
       else if(e.frozen){shatter(e,200);achBurn();}   // pana de foc topește gheața cu el
       else if(e.type==='man'){killMan(e,2,200);sfx.burn();achBurn();}

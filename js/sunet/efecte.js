@@ -18,7 +18,9 @@ function initAudio(){
   if(seq.pending){const p=seq.pending;seq.pending=null;playSong(p);}
 }
 const mtof=m=>440*Math.pow(2,(m-69)/12);
+let SFX_K=1;   // cât de tare (1 = lângă tine), pentru sunetele mobilor
 function tone(type,f,t,dur,vol,dest,f2){
+  if(dest===sfxG)vol*=SFX_K;
   const o=AC.createOscillator(),g=AC.createGain();
   if(type==='pulse')o.setPeriodicWave(pulseW);else if(type==='pulse12')o.setPeriodicWave(pulse12);else o.type=type;
   o.frequency.setValueAtTime(f,t);if(f2)o.frequency.exponentialRampToValueAtTime(f2,t+dur);
@@ -27,6 +29,7 @@ function tone(type,f,t,dur,vol,dest,f2){
   o.connect(g).connect(dest);o.start(t);o.stop(t+dur+0.03);
 }
 function noise(t,dur,vol,dest,freq,type='highpass'){
+  if(dest===sfxG)vol*=SFX_K;
   const s=AC.createBufferSource();s.buffer=noiseBuf;const f=AC.createBiquadFilter();f.type=type;f.frequency.value=freq;
   const g=AC.createGain();g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
   s.connect(f).connect(g).connect(dest);s.start(t,Math.random()*0.5);s.stop(t+dur+0.02);
@@ -102,3 +105,7 @@ const sfx={
   // Lacătul zăngăne: n-ai cheia
   rattle(){if(!AC)return;const t=AC.currentTime;for(let i=0;i<3;i++){tone('square',1100-i*120,t+i*0.07,0.03,0.05,sfxG);noise(t+i*0.07,0.03,0.1,sfxG,3000);}},
 };
+// Sunetul unui mob: tare cât se vede pe ecran, apoi tot mai încet, iar foarte departe deloc
+const SFX_NEAR=W/2+16,SFX_FAR=W/2+300;
+function sfxNear(x){const d=Math.abs(x-(cam.x+W/2));return d<=SFX_NEAR?1:Math.max(0,1-(d-SFX_NEAR)/(SFX_FAR-SFX_NEAR));}
+function mobSfx(e,name){const k=sfxNear(e.x+e.w/2);if(k<=0.02||!sfx[name])return;SFX_K=k*k;try{sfx[name]();}finally{SFX_K=1;}}

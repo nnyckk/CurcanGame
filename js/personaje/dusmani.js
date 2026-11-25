@@ -1,12 +1,14 @@
 'use strict';
 // ===== DUȘMANII: cum se creează și cum se desenează =====
 // Un mob nou care stă pe tile-ul — ty e rândul în care stă
-function makeEnemy(type,tx,ty){return type==='man'||type==='boy'
+function makeEnemy(type,tx,ty){if(type==='mole')return makeMole(tx,ty);   // cârtița miner
+  return type==='man'||type==='boy'
   ?{type:'man',boy:type==='boy',x:tx*TS+3,y:(ty+1)*TS-18,w:10,h:18,vx:0,vy:0,dir:-1,active:false,dead:0,deadT:0,anim:0,chasing:false,alert:0,atk:0,cd:0,onGround:false}
   :{type:'bomb',x:tx*TS+2,y:(ty+1)*TS-12,w:12,h:12,vx:0,vy:0,dir:-1,active:false,lit:0,sit:false,slideDir:0,slideT:0,kickT:0,anim:0,onGround:false};}
 function drawEnemy(e,cx){
   const sx=Math.round(e.x-cx);if(sx<-24||sx>W+24)return;
   if(e.frozen&&!e.dead){drawFrozen(e,sx);return;}
+  if(e.mole){drawMole(e,sx);return;}
   if(e.type==='man'){
     const S=e.boy?BOY:MAN;
     if(e.dead===1){ctx.drawImage(S.A[e.dir>0?'r':'l'],sx-3,Math.round(e.y+e.h-8),16,8);return;}

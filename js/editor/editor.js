@@ -76,7 +76,7 @@ const ELS=[
   {g:'obiecte',id:'cage',name:'Colivie'},
   {g:'final',id:'sign',name:'Semn de final',px:'sign'},{g:'final',id:'rest',name:'Restaurant',px:'rest'},{g:'final',id:'cafe',name:'MesoCafé',px:'cafe'},
   {g:'platforme',id:'mvx',name:'Se mișcă ↔'},{g:'platforme',id:'mvy',name:'Se mișcă ↕'},{g:'platforme',id:'fall',name:'Cade'},
-  {g:'inamici',id:'boy',name:'Ucenic'},{g:'inamici',id:'man',name:'Fermier'},{g:'inamici',id:'bomb',name:'Bombă'},
+  {g:'inamici',id:'boy',name:'Ucenic'},{g:'inamici',id:'man',name:'Fermier'},{g:'inamici',id:'bomb',name:'Bombă'},{g:'inamici',id:'mole',name:'Cârtița miner'},
   {g:'pestera',id:'cavein',name:'Intrare',px:'cavein'},{g:'pestera',id:'caveout',name:'Ieșire',px:'caveout'},
   {g:'decor',id:'gem',name:'Cristal',px:'gem'},{g:'decor',id:'bat',name:'Liliac',px:'bat'},{g:'decor',id:'icicle',name:'Țurțure care cade',px:'icicle'},
   {g:'decor',id:'pool',name:'Baltă',px:'pool'},{g:'puturi',id:'cin',name:'Unde cazi',px:'cavein'},{g:'puturi',id:'cout',name:'Pe unde ieși',px:'caveout'}];
@@ -94,10 +94,10 @@ const CATS=[
   {id:'final',name:'Locuri',px:'rest',zone:'main',tip:'Clădirile și semnele: semnul de final, restaurantul și MesoCafé.'}];
 const cat={main:'teren',cave:'cteren'};   // categoria deschisă, pe fiecare zonă
 let gridOn=true;try{gridOn=localStorage.getItem('curcan_editor_grila')!=='0';}catch(e){}
-const CAVE_EL=new Set(['D','X','^','=','Y','B','M','H','coin','gopen','gbrick','ghidden','boy','man','bomb','gem','bat','icicle','pool','cin','cout','mvx','mvy','fall','start','cage','cp']);
+const CAVE_EL=new Set(['D','X','^','=','Y','B','M','H','coin','gopen','gbrick','ghidden','boy','man','bomb','gem','bat','icicle','pool','cin','cout','mvx','mvy','fall','start','cage','cp','mole']);
 const CAPT_NAMES=['Doamna Glu-Glu',"Conu' Gușălan",'Nenea Penel','Nenea Țepoșel','Tanti Pufoaica'];
 // Mărimea iconiței în panou
-const ICON_K={boy:2,man:2,bomb:2,start:2,coin:2,gopen:2,cage:0.85,mvx:1,mvy:1,fall:1};
+const ICON_K={boy:2,man:2,bomb:2,mole:2,start:2,coin:2,gopen:2,cage:0.85,mvx:1,mvy:1,fall:1};
 // Opțiunile elementelor (lățimea platformei, raza, curcanul din colivie)
 const POWER={normal:'H',ice:'A',fire:'R'},POWER_NAMES={normal:'Normală',ice:'Gheață',fire:'Foc'};
 const kindOf=c=>c==='A'?'ice':c==='R'?'fire':'normal';
@@ -275,6 +275,7 @@ function applyAt(x,y,erase,first){
   if(ED_TILES.includes(e))return setT(z,x,y,e);
   if(e==='coin'){if(z.coins.some(c=>c[0]===x&&c[1]===y))return false;z.coins.push([x,y]);return true;}
   if(!first)return false;
+  if(e==='mole'&&inMain()&&!L.night){status('Cârtița iese afară doar noaptea. Pune nivelul pe Noapte sau pune-o în peșteră.');return false;}
   if(ED_MOBS.includes(e)){z.ents=z.ents.filter(m=>!(m.x===x&&m.y===y));z.ents.push({t:e,x,y});return true;}
   if(e==='gopen'||e==='gbrick'||e==='ghidden'){
     const kind=e==='gopen'?'open':e==='gbrick'?'brick':'hidden',old=z.golds.find(g=>g.x===x&&g.y===y);
@@ -669,7 +670,7 @@ function warnings(){
   {const why=L.plats.map(p=>edPlatWhy(L,p)).concat(L.cave?L.cave.plats.map(p=>edPlatWhy(L.cave,p)):[]).find(s=>s);if(why)w.push(why);}
   for(const k of ['in','out']){const why=edHoleWhy(L,k);if(why)w.push(why);}
   if(!L.goal)w.push('Nivelul n-are final (semn sau restaurant): îl poți testa, dar nu-l poți termina.');
-  if(anyCage()&&!L.ents.some(m=>m.t==='man'||m.t==='boy')&&!(L.cave&&L.cave.ents.some(m=>m.t==='man'||m.t==='boy')))w.push('Colivia n-are cheie: pune un ucenic sau un fermier.');
+  if(anyCage()&&!L.ents.some(m=>m.t==='man'||m.t==='boy')&&!(L.cave&&L.cave.ents.some(m=>m.t==='man'||m.t==='boy'||m.t==='mole')))w.push('Colivia n-are cheie: pune un ucenic, un fermier sau o cârtiță miner.');
   return w;
 }
 function play(from){if(playing)return;const w=warnings();if(w.length)status(w.join(' '),7000);playing=true;syncUI();send('edPlay',{L,from,god:godIn.checked});focusGame();}
@@ -725,6 +726,7 @@ const DESC={D:'Pământ. Iarba, marginile și colțurile se pun singure.',Z:'Dea
   rest:'Restaurantul MESOPOTAMIA: intri pe ușă cu ↑ și termini jocul.',cafe:'MesoCafé: înăuntru, Moș Curcan și mini-jocul ales mai jos.',
   mvx:'Platformă care merge stânga-dreapta.',mvy:'Platformă care urcă și coboară.',fall:'Platformă care se sfărâmă după ce stai pe ea, apoi revine.',
   boy:'Ucenic: se plimbă, nu te urmărește.',man:'Fermier cu furcă: te urmărește și te împunge.',bomb:'Bombă: își aprinde fitilul când te apropii.',
+  mole:'Cârtița miner (în peșteră sau, noaptea, afară): dacă te prinde lanterna ei, se bagă în pământ și iese lângă tine. Te lovește cu târnăcopul. O învingi sărindu-i în cap doar cât e afară.',
   cavein:'Intrarea în peșteră: pământ crăpat, îl spargi cu săritură + ↓.',caveout:'Ieșirea din peșteră, la suprafață.',
   gem:'Cristal: pe podeaua de sub click, în tavan (click chiar sub tavan) sau, lângă pereți, în perete. Cu Pointerul îi schimbi mărimea și culoarea.',bat:'Liliac: atârnă de tavan și zboară când treci.',icicle:'Țurțure: cade când treci pe sub el.',
   pool:'Baltă pe podeaua peșterii. Tragi cât de lată o vrei; pot fi oricâte.',cin:'Puțul prin care cazi în peșteră. Lasă-l liber deasupra.',
@@ -818,8 +820,8 @@ function syncUI(){
   $('#catName').textContent=CATS.find(c=>c.id===cat[region]).name;
   $$('[data-el]').forEach(b=>{press(b,b.dataset.el===tool.el&&!['erase','move','pointer','pick'].includes(tool.mode));
     const el=ELS.find(e=>e.id===b.dataset.el);
-    b.disabled=(!!el.snow&&!isSnow())||(cave&&!CAVE_EL.has(el.id))||(!cave&&['gem','bat','icicle','pool','cin','cout'].includes(el.id));
-    b.dataset.tip=el.name+'||'+(el.snow&&!isSnow()?'Doar iarna. ':'')+(DESC[el.id]||'');});
+    b.disabled=(!!el.snow&&!isSnow())||(cave&&!CAVE_EL.has(el.id))||(!cave&&(['gem','bat','icicle','pool','cin','cout'].includes(el.id)||(el.id==='mole'&&!L.night)));
+    b.dataset.tip=el.name+'||'+(el.snow&&!isSnow()?'Doar iarna. ':'')+(el.id==='mole'&&!cave&&!L.night?'Afară, doar noaptea. ':'')+(DESC[el.id]||'');});
   $('#enterCave').disabled=!L.cave||playing;$('#delCave').disabled=!L.cave||playing;
   const t=$('#test');t.className='btn '+(playing?'stop':'primary');t.innerHTML=pix(playing?'stop':'play')+(playing?'Oprește':'Testează');
   t.dataset.tip=playing?'Oprește||Înapoi la desenat.':'Testează||Joci nivelul de la start.';
@@ -848,7 +850,7 @@ addEventListener('message',e=>{
   if(d.edIcons)onIcons(d.edIcons,d.edTheme);
   if(d.edView){view=d.edView;const p=view.state!=='edit';if(p!==playing){playing=p;syncUI();}
     // După test poți rămâne în peșteră: panoul trece și el acolo
-    if(!playing&&view.region&&view.region!==region){region=view.region==='cave'&&L.cave?'cave':'main';syncUI();}
+    if(view.region&&view.region!==region){region=view.region==='cave'&&L.cave?'cave':'main';syncUI();}   // și cât testezi: harta arată unde e curcanul
     showPos();drawMap();}
   if(d.edPtr)onPtr(d.edPtr);
   if(d.edKey)keyCmd(d.edKey);

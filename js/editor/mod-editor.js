@@ -43,9 +43,11 @@ function edUpdate(){
 }
 // Panoul află ce se vede și ce face jocul
 function edSendView(){
-  const z=G.state==='edit'?edZone():{a:0,w:CUSTOM.L?CUSTOM.L.w:cols};
-  const v=JSON.stringify([Math.round(cam.x/TS*10)/10,G.state,ED.region,z.a,z.w]);if(v===ED.view)return;ED.view=v;
-  toParent({edView:{cam:cam.x/TS-z.a,view:W/TS,cols:z.w,state:G.state,region:ED.region}});
+  // Când testezi: harta urmează curcanul (drum sau peșteră)
+  const play=G.state!=='edit',cave=play?!!(G.inUnder&&under):ED.region==='cave',r=cave?'cave':'main';
+  const z=!play?edZone():cave?{a:under.a,w:under.w}:{a:0,w:CUSTOM.L?CUSTOM.L.w:cols};
+  const v=JSON.stringify([Math.round(cam.x/TS*10)/10,G.state,r,z.a,z.w]);if(v===ED.view)return;ED.view=v;
+  toParent({edView:{cam:cam.x/TS-z.a,view:W/TS,cols:z.w,state:G.state,region:r}});
 }
 // Iconițele din panou, în culorile biomului
 function edIcons(){
@@ -59,7 +61,7 @@ function edIcons(){
   const Dc=can(16,16,g=>{g.drawImage(tiles.D,0,0);g.fillStyle=theme.dirtL;g.fillRect(0,0,16,1);});   // pământul din peșteră: fără iarbă
   toParent({edIcons:{D:u(tiles.G),Dc:u(Dc),H_ice:u(tiles.A[0]),H_fire:u(tiles.R[0]),Z:u(tiles.ZG),W:u(tiles.WG),Y:u(tiles.Yv[0]),X:u(tiles.X),I:u(tiles.I),'^':u(tiles['^']),'=':u(tiles['=']),
     B:u(tiles.B),M:u(tiles.M[0]),H:u(H),water:u(sw(theme.water.body,11,5)),coin:u(COIN),cp:u(CPI),start:u(TKS.A.r),
-    boy:u(BOY.A.r),man:u(MAN.A.r),bomb:u(BOMB.A.r),head:u(HEAD),
+    boy:u(BOY.A.r),man:u(MAN.A.r),mole:u(MOLE.A.r),bomb:u(BOMB.A.r),head:u(HEAD),
     gopen:u(GOLD_PANA),gbrick:u(can(16,16,g=>{g.drawImage(tiles.B,0,0);g.drawImage(GOLD_PANA,5,1);})),
     ghidden:u(can(16,16,g=>{g.globalAlpha=0.4;g.drawImage(GOLD_PANA,5,1);g.globalAlpha=1;g.strokeStyle='#ffd23f';g.setLineDash([2,2]);g.strokeRect(0.5,0.5,15,15);})),
     cage:u(draw(32,40,()=>drawCageBars(16,40,false,0))),
@@ -147,6 +149,7 @@ function drawEditOverlay(){
   else if(ED_TILES.includes(e)){const img=e==='D'?(ED.region==='cave'?tiles.D:tiles.G):e==='Z'?tiles.ZG:e==='W'?tiles.WG:e==='Y'?tiles.Yv[0]:e==='M'?tiles.M[0]:e==='H'?({ice:tiles.A,fire:tiles.R}[o.kind]||tiles.M)[0]:tiles[e];if(img)ctx.drawImage(img,X,Y);}
   else if(e==='coin')ctx.drawImage(COIN,X+2,Y+2);
   else if(e==='boy'||e==='man')ctx.drawImage((e==='boy'?BOY:MAN).A.r,X,Y+TS-20);
+  else if(e==='mole')ctx.drawImage(MOLE.A.r,X,Y+TS-20);
   else if(e==='bomb')ctx.drawImage(BOMB.A.r,X,Y+TS-16);
   else if(e==='cp'){const dy=ED.region==='cave'?edStartRow(h.x)*TS-192:0;ctx.fillStyle='#cfd3dc';ctx.fillRect(X+7,146+dy,2,46);ctx.fillStyle='#8a8a9a';ctx.fillRect(X+9,148+dy,12,9);}
   else if(e==='start')ctx.drawImage(TKS.A.r,X,edStartRow(h.x)*TS-16);
