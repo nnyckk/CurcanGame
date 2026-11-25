@@ -10,7 +10,7 @@ function freeze(e){
   const again=e.frozen>0;e.frozen=FREEZE_T;
   if(again)return;   // deja înghețat: doar reîncepe timpul
   e.vx=0;e.slideDir=0;e.slideT=0;e.kickT=0;
-  if(e.type==='man'){e.atk=0;e.alert=0;e.chasing=false;e.puzzled=0;e.lost=0;if(e.mole){e.ph='walk';e.t=0;}}
+  if(e.type==='man'){e.sleep=0;e.wake=0;e.atk=0;e.alert=0;e.chasing=false;e.puzzled=0;e.lost=0;if(e.mole){e.ph='walk';e.t=0;}}
   else{e.lit=0;e.sit=false;}
   for(let i=0;i<8;i++)parts.push({x:e.x+Math.random()*e.w,y:e.y+Math.random()*e.h,vx:(Math.random()-0.5)*0.6,vy:-0.3-Math.random()*0.5,g:0,life:18,max:18,col:i%2?'#ffffff':'#bfe8ff',s:1});
   sfx.freezeHit();

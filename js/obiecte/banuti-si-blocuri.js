@@ -23,6 +23,7 @@ function addCoin(x,y){
 // top = lovit de sus (lovitura în pământ): ce iese din bloc iese pe dedesubt, dacă e loc
 function hitBlock(tx,ty,top){
   const c=tileAt(tx,ty),dn=!!top&&!solid(tileAt(tx,ty+1)),iy=dn?ty*TS+5:ty*TS;
+  noiseAt(tx*TS+8,ty*TS+8,4*TS);   // bufnitura trezește
   if(c==='M'||c==='H'||c==='A'||c==='R'){
     grid[ty][tx]='U';bumps.push({tx,ty,t:0});
     if(c==='M'){parts.push(dn?{type:'coin',x:tx*TS+8,y:(ty+1)*TS+4,vx:0,vy:0.8,g:0.1,life:14,max:14}:{type:'coin',x:tx*TS+8,y:ty*TS-6,vx:0,vy:-3.6,g:0.35,life:16,max:16});addCoin(tx*TS+8,dn?(ty+1)*TS+8:ty*TS);}

@@ -24,13 +24,14 @@ function kickBomb(e,d){
   e.slideDir=d;e.slideT=0;e.dir=d;e.kickT=12;mobSfx(e,'kick');dust(e.x+6,e.y+e.h,2);
 }
 function explode(e){
-  const cx=e.x+6,cy=e.y+6,R=38;booms.push({x:cx,y:cy,t:0});mobSfx(e,'boom');G.shake=Math.round(14*sfxNear(cx));   // departe: tremură mai puțin
+  const cx=e.x+6,cy=e.y+6,R=38;booms.push({x:cx,y:cy,t:0});noiseAt(cx,cy,8*TS);mobSfx(e,'boom');G.shake=Math.round(14*sfxNear(cx));   // departe: tremură mai puțin
   for(let i=0;i<22;i++){const a=Math.random()*TAU,s=1+Math.random()*2.5;parts.push({x:cx,y:cy,vx:Math.cos(a)*s,vy:Math.sin(a)*s-1,g:0.08,life:30+Math.random()*20|0,max:50,col:['#fff3a0','#ffb02a','#ff5a1a','#6a5a62'][i%4],s:3});}
   // Te prinde explozia unei bombe pe care ai așezat-o / împins-o chiar tu
   if(!player.dead){const dx=player.x+player.w/2-cx,dy=player.y+player.h/2-cy;
     if(dx*dx+dy*dy<R*R){if(e.byPlayer&&player.inv<=0&&!G.god&&G.state==='play')achUnlock('autogol');hurt(Math.sign(dx)||1);}}
   for(const o of enemies){if(o===e||o.dead||o.remove||o.sink||moleSafe(o))continue;const dx=o.x+o.w/2-cx,dy=o.y+o.h/2-cy;
     if(dx*dx+dy*dy<R*R){if(o.frozen)shatter(o,300);else if(o.type==='man')killMan(o,2,300);else o.lit=o.lit?Math.min(o.lit,12):12;}}
+  scareBoys(cx,cy);   // ucenicii fug
   // Boss-ul e mare
   if(bossFighting()){const dx=boss.x+boss.w/2-cx,dy=boss.y+boss.h/2-cy;if(dx*dx+dy*dy<(R+14)*(R+14))bossHit(Math.sign(dx)||1);}
   const t0=Math.floor((cy-R)/TS),t1=Math.floor((cy+R)/TS),l0=Math.floor((cx-R)/TS),l1=Math.floor((cx+R)/TS);

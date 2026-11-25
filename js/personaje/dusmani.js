@@ -13,6 +13,7 @@ function drawEnemy(e,cx){
     const S=e.boy?BOY:MAN;
     if(e.dead===1){ctx.drawImage(S.A[e.dir>0?'r':'l'],sx-3,Math.round(e.y+e.h-8),16,8);return;}
     if(e.dead===2){ctx.drawImage(S.FLIP,sx-3,Math.round(e.y-2));return;}
+    if(e.sleep||e.wake){drawSleep(e,sx);return;}
     if(e.atk){
       // Sprite-urile de atac sunt mai late
       const wind=e.atk<=MAN_WIND_T,img=(wind?MAN.WIND:MAN.STAB)[e.dir>0?'r':'l'];
@@ -22,7 +23,7 @@ function drawEnemy(e,cx){
     }
     const f=(e.vx!==0&&(Math.floor(e.anim/7)%2))?'B':'A';
     ctx.drawImage(S[f][e.dir>0?'r':'l'],sx-3,Math.round(e.y-2));
-    if(e.alert>0)txt('!',sx+3,Math.round(e.y-12),'#ff4040',1,'l','#000');
+    if(e.alert>0||e.scared>SCARE_T-45)txt('!',sx+3,Math.round(e.y-12),'#ff4040',1,'l','#000');
     else if(e.puzzled>0)txt('?',sx+3,Math.round(e.y-12),'#ffd23f',1,'l','#000');
   }else{
     if(e.dead){ctx.drawImage(BOMB.FLIP,sx-2,Math.round(e.y-4));return;}   // aruncată de pe ecran

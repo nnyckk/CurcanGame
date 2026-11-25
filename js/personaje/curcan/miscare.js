@@ -48,6 +48,7 @@ function updatePlayer(){
   if(p.onGround)p.walkOff=false;else if(!wasAir&&p.vy>=0)p.walkOff=p.airMax<=WALK+0.01;   // a ieșit de pe margine fără săritură
   if(p.headHit)hitBlock(p.headHit[0],p.headHit[1]);
   if(p.onGround&&wasAir&&vyB>3)dust(p.x+p.w/2,p.y+p.h,4);
+  if(p.onGround&&wasAir&&vyB>5)noiseAt(p.x+p.w/2,p.y+p.h,40);   // aterizarea face zgomot
   // Curcanul de foc: jar din coadă și de pe costum
   if(p.fire&&p.big){const sp=Math.abs(p.vx),rate=sp>2.5?4:sp>0.5?8:14;if(G.t%rate===0)ember();if(p.onGround&&wasAir&&vyB>2)landSparks();}
   if(p.onGround&&Math.abs(p.vx)>0.1)p.anim+=Math.abs(p.vx)*0.22;
@@ -70,7 +71,7 @@ function updatePlayer(){
 // (doar curcanul mare), gheața lacului se sparge pe loc. Dacă n-a mai rămas nimic solid sub el, continuă în jos.
 function poundLand(){
   const p=player;p.pound=0;p.vx=0;
-  G.shake=Math.max(G.shake,6);sfx.pound();
+  G.shake=Math.max(G.shake,6);sfx.pound();noiseAt(p.x+p.w/2,p.y+p.h,5*TS);
   for(const s of [-1,1])for(let i=0;i<4;i++)parts.push({x:p.x+p.w/2+s*(3+i*2),y:p.y+p.h-1,vx:s*(0.8+Math.random()*1.4),vy:-0.5-Math.random()*0.9,g:0.05,life:20,max:20,col:'#efe6d6',s:2});
   // Pământul crăpat de deasupra peșterii se surpă: curcanul continuă în jos, prin gaură
   if(poundHole()){p.pound=-1;p.vy=POUND_VY;p.onGround=false;return;}

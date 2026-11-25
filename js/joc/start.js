@@ -20,6 +20,7 @@ function startLevel(quiet){
   // Mobii puși pe o platformă care se mișcă stau pe ea de la început
   for(const e of enemies){const p=plats.find(p=>Math.abs(p.y-(e.y+e.h))<1&&e.x+e.w>p.x&&e.x<p.x+p.w);if(p)e.plat=p;}
   makeCage(m);   // colivia și cine are cheia
+  sleepInit();   // noaptea, unii fermieri dorm
   coins=m.coins.map(([x,y])=>({x:x*TS+8,y:y*TS+8,taken:false}));G.lvlCoins=0;   // bănuții luați acum
   items=[];parts=[];popups=[];booms=[];bumps=[];feathers=[];
   iceCrack=new Float32Array(cols);iceHole=new Int16Array(cols);iceTouch=new Int32Array(cols);

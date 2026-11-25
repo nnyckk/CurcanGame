@@ -145,7 +145,9 @@ function drawMoleSink(e,cx){
   const off=moleSink(e);if(off>=20)return;
   const sx=Math.round(e.x-cx);if(sx<-24||sx>W+24)return;
   const moving=e.ph==='rise'?off>0:e.t>=MOLE_STRIKES,sh=moving?(e.t>>1)%2:0;
-  ctx.drawImage(MOLE.A[e.dir>0?'r':'l'],sx-3+sh,Math.round(e.y-2)+off);
+  // Tăiată la nivelul solului: se vede și în fața dealurilor din spate
+  const gy=Math.round(e.y+e.h);ctx.save();ctx.beginPath();ctx.rect(sx-8,gy-40,32,40);ctx.clip();
+  ctx.drawImage(MOLE.A[e.dir>0?'r':'l'],sx-3+sh,Math.round(e.y-2)+off);ctx.restore();
 }
 // Gaura din podea și crăpăturile de dinainte de ieșire
 function drawMoleGround(e,cx){

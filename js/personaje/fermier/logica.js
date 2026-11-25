@@ -18,6 +18,7 @@ function updateMan(e){
   if(e.sink){sinkStep(e);return;}
   if(e.frozen){updateFrozen(e);return;}
   if(e.mole){updateMole(e);return;}
+  if(e.sleep||e.wake){updateSleep(e);return;}   // doarme / se trezește
   const dx=(player.x+player.w/2)-(e.x+5),dy=(player.y+player.h)-(e.y+e.h);
   // Chemat de boss: intră pe jos în poiană
   if(e.enter){
@@ -28,8 +29,11 @@ function updateMan(e){
   if(e.cd>0)e.cd--;
   if(e.boy){
     // Ucenicul nu te urmărește și nu atacă
-    e.vx=e.dir*BOY_SPEED;
-    if(e.onGround&&(!groundAhead(e,e.dir)||spikeAhead(e,e.dir))){e.dir*=-1;e.vx=e.dir*BOY_SPEED;}
+    // Speriat: fuge mai repede
+    if(e.scared>0)e.scared--;
+    const bs=e.scared>0?BOY_SPEED*3:BOY_SPEED;
+    e.vx=e.dir*bs;
+    if(e.onGround&&(!groundAhead(e,e.dir)||spikeAhead(e,e.dir))){e.dir*=-1;e.vx=e.dir*bs;}
   }else if(e.atk){
     // Atac cu furca: trage furca înapoi
     e.atk++;e.vx=0;
@@ -49,6 +53,7 @@ function updateMan(e){
     if(see&&theme.night)G.lvlSeen=true;   // te-a văzut un fermier cu felinar
     if(see&&!e.chasing){e.alert=28;e.puzzled=0;if(G.t-G.lastAlert>30){mobSfx(e,'alert');G.lastAlert=G.t;}}
     e.chasing=see;
+    if(napTick(e))return;   // adoarme
     if(e.puzzled>0){e.puzzled--;e.vx=0;if(e.puzzled===35)e.dir*=-1;}
     else if(e.alert>0){e.alert--;e.vx=0;if(Math.abs(dx)>2)e.dir=Math.sign(dx);}
     else if(e.chasing&&!(e.lost>0)&&!e.cd&&e.onGround&&Math.abs(dx)<30&&Math.abs(dy)<12){

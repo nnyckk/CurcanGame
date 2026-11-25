@@ -56,6 +56,8 @@ const sfx={
   ach(){arp([72,76,79,84,88],0.07,0.1,'triangle');arp([84,91],0.16,0.07);},
   alert(){if(!AC)return;const t=AC.currentTime;tone('square',880,t,0.05,0.07,sfxG);tone('square',1175,t+0.06,0.09,0.07,sfxG);},
   windup(){if(!AC)return;tone('triangle',150,AC.currentTime,0.16,0.2,sfxG,110);},
+  snore(){if(!AC)return;const t=AC.currentTime;noise(t,0.7,0.09,sfxG,320,'lowpass');tone('triangle',95,t,0.6,0.08,sfxG,70);},
+  wake(){if(!AC)return;const t=AC.currentTime;tone('square',220,t,0.12,0.09,sfxG,520);tone('square',660,t+0.13,0.1,0.07,sfxG);},
   stab(){if(!AC)return;const t=AC.currentTime;noise(t,0.14,0.22,sfxG,2200);tone('square',240,t,0.1,0.07,sfxG,760);},
   fireUp(){arp([67,71,74,79,74,79,83,86,83,86,91],0.04,0.1);},
   fwip(){if(!AC)return;const t=AC.currentTime;noise(t,0.1,0.12,sfxG,3000);tone('pulse',600,t,0.08,0.07,sfxG,1500);},

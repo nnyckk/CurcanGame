@@ -52,9 +52,10 @@ function updatePlay(){
         if(!e.sit||e.slideDir)sitBomb(e);else kickBomb(e,player.face);
         e.byPlayer=true;sfx.stomp();   // byPlayer: dacă te prinde explozia ei, e AUTOGOL
       }
+      noiseAt(player.x+player.w/2,player.y+player.h,4*TS);
       if(player.combo>=4)achUnlock('combo');   // 4 dușmani la rând
     }else if(e.frozen||(e.type==='bomb'&&e.sit)){pushBomb(e,box);e.byPlayer=true;}   // înghețații nu rănesc: se împing
-    else if(e.type==='man')hurt(Math.sign(player.x-e.x)||1);
+    else if(e.type==='man'&&!e.sleep&&!e.wake)hurt(Math.sign(player.x-e.x)||1);   // cel care doarme nu rănește
   }
   enemies=enemies.filter(e=>!e.remove);
   if(boss){updateBoss();bossArenaBounds();enemies=enemies.filter(e=>!e.remove);}

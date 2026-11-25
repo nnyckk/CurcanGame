@@ -2,7 +2,7 @@
 // ===== SETUP: ecranul, constantele de bază, utilitare =====
 // ?toate: pene, curcani și achievements, toate deblocate (fără să salveze)
 const ALL_OPEN=/[?&]toate\b/.test(location.search);
-const GAME_VERSION='1.2.2';
+const GAME_VERSION='1.2.3';
 // Editorul de niveluri: jocul din editor.html (merge ca modul de test)
 const EDIT=/[?&]edit\b/.test(location.search);
 // Modul de test: arenă de test, comenzi din test.html
