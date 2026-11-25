@@ -11,7 +11,10 @@ function drawNightLights(cx){
     const gr=ctx.createRadialGradient(lx,ly,2,lx,ly,LL);
     gr.addColorStop(0,`rgba(${col},0.3)`);gr.addColorStop(1,`rgba(${col},0)`);
     ctx.globalCompositeOperation='lighter';
-    ctx.fillStyle=gr;ctx.beginPath();ctx.moveTo(lx,ly);ctx.arc(lx,ly,LL,a0-LANTERN_HALF,a0+LANTERN_HALF);ctx.closePath();ctx.fill();
+    ctx.fillStyle=gr;ctx.beginPath();ctx.moveTo(lx,ly);
+    // Conul se oprește la pereți și urmează colțurile
+    for(let i=0;i<=24;i++){const a=a0-LANTERN_HALF+2*LANTERN_HALF*i/24,r=lightRay(l.x,l.y,a,LL);ctx.lineTo(lx+Math.cos(a)*r,ly+Math.sin(a)*r);}
+    ctx.closePath();ctx.fill();
     ctx.globalCompositeOperation='source-over';
     const fl=0.8+0.2*Math.sin(G.t*0.3+e.x);
     // Felinarul și aura lui: nu peste curcan

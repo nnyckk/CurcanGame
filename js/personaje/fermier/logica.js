@@ -58,7 +58,10 @@ function updateMan(e){
       if(e.chasing&&Math.abs(tdx)>6)e.dir=Math.sign(tdx);
       const sp=e.chasing?0.8:0.35;e.vx=e.dir*sp;
       // La marginea unei gropi sau în fața țepilor
-      if(e.onGround&&(!groundAhead(e,e.dir)||spikeAhead(e,e.dir))){if(e.chasing)e.vx=0;else{e.dir*=-1;e.vx=e.dir*sp;}}
+      if(e.onGround&&(!groundAhead(e,e.dir)||spikeAhead(e,e.dir))){
+        // Urmărind, coboară o treaptă de un bloc
+        if(e.chasing&&!spikeAhead(e,e.dir)&&stepDownAhead(e,e.dir)){}
+        else if(e.chasing)e.vx=0;else{e.dir*=-1;e.vx=e.dir*sp;}}
     }
   }
   e.vy=Math.min(e.vy+0.4,7);

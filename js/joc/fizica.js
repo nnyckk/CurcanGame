@@ -41,5 +41,9 @@ function spikeAhead(e,dir){
 // E sol sigur în față?
 function groundAhead(e,dir){const ax=dir>0?e.x+e.w+1:e.x-1,tx=Math.floor(ax/TS),ty=Math.floor((e.y+e.h+2)/TS),c=tileAt(tx,ty);
   return (solid(c)&&c!=='^'&&(c!=='I'||onIce(e)))||ledge(tx,ty)||!!platAt(ax,e.y+e.h+2);}
+// Treaptă de un bloc în jos, sigură?
+function stepDownAhead(e,dir){const ax=dir>0?e.x+e.w+1:e.x-1,tx=Math.floor(ax/TS),ty=Math.floor((e.y+e.h+2)/TS)+1,c=tileAt(tx,ty);
+  if(solid(tileAt(tx,ty-1)))return false;
+  return (solid(c)&&c!=='^'&&c!=='I')||ledge(tx,ty)||!!platAt(ax,e.y+e.h+2+TS);}
 // Platforma din punctul, dacă e vreuna
 function platAt(x,y){for(const p of plats)if(p.solid&&x>=p.x&&x<p.x+p.w&&y>=p.y&&y<=p.y+p.h)return p;return null;}
