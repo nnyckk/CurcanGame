@@ -1,7 +1,7 @@
 'use strict';
 // ===== CAMERA DE SUB PĂMÂNT =====
 // Intri printr-o gaură în sol; ecranul se întunecă și ajungi în peșteră
-let SUB_CEIL=7;const SUB_SHAFT=2,WALK_AIR=2;   // tavanul: setat de fiecare peșteră
+let SUB_CEIL=7;const SUB_SHAFT=2,WALK_AIR=2,EXIT_VX=1.3;   // EXIT_VX: aterizezi la ~1,5 blocuri de groapă   // tavanul: setat de fiecare peșteră
 let under=null;
 const inUnder=()=>!!under&&!!G.inUnder;
 // Cafeneaua sau peștera: nu mai ești pe drumul nivelului
@@ -37,7 +37,8 @@ function subTeleport(){
     cam.x=underCam();
   }else{
     // Pornit din peșteră: găurile se deschid acum, ca după intrare
-    G.inUnder=false;if(!holesOpen()){openHoles();G.underOpen=G.level;}holeBurst(u.x2,true);p.x=u.x2*TS+(SUB_SHAFT*TS-p.w)/2;p.y=12*TS-p.h;p.vy=-6.5;p.vx=1.6;p.face=1;p.pop=20;p.noDrag=true;p.walkOff=false;p.airMax=WALK_AIR;playSong(LEVELS[G.level].song||'main');
+    G.inUnder=false;const hx=G.subAt==='in'?u.x:u.x2;if(!holesOpen()){openHoles();G.underOpen=G.level;holeBurst(hx,true);}   // praf doar prima dată
+    p.x=hx*TS+(SUB_SHAFT*TS-p.w)/2;p.y=12*TS-p.h;const sd=G.subAt==='in'?-1:1;p.vy=-6.5;p.vx=EXIT_VX*sd;p.face=sd;p.pop=20;p.noDrag=true;p.walkOff=false;p.airMax=EXIT_VX;playSong(LEVELS[G.level].song||'main');   // pe intrare: spre stânga
     cam.x=clamp(camX(),0,camMax());
   }
 }
@@ -45,10 +46,12 @@ function subTeleport(){
 function updateUnder(){
   const p=player;if(!under||p.dead||G.subT>0)return;
   if(!G.inUnder){
+    crackCrumbs();   // pământul crăpat se mișcă puțin
     // (pământul crăpat se surpă doar sub lovitura în pământ, vezi poundHole)
     const h=holeUnder(p);if(h&&holesOpen()&&p.y>12*TS)subGo('down',h);return;}
   const c=Math.floor((p.x+p.w/2)/TS);
-  if(c>=under.ex&&c<under.ex+SUB_SHAFT&&p.y<6*TS&&p.vy<0)subGo('up');   // doar când sari în sus, nu când cazi prin puț
+  if(c>=under.ex&&c<under.ex+SUB_SHAFT&&p.y<6*TS&&p.vy<0)subGo('up','out');
+  else if(c>=under.en&&c<under.en+SUB_SHAFT&&p.y<SUB_CEIL*TS&&p.vy<0)subGo('up','in');   // și pe unde ai intrat   // doar când sari în sus, nu când cazi prin puț
   updateCaveLife();
 }
 // ---- Viața din peșteră ----
@@ -291,12 +294,24 @@ function drawCaveLife(cx){
   for(const b of d.bats)drawBat(b,cx);
 }
 // Semnul intrării ascunse: crăpături mici în pământ, sub iarbă și mai jos
+// Fisura mare: [dx, dy, lățime]
+const CRACK_MAIN=[[15,7,2],[15,8,2],[16,9,2],[16,10,2],[15,11,2],[14,12,2],[15,13,2],[16,14,2],[17,15,2],[17,16,2],[16,17,2],[15,18,2],[14,19,2],[15,20,2],[15,21,2],[16,22,2],[17,23,2],[17,24,2],[16,25,2],[16,26,1],[15,27,1],
+  [13,13,1],[12,14,1],[11,15,1],[10,15,1],[19,16,1],[20,17,1],[21,17,1],[22,18,1],[13,20,1],[12,21,1],[11,21,1],[10,22,1],[19,24,1],[20,25,1],[21,26,1]];
+// Din când în când, câteva firișoare de pământ sar din fisură
+function crackCrumbs(){
+  if(holesOpen()||G.t%180!==0)return;const x=under.x*TS;if(x+32<cam.x||x>cam.x+W)return;
+  for(let i=0;i<3;i++)parts.push({x:x+14+Math.random()*6,y:12*TS+1,vx:(Math.random()-0.5)*0.6,vy:-0.5-Math.random()*0.5,g:0.08,life:16,max:16,col:mixHex(theme.dirtD,'#000000',0.3),s:1});
+}
 function drawHoleCracks(cx){
   if(!under||inUnder())return;
   if(holesOpen()){for(const hx of [under.x,under.x2])drawDarkSnow(hx,cx);return;}   // zăpadă sau iarbă întunecată sus în găuri, peste colțuri
   const x=Math.round(under.x*TS-cx),y=12*TS;if(x<-40||x>W+8)return;
-  ctx.fillStyle=mixHex(theme.dirtD,'#000000',0.45);
+  ctx.fillStyle=mixHex(theme.dirtD,'#000000',0.6);
   for(const [dx,dy] of [[9,7],[10,8],[11,8],[12,9],[13,10],[14,10],[15,9],[16,9],[17,10],[18,11],[19,11],[20,10],[21,10],[22,11],[14,11],[14,12],[19,12]])ctx.fillRect(x+dx,y+dy,1,1);
+  // Fisura mare, de 2 px, în zigzag, cu ramuri
+  for(const [dx,dy,w] of CRACK_MAIN)ctx.fillRect(x+dx,y+dy,w,1);
+  ctx.fillStyle=theme.dirtL;for(const [dx,dy] of [[18,8],[17,13],[19,15],[16,19],[19,23]])ctx.fillRect(x+dx,y+dy,1,1);   // relief
+  ctx.fillStyle=mixHex(theme.dirtD,'#000000',0.6);
   // Crăpături mici și câteva mai mari, până jos
   for(const [dx,dy] of [[4,13],[5,14],[6,14],[7,15],[25,14],[26,15],[27,15],[28,16],
     [10,17],[11,17],[12,18],[13,18],[14,19],[15,20],[16,20],[13,19],[13,20],

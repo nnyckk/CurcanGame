@@ -122,8 +122,8 @@ function edPlatWhy(L,p){
     ||(g&&hit({x0:g.x,x1:g.x+(sg?4:11),y0:sg?8:7,y1:13}))||(L.cafe&&hit({x0:L.cafe.x,x1:L.cafe.x+5,y0:6,y1:13})))return 'Platforma trece prin start, checkpoint, final sau cafenea.';
   return '';
 }
-// Găurile peșterii: intrarea (stai pe ea și o spargi) și ieșirea (sari afară spre dreapta)
-function edHoleBox(L,k){const c=L.cave,x=k==='in'?c.x:c.x2;return k==='in'?{x0:x,x1:x+1,y0:9,y1:13}:{x0:x,x1:Math.min(L.w-1,x+3),y0:8,y1:13};}
+// Găurile peșterii: intrarea (o spargi; ieșind pe ea sari spre stânga) și ieșirea (sari afară spre dreapta)
+function edHoleBox(L,k){const c=L.cave,x=k==='in'?c.x:c.x2;return k==='in'?{x0:Math.max(0,x-2),x1:x+1,y0:8,y1:13}:{x0:x,x1:Math.min(L.w-1,x+3),y0:8,y1:13};}
 function edHoleWhy(L,k){
   if(!L.cave)return '';
   const b=edHoleBox(L,k),inB=(x,y)=>x>=b.x0&&x<=b.x1&&y>=b.y0&&y<=b.y1,hit=r=>r.x0<=b.x1&&r.x1>=b.x0&&r.y0<=b.y1&&r.y1>=b.y0;

@@ -41,8 +41,9 @@ function updatePlayer(){
   if(p.pound>0){p.vy=0;if(--p.pound===0){p.pound=-1;p.vy=POUND_VY;}}
   else if(p.pound<0){if(p.vy<0)p.pound=0;else p.vy=POUND_VY;}   // a sărit de pe un dușman: lovitura s-a terminat
   if(!p.pound){
-    let g=p.vy<0?(jh?0.27:0.42):FALL_G;
-    if(jh&&!p.onGround&&Math.abs(p.vy)<APEX_VY&&(p.apex||0)<APEX_T){g=APEX_G;p.apex=(p.apex||0)+1;}   // pauză în vârf
+    const hold=jh&&!p.noDrag;   // ieșirea din peșteră: aceeași săritură mereu
+    let g=p.vy<0?(hold?0.27:0.42):FALL_G;
+    if(hold&&!p.onGround&&Math.abs(p.vy)<APEX_VY&&(p.apex||0)<APEX_T){g=APEX_G;p.apex=(p.apex||0)+1;}   // pauză în vârf
     p.vy=Math.min(p.vy+g,MAX_FALL);
     if(p.pop>0)p.pop--;else if(!jh&&p.vy<-3.5)p.vy=-3.5;   // pop: sare singur din gaura peșterii
   }
