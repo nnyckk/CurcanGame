@@ -9,6 +9,8 @@ function killMan(e,mode,pts){
   if(mode===2){e.vy=-4.5;e.vx=(Math.random()<0.5?-1:1)*1.2;}
   addScore(e.boy?pts/2:pts,e.x+5,e.y-4);
 }
+// În peșteră e mereu întuneric
+const darkFor=e=>!!theme.night||(!!under&&e.x>=under.a*TS);
 function updateMan(e){
   if(e.dead){e.deadT--;
     if(e.dead===2){e.vy+=0.35;e.y+=e.vy;e.x+=e.vx;
@@ -45,7 +47,7 @@ function updateMan(e){
   }else{
     // Ziua te vede de departe
     let see,tdx=dx;
-    if(theme.night){
+    if(darkFor(e)){   // noaptea sau în peșteră: doar felinarul vede
       if(!player.dead&&lanternSees(e)){see=true;e.lastX=player.x+player.w/2;e.lost=0;}
       else if(e.chasing){e.lost=(e.lost||0)+1;tdx=e.lastX-(e.x+5);see=e.lost<LOST_T&&Math.abs(tdx)>6;if(!see)e.puzzled=70;}
       else see=false;

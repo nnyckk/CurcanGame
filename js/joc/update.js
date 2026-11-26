@@ -41,7 +41,7 @@ function updatePlay(){
     if(G.state!=='play')break;
   }
   if(G.state==='play')for(const e of enemies){
-    if(!e.active||e.dead||e.remove||e.sink||player.dead||offstage(e)||(e.mole&&moleHidden(e)))continue;   // cârtița sub pământ: nu se atinge
+    if(!e.active||e.dead||e.remove||e.sink||player.dead||offstage(e)||(e.mole&&moleUnder(e)))continue;   // cârtița mai mult de jumătate în pământ: nu se atinge
     const box=e.sit?{x:e.x-BOMB_PUSH_PAD,y:e.y,w:e.w+BOMB_PUSH_PAD*2,h:e.h}:e;
     if(!overlap(player,box))continue;
     const stomp=player.vy>0&&(player.y+player.h-e.y)<=Math.max(8,player.vy+3);

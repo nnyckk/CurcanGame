@@ -56,7 +56,8 @@ function updateUnder(){
 }
 // ---- Viața din peșteră ----
 // Unde se termină tavanul / unde începe podeaua, pe coloana tx
-const ceilY=tx=>{let y=SUB_CEIL;while(y<12&&grid[y][tx]==='D')y++;return y*TS;};
+// Tavanul: sub cea mai de sus bucată de pământ sau piatră
+const ceilY=tx=>{let y='DX'.includes(grid[0][tx])?0:SUB_CEIL;while(y<12&&'DX'.includes(grid[y][tx]))y++;return y*TS;};
 const floorY=tx=>{let y=ceilY(tx)/TS;while(y<12&&!'DX'.includes(grid[y][tx]))y++;return y*TS;};
 function caveDeco(){
   const u=under;if(u.deco)return u.deco;
@@ -73,6 +74,9 @@ function caveDeco(){
     if(nearBlock&&!falls.includes(tx))continue;
     if(falls.includes(tx)){}   // țurțurele care cade: mai jos
     else if(h%3===0||overPool)d.tites.push({x:tx*TS+1+(h>>>3)%8,y:cy,len:Math.min(10+(h>>>7)%13,room),w:4+(h>>>11)%5,pool:overPool?d.pools[pi]:null});
+    // Și sub platformele de pământ din mijlocul peșterii
+    for(let y=cy/TS+1;y<12;y++){if(!'DX'.includes(grid[y-1][tx])||grid[y][tx]!=='.')continue;const k=vhash(tx,77+y);if(k%3)continue;
+      let f=y;while(f<12&&grid[f][tx]==='.')f++;const rm=(f-y)*TS-2;if(rm>=8)d.tites.push({x:tx*TS+1+(k>>>3)%8,y:y*TS,len:Math.min(8+(k>>>7)%9,rm),w:4+(k>>>11)%4,pool:null});}
     if(grid[12][tx]!=='D'){if(grid[12][tx]==='.'&&grid[13][tx]==='.')d.pit.push(tx);continue;}   // groapa cu țepi de piatră: doar unde e gaură în podea
     if(h%3===1&&grid[11][tx]==='.'&&!overPool)d.mites.push({x:tx*TS+1+(h>>>13)%8,y:floorY(tx),len:8+(h>>>15)%9,w:4+(h>>>17)%4});
     if(h%9===4&&!overPool)d.shrooms.push({x:tx*TS+4+(h>>>19)%7,y:floorY(tx)});
