@@ -173,7 +173,8 @@ function pick(x,y){
   const p=hitPlat(x,y);if(p)return p.w>1&&x===p.x+p.w-1?{k:'pwidth',o:p}:{k:'plat',o:p,dx:x-p.x};
   if(hitCage(x,y))return {k:'cage'};
   if(hitCp(x,y))return {k:'cp',v:x};
-  if(!inMain()){if(L.cstart===x){const sr=startRow(x,z);if(y>=sr-1&&y<=sr)return {k:'start'};}return null;}
+  if(!inMain()){for(const k of ['in','out']){const H=z[k+'H']||6;if(x>=z[k]&&x<=z[k]+1&&y===H-1)return {k:'shaft',s:k};}   // mânerul puțului
+    if(L.cstart===x){const sr=startRow(x,z);if(y>=sr-1&&y<=sr)return {k:'start'};}return null;}
   if(L.cstart==null){const sr=startRow(L.start);if(x===L.start&&y>=sr-1&&y<=sr)return {k:'start'};}
   const h=hitHole(x,y);if(h)return {k:'hole',h};
   if(hitCafe(x,y))return {k:'cafe',dx:x-L.cafe.x};
@@ -181,6 +182,7 @@ function pick(x,y){
   return null;
 }
 function moveTo(d,x,y){
+  if(d.k==='shaft'){const z=zone(),H=Math.max(1,Math.min(6,y+1));if(z[d.s+'H']===H)return false;z[d.s+'H']=H;return true;}
   if(d.k==='cage')return moveTo0(d,x,y);
   if(!inMain()){const c=L.cave,bad=()=>[c.cage?edCageWhy(c,c.cage.x,c.cage.y):'',...c.plats.map(p=>edPlatWhy(c,p))],was=bad(),keep=d.o?(Array.isArray(d.o)?d.o.slice():{...d.o}):null,cs=L.cstart,cc=c.cps.slice(),cv0=d.v;
     if(!moveTo0(d,x,y))return false;
@@ -720,7 +722,7 @@ const DESC={D:'Pământ. Iarba, marginile și colțurile se pun singure.',Z:'Dea
   W:'Deal și mai din spate. Se pune după cele din față.',Y:'Pasaj prin deal: scobit în pământ, treci prin el.',X:'Piatră: bloc tare, pentru trepte.',
   I:'Gheață peste apă, pe rândul solului. Crapă dacă stai pe ea.',water:'Groapă cu apă: scoate solul din toată coloana.',
   '^':'Țepi: te rănesc dacă sari pe ei.','=':'Scândură: stai pe ea, treci prin ea de dedesubt.',B:'Cărămidă: o spargi doar când ești mare.',
-  M:'Bloc M: lovit de dedesubt, dă un bănuț.',H:'Bloc cu putere: dă grăunte, boabă de foc sau afină de gheață.',coin:'Bănuț în aer. La 50 primești o viață.',
+  M:'Bloc M: lovit de dedesubt, dă un bănuț.',H:'Bloc cu putere: dă grăunte, boabă de foc sau afină de gheață.',coin:'Bănuț în aer. La 100 primești o viață.',
   cp:'Checkpoint: dacă mori, reapari aici.',start:'De aici pornește curcanul.',gopen:'Pană de aur la vedere, greu de luat.',
   gbrick:'Pană de aur într-o cărămidă: iese când o spargi.',ghidden:'Pană de aur într-un bloc invizibil: apare când îl lovești.',
   cage:'Colivia cu un curcan prins. Cheia o are un ucenic sau un fermier.',sign:'Semnul de final: treci de el și termini nivelul.',
@@ -730,7 +732,7 @@ const DESC={D:'Pământ. Iarba, marginile și colțurile se pun singure.',Z:'Dea
   mole:'Cârtița miner (în peșteră sau, noaptea, afară): dacă te prinde lanterna ei, se bagă în pământ și iese lângă tine. Te lovește cu târnăcopul. O învingi sărindu-i în cap doar cât e afară.',
   cavein:'Intrarea în peșteră: pământ crăpat, îl spargi cu săritură + ↓.',caveout:'Ieșirea din peșteră, la suprafață.',
   gem:'Cristal: pe podeaua de sub click, în tavan (click chiar sub tavan) sau, lângă pereți, în perete. Cu Pointerul îi schimbi mărimea și culoarea.',bat:'Liliac: atârnă de tavan și zboară când treci.',icicle:'Țurțure: cade când treci pe sub el.',
-  pool:'Baltă pe podeaua peșterii. Tragi cât de lată o vrei; pot fi oricâte.',cin:'Puțul prin care cazi în peșteră. Lasă-l liber deasupra.',
+  pool:'Baltă pe podeaua peșterii. Tragi cât de lată o vrei; pot fi oricâte.',cin:'Puțul prin care cazi în peșteră. Lasă-l liber deasupra. Cu Pointer tragi mânerul de jos ca să-l faci mai scurt.',
   cout:'Puțul prin care ieși: sari în el de dedesubt. Lasă-l liber deasupra.'};
 const propsBox=$('#propsEl');
 // Ce schimbi: obiectul ales sau setările pentru cele noi
@@ -908,7 +910,7 @@ function drawMap(){
     for(const p of z.pools)cell(p[0],p[2]-0.4,p[1]-p[0]+1,0.4,'#4a8ad0');
     if(z.cage)cell(z.cage.x,z.cage.y-2.4,1,2.4,'#c8cedc');
     for(const c of z.cps){const r=startRow(c,z);cell(c+0.45,r-3.5,0.1,3.5,'#cfd3dc');cell(c+0.55,r-3.5,0.6,0.5,'#ffcf40');}
-    cell(z.in,0,2,0.6,'#9fe8ff');cell(z.out,0,2,0.6,'#7fff7f');}
+    cell(z.in,0,2,(z.inH||6)*0.1,'#9fe8ff');cell(z.out,0,2,(z.outH||6)*0.1,'#7fff7f');}
   else{
     for(const c of L.cps){cell(c+0.45,8.5,0.1,3.5,'#cfd3dc');cell(c+0.55,8.5,0.6,0.5,'#ffcf40');}
     for(const p of z.plats){cell(p.x,p.y,p.w,0.45,p.kind==='fall'?'#9a7046':'#e0a050');if(p.kind==='move'){mg.globalAlpha=0.35;if(p.ax==='x')cell(p.x+p.w,p.y,p.range,0.45,'#e0a050');else cell(p.x,p.y,p.w,p.range,'#e0a050');mg.globalAlpha=1;}}

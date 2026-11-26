@@ -8,7 +8,7 @@ const inUnder=()=>!!under&&!!G.inUnder;
 const inRoom=()=>inCafe()||inUnder();
 // Peștera: x, x2 = găurile din sol; a = prima coloană a camerei; w = lățimea
 function makeUnder(d){SUB_CEIL=(d.opt&&d.opt.ceil)||7;const o=d.opt||{};
-  const u={x:d.x,x2:d.x2,a:d.a,w:d.w,opt:d.opt,ex:d.a+(Number.isInteger(o.out)?o.out:d.w-4),en:d.a+(Number.isInteger(o.in)?o.in:2)};   // ex = puțul de ieșire, en = unde cazi
+  const u={x:d.x,x2:d.x2,a:d.a,w:d.w,opt:d.opt,ex:d.a+(Number.isInteger(o.out)?o.out:d.w-4),en:d.a+(Number.isInteger(o.in)?o.in:2),exH:o.outH||6,enH:o.inH||0};   // exH/enH: înălțimea puțurilor   // ex = puțul de ieșire, en = unde cazi
   if(G.underOpen===G.level)openHoles(u);return u;}
 // Găurile sunt ascunse până le folosești prima dată; apoi rămân deschise în nivelul ăsta
 const holesOpen=()=>!!under&&grid[12][under.x]==='Y';
@@ -50,8 +50,8 @@ function updateUnder(){
     // (pământul crăpat se surpă doar sub lovitura în pământ, vezi poundHole)
     const h=holeUnder(p);if(h&&holesOpen()&&p.y>12*TS)subGo('down',h);return;}
   const c=Math.floor((p.x+p.w/2)/TS);
-  if(c>=under.ex&&c<under.ex+SUB_SHAFT&&p.y<6*TS&&p.vy<0)subGo('up','out');
-  else if(c>=under.en&&c<under.en+SUB_SHAFT&&p.y<SUB_CEIL*TS&&p.vy<0)subGo('up','in');   // și pe unde ai intrat   // doar când sari în sus, nu când cazi prin puț
+  if(c>=under.ex&&c<under.ex+SUB_SHAFT&&p.y<under.exH*TS&&p.vy<0)subGo('up','out');
+  else if(c>=under.en&&c<under.en+SUB_SHAFT&&p.y<(under.enH||SUB_CEIL)*TS&&p.vy<0)subGo('up','in');   // și pe unde ai intrat   // doar când sari în sus, nu când cazi prin puț
   updateCaveLife();
 }
 // ---- Viața din peșteră ----

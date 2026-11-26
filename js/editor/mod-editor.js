@@ -125,8 +125,10 @@ function drawEditOverlay(){
       ctx.fillStyle='#14121c';ctx.fillRect(hx-3,hy-3,7,7);ctx.fillStyle='#ffd23f';ctx.fillRect(hx-2,hy-2,5,5);ctx.fillStyle='#14121c';ctx.fillRect(hx,hy,1,1);}
     ctx.globalAlpha=1;}
   // În cameră: puțul în care cazi și cel prin care ieși
-  if(!main&&under)for(const [sx,s,col] of [[under.en,'AICI CAZI','#9fe8ff'],[under.ex,'IEȘIRE','#7fff7f']]){const x=sx*TS-cx;
-    ctx.strokeStyle=col;ctx.setLineDash([3,2]);ctx.strokeRect(x+0.5,0.5,SUB_SHAFT*TS-1,6*TS-1);ctx.setLineDash([]);edLabel(s,x+TS,6*TS+4,col);}
+  if(!main&&under){const o=under.opt||{};for(const [sx,s,col,H] of [[under.en,'AICI CAZI','#9fe8ff',o.inH||6],[under.ex,'IEȘIRE','#7fff7f',o.outH||6]]){const x=sx*TS-cx;
+    ctx.strokeStyle=col;ctx.setLineDash([3,2]);ctx.strokeRect(x+0.5,0.5,SUB_SHAFT*TS-1,H*TS-1);ctx.setLineDash([]);edLabel(s,x+TS,H*TS+4,col);
+    // mânerul: tras în sus/jos schimbă înălțimea
+    const hx=x+TS,hy=H*TS-2;ctx.fillStyle='#14121c';ctx.fillRect(hx-5,hy-2,11,5);ctx.fillStyle=col;ctx.fillRect(hx-4,hy-1,9,3);}}
   // Bucata aleasă (Mutare) și obiectul arătat (Pointer)
   {const za=edZone().a,R=(r,col,dash)=>{if(!r)return;ctx.strokeStyle=col;ctx.lineWidth=1;ctx.setLineDash(dash?[3,2]:[]);
     ctx.strokeRect((r.x0+za)*TS-cx+0.5,r.y0*TS+0.5,(r.x1-r.x0+1)*TS-1,(r.y1-r.y0+1)*TS-1);ctx.setLineDash([]);};

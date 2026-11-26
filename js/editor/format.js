@@ -65,7 +65,7 @@ function edNorm(L){
   const c=L.cave;o.cave=null;o.cstart=null;
   if(c&&inX(c.x)&&inX(c.x2)){
     const cw=edInt(c.w,ED_CAVE_MIN,ED_CAVE_MAX,30),cx=x=>Number.isInteger(x)&&x>=0&&x<cw,rng=r=>Array.isArray(r)&&cx(r[0])&&cx(r[1])&&r[0]<=r[1]?[r[0],r[1]]:null;
-    const cv={v:2,x:c.x,x2:c.x2,w:cw,in:edInt(c.in,1,cw-3,2),out:edInt(c.out,1,cw-3,cw-4)};
+    const cv={v:2,x:c.x,x2:c.x2,w:cw,in:edInt(c.in,1,cw-3,2),out:edInt(c.out,1,cw-3,cw-4),inH:edInt(c.inH,1,6,6),outH:edInt(c.outH,1,6,6)};   // inH/outH: cât de înalt e puțul
     if(c.v===2)cv.grid=edRows(c.grid,cw,()=>'.');
     else{   // peștera de dinainte: forma de pornire, cu ce desenaseși peste ea
       cv.grid=edCaveBase(cw,edInt(c.ceil,4,7,4));const old=edRows(c.grid,cw,()=>'.');
@@ -99,7 +99,7 @@ function edCageWhy(L,x,y){
   for(let r=b.y0;r<=b.y1;r++)for(let i=b.x0;i<=b.x1;i++)if((ED_CAGE_GROUND+'^').includes(L.grid[r][i]))return 'Colivia are nevoie de loc liber: curcanul sare afară prin stânga.';
   const busy=L.coins.some(c=>inB(c[0],c[1]))||L.ents.some(m=>inB(m.x,m.y)||inB(m.x,m.y-1))||L.golds.some(g=>inB(g.x,g.y))
     ||L.plats.some(p=>{const mv=p.kind==='move',mx=mv&&p.ax==='x'?p.range:0,my=mv&&p.ax==='y'?p.range:0;return cols(p.x,p.w+mx)&&p.y<=b.y1&&p.y+my>=b.y0;})
-    ||(L.cps||[]).some(c=>cols(c,1))||cols(L.start,1)||(Number.isInteger(L.in)&&b.y0<=5&&(cols(L.in,2)||cols(L.out,2)))||(L.cave&&['in','out'].some(k=>{const r=edHoleBox(L,k);return r.x0<=b.x1&&r.x1>=b.x0&&r.y0<=y&&r.y1>=b.y0;}))
+    ||(L.cps||[]).some(c=>cols(c,1))||cols(L.start,1)||(Number.isInteger(L.in)&&((b.y0<(L.inH||6)&&cols(L.in,2))||(b.y0<(L.outH||6)&&cols(L.out,2))))||(L.cave&&['in','out'].some(k=>{const r=edHoleBox(L,k);return r.x0<=b.x1&&r.x1>=b.x0&&r.y0<=y&&r.y1>=b.y0;}))
     ||(L.goal&&cols(L.goal.x,L.goal.type==='sign'?5:12))||(L.cafe&&cols(L.cafe.x,6));
   return busy?'Lângă colivie trebuie să fie liber: fără bănuți, inamici, platforme sau alte obiecte.':'';
 }
@@ -117,7 +117,7 @@ function edPlatWhy(L,p){
   if(L.cave&&(hit(edHoleBox(L,'in'))||hit(edHoleBox(L,'out'))))return 'Platforma blochează intrarea sau ieșirea peșterii.';
   let sr=12;if(Number.isInteger(L.start))while(sr>0&&'DBMHXI^'.includes(L.grid[sr-1][L.start]))sr--;
   const g=L.goal,sg=g&&g.type==='sign';
-  if(Number.isInteger(L.in)&&(hit({x0:L.in,x1:L.in+1,y0:0,y1:5})||hit({x0:L.out,x1:L.out+1,y0:0,y1:5})))return 'Platforma blochează puțul peșterii.';
+  if(Number.isInteger(L.in)&&(hit({x0:L.in,x1:L.in+1,y0:0,y1:(L.inH||6)-1})||hit({x0:L.out,x1:L.out+1,y0:0,y1:(L.outH||6)-1})))return 'Platforma blochează puțul peșterii.';
   if(hit({x0:L.start,x1:L.start,y0:sr-1,y1:sr})||(L.cps||[]).some(c=>hit({x0:c,x1:c,y0:9,y1:13}))
     ||(g&&hit({x0:g.x,x1:g.x+(sg?4:11),y0:sg?8:7,y1:13}))||(L.cafe&&hit({x0:L.cafe.x,x1:L.cafe.x+5,y0:6,y1:13})))return 'Platforma trece prin start, checkpoint, final sau cafenea.';
   return '';
@@ -151,7 +151,7 @@ function customBuild(L){
     put(cv.grid,a);
     // Tavanul: cel mai de sus rând fără pământ, pe coloanele camerei (fără puțuri)
     let ceil=12;for(let x=1;x<cv.w-1;x++){if((x>=cv.in&&x<cv.in+2)||(x>=cv.out&&x<cv.out+2))continue;let y=0;while(y<12&&cv.grid[y][x]==='D')y++;ceil=Math.min(ceil,y);}
-    m.underDef={x:cv.x,x2:cv.x2,a,w:cv.w,opt:{ceil:Math.max(2,Math.min(7,ceil)),gems:cv.gems,bats:cv.bats,fall:cv.fall,pools:cv.pools,in:cv.in,out:cv.out}};
+    m.underDef={x:cv.x,x2:cv.x2,a,w:cv.w,opt:{ceil:Math.max(2,Math.min(7,ceil)),gems:cv.gems,bats:cv.bats,fall:cv.fall,pools:cv.pools,in:cv.in,out:cv.out,inH:cv.inH,outH:cv.outH}};
     objs(cv,a);plats(cv.plats,a);for(const x of cv.cps)m.cp(a+x);if(cv.cage)m.colivie(a+cv.cage.x,cv.cage.y);}
   if(L.cafe)m.cafe(L.cafe.x,ca,L.cafe.game);
   return m.done();
