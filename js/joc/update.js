@@ -1,8 +1,12 @@
 'use strict';
 // ===== UPDATE: un cadru de joc =====
+// Camera arată mai mult în fața curcanului, oriunde se uită
+const CAM_LOOK=44;
+const camX=()=>player.x+player.w/2-W/2+(cam.look||0);
 function updateCam(){
+  cam.look=(cam.look||0)+(player.face*CAM_LOOK-(cam.look||0))*0.0558;
   // În lupta cu boss-ul, camera stă pe poiană
-  const target=boss&&boss.lock?boss.a0-TS:inCafe()?cafe.a*TS+CAFE_CAMX:inUnder()?underCam():clamp(player.x+player.w/2-W*0.42,0,camMax());
+  const target=boss&&boss.lock?boss.a0-TS:inCafe()?cafe.a*TS+CAFE_CAMX:inUnder()?underCam():clamp(camX(),0,camMax());
   cam.x+=(target-cam.x)*0.18;
 }
 function updatePlay(){
@@ -43,7 +47,7 @@ function updatePlay(){
     const stomp=player.vy>0&&(player.y+player.h-e.y)<=Math.max(8,player.vy+3);
     if(stomp&&e.mole&&!moleOut(e)){player.y=e.y-player.h;player.vy=-4.3;sfx.bump();continue;}   // cât intră/iese: săritura doar te respinge
     if(stomp){
-      player.y=e.y-player.h;player.vy=inJump()?-6.6:-4.3;
+      player.y=e.y-player.h;player.vy=inJump()||player.jbuf>0?-6.6:-4.3;player.jbuf=0;
       // Înghețat: săritura în cap sparge gheața cu el
       if(e.frozen){shatter(e,[200,400,800,1600,3200][Math.min(player.combo,4)]);player.combo++;}
       else if(e.type==='man'){killMan(e,1,[200,400,800,1600,3200][Math.min(player.combo,4)]);player.combo++;sfx.stomp();}

@@ -3,8 +3,8 @@
 const SLEEP_P=1/3,NAP_T=1200,WAKE_T=30,SCARE_T=120,SLEEP_LIGHT=30,SLEEP_SENSE=28,SLEEP_SUS=45;
 // Stă jos, rezemat de furcă, pălăria pe ochi
 const MAN_SLEEP=spr([
-"..........g.g.g.",
-"..........ggggg.",
+"...........g.g.g",
+"...........ggggg",
 "....kkkkk....f..",
 "...kHHHHHk...f..",
 "...kRRRRRk...f..",

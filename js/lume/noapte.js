@@ -8,7 +8,7 @@ function drawNightLights(cx){
     const l=lanternPos(e),lx=Math.round(l.x-cx),ly=Math.round(l.y),LL=lanternLen(e);
     if(lx<-LL||lx>W+LL)continue;
     const hot=e.chasing||(e.mole&&e.alert>0),   // te-a văzut: sursa e roșie
-      col=e.mole?(hot?'255,115,100':'255,220,130'):hot?'255,150,90':'255,220,130',   // cârtița: roșie
+      col=hot?'255,150,90':'255,220,130',   // la fel pentru toți
       a0=e.dir>0?lanternTilt(e):Math.PI-lanternTilt(e);
     const gr=ctx.createRadialGradient(lx,ly,2,lx,ly,LL);
     gr.addColorStop(0,`rgba(${col},0.25)`);gr.addColorStop(1,`rgba(${col},0)`);

@@ -36,7 +36,7 @@ function startLevel(quiet){
   player={x:sx,y:gy*TS-(big?20:13),w:big?12:10,h:big?20:13,big,fire:big&&!!G.carryFire,ice:big&&!!G.carryIce,vx:0,vy:0,face:1,onGround:false,coyote:0,jbuf:0,inv:0,anim:0,combo:0,dead:false,alpha:1};
   G.growT=0;
   G.time=300;G.frame=0;G.paused=false;G.tally=0;
-  cam.x=clamp(player.x-W*0.4,0,cols*TS-W);
+  cam.look=player.face*CAM_LOOK;cam.x=clamp(camX(),0,cols*TS-W);
   if(atCp&&inCaveX(G.cp.x)){G.inUnder=true;cam.x=underCam();}   // checkpointul din peșteră
   // Startul din peșteră (nivelul din editor)
   if(!atCp&&def.startCave!=null&&under){G.inUnder=true;player.x=(under.a+def.startCave)*TS+3;

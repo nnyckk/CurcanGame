@@ -58,11 +58,10 @@ function pix(name){
 const fillPx=root=>root.querySelectorAll('[data-px]').forEach(el=>{el.outerHTML=pix(el.dataset.px);});
 
 // ---- Uneltele și elementele ----
-const MODES=[{id:'pointer',name:'Pointer',k:'P',d:'Click pe orice ca să vezi ce e și să-i schimbi setările.'},
+const MODES=[{id:'pointer',name:'Pointer',k:'V',px:'move',d:'Click pe orice ca să vezi ce e și să-i schimbi setările. Tragi ca să muți obiecte sau blocuri; pentru o bucată întreagă, tragi întâi un dreptunghi pe un loc gol.'},
   {id:'paint',name:'Pensulă',k:'B',d:'Click pune elementul ales; trage ca să desenezi.'},
   {id:'rect',name:'Dreptunghi',k:'R',d:'Tragi un dreptunghi și se umple. Cu click dreapta se golește.'},
   {id:'erase',name:'Gumă',k:'E',d:'Șterge ce e sub cursor. Click dreapta șterge cu orice unealtă.'},
-  {id:'move',name:'Mutare',k:'V',d:'Tragi obiecte sau blocuri. Pentru o bucată întreagă, tragi întâi un dreptunghi pe un loc gol.'},
   {id:'pick',name:'Pipetă',k:'I',d:'Click pe ceva din nivel și devine elementul pensulei.'}];
 // g = grupa din panou; px = iconiță din panou (altfel vine din joc)
 const ELS=[
@@ -109,7 +108,7 @@ const CAFE_GAMES=[{id:'slot',name:'Blocul-slot',px:'slot',d:'Dai cu capul în bl
   {id:'hotcold',name:'Cald sau rece',px:'temp',d:'Vine în curând.',soon:true}];
 const GEM_SZ=['Mic','Mijlociu','Mare'],GEM_CN=['Mov','Albastru','Verde'];
 const gemSC=g=>g[0]==='L'||g[0]==='R'?[g[2],g[3]]:[g[3],g[4]];
-$('#modes').innerHTML=MODES.map(m=>`<button class="mode" data-mode="${m.id}" data-tip="${m.name}|${m.k}|${m.d}"><i data-px="${m.id}"></i>${m.name}<kbd>${m.k}</kbd></button>`).join('');
+$('#modes').innerHTML=MODES.map(m=>`<button class="mode" data-mode="${m.id}" data-tip="${m.name}|${m.k}|${m.d}"><i data-px="${m.px||m.id}"></i>${m.name}<kbd>${m.k}</kbd></button>`).join('');
 $('#cats').innerHTML=CATS.map(c=>`<button class="cat" role="tab" data-cat="${c.id}" data-tip="${c.name}||${c.tip}"><span class="ci">${c.px?`<i data-px="${c.px}"></i>`:`<img data-cicon="${c.icon}" alt="">`}</span>${c.name}</button>`).join('');
 for(const box of $$('.els'))box.innerHTML=ELS.filter(e=>e.g===box.dataset.group).map(e=>
   `<button class="el" data-el="${e.id}"><span class="ic">${e.px?`<i data-px="${e.px}"></i>`:`<img data-icon="${e.icon||e.id}" alt="">`}</span>${e.name}</button>`).join('');
@@ -121,7 +120,7 @@ let L=null;
 try{const s=localStorage.getItem(DRAFT);if(s)L=edNorm(JSON.parse(s));}catch(e){}
 if(!L)L=edNewLevel();
 let undo=[],redo=[],pending=null,region='main',sel=null,insp=null;   // insp: ce arată Pointerul   // sel: platforma sau colivia aleasă
-let tool={mode:'paint',el:'D'},view={cam:0,view:25,cols:L.w,state:'edit'},playing=false,hover=null,THEME=null,ICONS={};
+let tool={mode:'pointer',el:'D'},view={cam:0,view:25,cols:L.w,state:'edit'},playing=false,hover=null,THEME=null,ICONS={};
 // O acțiune nouă: ce era înainte intră în istoria de anulare, la prima schimbare
 const begin=()=>{pending=JSON.stringify(L);};
 function commit(){
@@ -403,21 +402,24 @@ function marks(){
   let hi=null;
   if(sel&&sel.k==='plat'&&zone().plats.includes(sel.o)){const p=sel.o;hi={x0:p.x,y0:p.y,x1:p.x+p.w-1,y1:p.y};}
   else if(sel&&sel.k==='cage'&&zone().cage){const c=zone().cage;hi={x0:c.x,y0:c.y-3,x1:c.x,y1:c.y-1};}
-  send('edMarks',{sel:selR,hi:tool.mode==='pointer'||tool.mode==='move'?hi:null});
+  send('edMarks',{sel:selR,hi:tool.mode==='pointer'?hi:null});
 }
 function clearSel(){if(selR||marq){selR=null;marq=null;marks();}}
 function delSel(){if(!selR||playing)return;begin();cutR(selR);selR=null;marks();commit();}
+// Pointer: cursorul de mutare peste ce se poate trage
+function ptrCursor(p){let c='';
+  if(!playing&&tool.mode==='pointer'&&(p.r||'main')===region&&p.x>=0&&p.y>=0){const z=zone();if(pick(p.x,p.y)||inR(selR,p.x,p.y)||(z.grid[p.y]&&z.grid[p.y][p.x]!=='.'))c='move';}
+  try{frame.contentDocument.body.style.cursor=c;}catch(e){}}
 function onPtr(p){
-  hover=p;showPos();
+  hover=p;showPos();ptrCursor(p);
   if(playing||p.t==='hover'||(p.r||'main')!==region){drawMap();return;}
   const erase=p.b===2||tool.mode==='erase';
-  if(tool.mode==='pointer'&&!erase){if(p.t==='down')pointAt(p.x,p.y);return;}
   if(tool.mode==='pick'&&!erase){if(p.t==='down')pickAt(p.x,p.y);return;}
-  if(tool.mode==='move'&&!erase){
-    if(p.t==='down'){begin();
+  // Pointer: arată ce e și, tras, mută
+  if(tool.mode==='pointer'&&!erase){
+    if(p.t==='down'){begin();pointAt(p.x,p.y);
       if(inR(selR,p.x,p.y)){startChunk(p.x,p.y);return;}
       drag=pick(p.x,p.y);
-      sel=drag&&['plat','pwidth','range'].includes(drag.k)?{k:'plat',o:drag.o}:drag&&drag.k==='cage'?{k:'cage'}:drag&&drag.k==='cafe'?{k:'cafe'}:null;
       if(drag){selR=null;marks();drawProps();return;}
       if(zone().grid[p.y][p.x]!=='.'){selR={x0:p.x,y0:p.y,x1:p.x,y1:p.y};startChunk(p.x,p.y);return;}   // un bloc / o bucată: o apuci direct
       selR=null;marq={x:p.x,y:p.y};marks();drawProps();return;}
@@ -437,7 +439,6 @@ function onPtr(p){
     if(applyAt(p.x,p.y,erase,true))commit();
     return;}
   if(p.t==='move'){
-    if(tool.mode==='move'&&!erase){if(drag&&moveTo(drag,p.x,p.y))commit();return;}
     if(tool.mode==='rect')return;
     if(last&&line(last,p,(x,y)=>applyAt(x,y,erase,false)))commit();
     last={x:p.x,y:p.y};return;}
@@ -770,7 +771,7 @@ function drawProps(){
     h+=`<p class="ictx">${t.live?`Colivia pusă · coloana ${anyCage().x}${L.cage?'':' (în peșteră)'}`:'Pentru colivia pe care o pui'}</p><div class="capts">`+CAPT_NAMES.map((n,i)=>
       `<button class="capt" data-capt="${i}" aria-pressed="${(o.capt|0)===i}" title="${n}">${ICONS.capt&&ICONS.capt[i]?`<img src="${ICONS.capt[i]}" alt="">`:''}<span>${n}</span></button>`).join('')+'</div>';
   }
-  h+='</section><section><p class="hint">Cu <b>Pointer (P)</b> dai click pe orice ca să vezi ce e; la platforme și la colivie îi schimbi setările aici. Cu <b>Mutare (V)</b> tragi orice: obiecte, blocuri sau o bucată întreagă (tragi întâi un dreptunghi pe un loc gol). <b>Delete</b> șterge bucata aleasă, <b>Esc</b> o lasă.</p></section>';
+  h+='</section><section><p class="hint">Cu <b>Pointer (V)</b> dai click pe orice ca să vezi ce e; la platforme și la colivie îi schimbi setările aici. Tot cu el tragi orice: obiecte, blocuri sau o bucată întreagă (tragi întâi un dreptunghi pe un loc gol). <b>Delete</b> șterge bucata aleasă, <b>Esc</b> o lasă.</p></section>';
   propsBox.innerHTML=h;
   propsBox.querySelectorAll('img[data-k]').forEach(img=>{const kk=+img.dataset.k;const f=()=>{img.style.width=Math.round(img.naturalWidth*kk)+'px';img.style.height=Math.round(img.naturalHeight*kk)+'px';};if(img.complete)f();else img.onload=f;});
 }
@@ -818,7 +819,7 @@ function syncUI(){
   $$('[data-cat]').forEach(b=>{const c=CATS.find(c=>c.id===b.dataset.cat);b.hidden=!!c.zone&&c.zone!==region;b.setAttribute('aria-selected',String(c.id===cat[region]));});
   $$('[data-group]').forEach(g=>{const show=g.dataset.group===cat[region],box=g.closest('[data-group-box]');if(box)box.hidden=!show;else g.hidden=!show;});
   $('#catName').textContent=CATS.find(c=>c.id===cat[region]).name;
-  $$('[data-el]').forEach(b=>{press(b,b.dataset.el===tool.el&&!['erase','move','pointer','pick'].includes(tool.mode));
+  $$('[data-el]').forEach(b=>{press(b,b.dataset.el===tool.el&&!['erase','pointer','pick'].includes(tool.mode));
     const el=ELS.find(e=>e.id===b.dataset.el);
     b.disabled=(!!el.snow&&!isSnow())||(cave&&!CAVE_EL.has(el.id))||(!cave&&(['gem','bat','icicle','pool','cin','cout'].includes(el.id)||(el.id==='mole'&&!L.night)));
     b.dataset.tip=el.name+'||'+(el.snow&&!isSnow()?'Doar iarna. ':'')+(el.id==='mole'&&!cave&&!L.night?'Afară, doar noaptea. ':'')+(DESC[el.id]||'');});

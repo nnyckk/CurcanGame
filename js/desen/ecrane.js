@@ -302,12 +302,20 @@ function drawNewsBadge(b,on){
   const {x,y,w,h}=b;if(on)uiBox(x,y,w,h,'#e8323e','#ffffff','#ff6a72','#a01822');else uiBox(x,y,w,h);
   icon(STAR_ICON,x+5,y+4,on?'#ffffff':'#ffd23f');txt('NOUTĂȚI',x+w-6,y+4,'#ffffff',1,'r',on?'#7a0a10':null);
 }
-// Pagina NOUTĂȚI: versiunea, apoi trei cartonașe (două sus, unul lat jos)
+// Pagina NOUTĂȚI: versiunea, apoi o listă pe grupe care se derulează
 function drawNewsInfo(){
-  txt('VERSIUNEA '+GAME_VERSION,W/2,36,'#ffd23f',1,'c','#000');
-  const card=(g,x,y,w,cols)=>{const rows=Math.ceil(g.items.length/cols),h=24+rows*12;uiBox(x,y,w,h);
-    txt(g.t,x+8,y+6,'#ffd23f',1,'l',null);ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(x+8,y+16,w-16,1);
-    g.items.forEach((t,i)=>{const cx=x+10+(i%cols)*((w-16)/cols),cy=y+21+Math.floor(i/cols)*12;
-      ctx.fillStyle='#ffd23f';ctx.fillRect(cx,cy+2,2,2);txt(t,cx+6,cy,'#e8f4ff',1,'l',null);});};
-  card(NEWS[0],24,50,172,1);card(NEWS[1],204,50,172,1);card(NEWS[2],24,128,352,2);
+  txt('VERSIUNEA '+GAME_VERSION,W/2,34,'#ffd23f',1,'c','#000');
+  const B=NEWS_BOX,max=Math.max(0,newsH()-B.h);G.newsTo=clamp(G.newsTo||0,0,max);
+  G.newsY=(G.newsY||0)+(G.newsTo-(G.newsY||0))*0.3;if(Math.abs(G.newsTo-G.newsY)<0.5)G.newsY=G.newsTo;
+  uiBox(B.x,B.y,B.w,B.h);
+  ctx.save();ctx.beginPath();ctx.rect(B.x+1,B.y+2,B.w-2,B.h-4);ctx.clip();
+  let y=B.y+8-Math.round(G.newsY);
+  for(const g of NEWS){
+    txt(g.t,B.x+12,y,'#ffd23f',1,'l',null);ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(B.x+12,y+10,B.w-36,1);y+=NEWS_TITLE;
+    for(const t of g.items){ctx.fillStyle='#ffd23f';ctx.fillRect(B.x+16,y+3,2,2);txtMix(t,B.x+23,y,'#e8f4ff');y+=NEWS_ROW;}
+    y+=NEWS_GAP;}
+  ctx.restore();
+  // Bara de derulare
+  if(max>0){const tx=B.x+B.w-9,ty=B.y+6,th=B.h-12,bh=Math.max(14,Math.round(th*B.h/newsH())),by=ty+Math.round((th-bh)*G.newsY/max);
+    ctx.fillStyle='rgba(255,255,255,0.12)';ctx.fillRect(tx,ty,3,th);ctx.fillStyle='#ffd23f';ctx.fillRect(tx,by,3,bh);}
 }

@@ -6,19 +6,24 @@ K:"HIKOKIH",L:"GGGGGGV",M:"HRLLHHH",N:"HHPLJHH",O:"EHHHHHE",P:"UHHUGGG",Q:"EHHHL
 U:"HHHHHHE",V:"HHHHHA4",W:"HHHLLLA",X:"HHA4AHH",Y:"HHA4444",Z:"V12488V",
 "0":"EHJLPHE","1":"4C4444E","2":"EH1248V","3":"V2421HE","4":"26AIV22","5":"VGU11HE","6":"68GUHHE","7":"V124888","8":"EHHEHHE","9":"EHHF12C",
 " ":"0000000","!":"4444404",".":"00000CC",",":"0000C48",":":"0CC0CC0","-":"000V000","?":"EH12404","/":"122488G",
+a:"00E1FHF",b:"GGMPHHU",c:"00EGGHE",d:"11DJHHF",e:"00EHVGE",f:"698S888",g:"00FHHF1E",h:"GGMPHHH",i:"40C444E",j:"20622IC",
+k:"GGIKOKI",l:"C44444E",m:"00QLLHH",n:"00MPHHH",o:"00EHHHE",p:"00UHHUGG",q:"00FHHF11",r:"00MPGGG",s:"00FGE1U",t:"88S8896",
+u:"00HHHJD",v:"00HHHA4",w:"00HHLLA",x:"00HA4AH",y:"00HHHF1E",z:"00V248V","ı":"00C444E",
 ">":"8421248","<":"248G842","'":"4480000","+":"044V440","(":"2488842",")":"8422248","→":"042V240","←":"048V840","↑":"4EL4444","↓":"4444LE4"
 };
-const DIA={'Ă':['A',1],'Â':['A',2],'Î':['I',2],'Ș':['S',3],'Ş':['S',3],'Ț':['T',3],'Ţ':['T',3],'É':['E',4]};   // É: din MesoCafé
+const DIA={'Ă':['A',1],'Â':['A',2],'Î':['I',2],'Ș':['S',3],'Ş':['S',3],'Ț':['T',3],'Ţ':['T',3],'É':['E',4],'ă':['a',5],'â':['a',6],'î':['ı',6],'ș':['s',3],'ş':['s',3],'ț':['t',3],'ţ':['t',3]};   // É: din MesoCafé
 function txtRaw(g,s,x,y,col,sc){
   g.fillStyle=col;
   for(const chr of s){
     let ch=chr,m=0;if(DIA[ch]){m=DIA[ch][1];ch=DIA[ch][0];}
     const gl=FONT[ch]||FONT[' '];
-    for(let r=0;r<7;r++){const v=parseInt(gl[r],32);for(let b=0;b<5;b++)if(v&(16>>b))g.fillRect(x+b*sc,y+r*sc,sc,sc);}
+    for(let r=0;r<gl.length;r++){const v=parseInt(gl[r],32);for(let b=0;b<5;b++)if(v&(16>>b))g.fillRect(x+b*sc,y+r*sc,sc,sc);}
     if(m===1){g.fillRect(x+sc,y-3*sc,sc,sc);g.fillRect(x+3*sc,y-3*sc,sc,sc);g.fillRect(x+2*sc,y-2*sc,sc,sc);}
     else if(m===2){g.fillRect(x+sc,y-2*sc,sc,sc);g.fillRect(x+3*sc,y-2*sc,sc,sc);g.fillRect(x+2*sc,y-3*sc,sc,sc);}
     else if(m===3){g.fillRect(x+2*sc,y+8*sc,sc,sc);g.fillRect(x+sc,y+9*sc,sc,sc);}
     else if(m===4){g.fillRect(x+3*sc,y-3*sc,sc,sc);g.fillRect(x+2*sc,y-2*sc,sc,sc);}
+    else if(m===5){g.fillRect(x+sc,y,sc,sc);g.fillRect(x+3*sc,y,sc,sc);g.fillRect(x+2*sc,y+sc,sc,sc);}   // ă
+    else if(m===6){g.fillRect(x+sc,y+sc,sc,sc);g.fillRect(x+3*sc,y+sc,sc,sc);g.fillRect(x+2*sc,y,sc,sc);}   // â, î
     x+=6*sc;
   }
 }
@@ -26,6 +31,12 @@ function txt(s,x,y,col='#fff',sc=1,al='l',sh='#000',g=ctx){
   s=String(s).toUpperCase();const w=[...s].length*6*sc-sc;
   if(al==='c')x-=Math.floor(w/2);else if(al==='r')x-=w;
   x=Math.round(x);y=Math.round(y);
+  if(sh)txtRaw(g,s,x+sc,y+sc,sh,sc);
+  txtRaw(g,s,x,y,col,sc);
+}
+// Text cu litere mici și mari, cum e scris
+function txtMix(s,x,y,col='#fff',sc=1,sh=null,g=ctx){
+  x=Math.round(x);y=Math.round(y);s=String(s);
   if(sh)txtRaw(g,s,x+sc,y+sc,sh,sc);
   txtRaw(g,s,x,y,col,sc);
 }

@@ -119,7 +119,7 @@ function drawEditOverlay(){
   const PZ=main?L:L.cave,pa=main?0:edZone().a,sh=b=>({x0:b.x0+pa,x1:b.x1+pa,y0:b.y0,y1:b.y1});   // în peșteră: coordonatele camerei
   if(PZ)for(const p of PZ.plats||[])edBox(sh(edPlatBox(p)),cx,!!edPlatWhy(PZ,p),p.kind==='move');
   // Mânerele platformelor: capătul (lungimea) și capătul drumului (cât merge)
-  if(PZ)for(const p of PZ.plats||[]){const on=ED.tool.mode==='move',a=on?1:0.55;ctx.globalAlpha=a;
+  if(PZ)for(const p of PZ.plats||[]){const on=ED.tool.mode==='pointer',a=on?1:0.55;ctx.globalAlpha=a;
     const ex=(p.x+pa+p.w)*TS-cx;ctx.fillStyle='#14121c';ctx.fillRect(ex-3,p.y*TS-1,3,8);ctx.fillStyle='#ffd23f';ctx.fillRect(ex-2,p.y*TS,1,6);
     if(p.kind==='move'){const hx=(pa+(p.ax==='x'?p.x+p.w-1+p.range:p.x+((p.w-1)>>1)))*TS-cx+8,hy=(p.ax==='x'?p.y:p.y+p.range)*TS+3;
       ctx.fillStyle='#14121c';ctx.fillRect(hx-3,hy-3,7,7);ctx.fillStyle='#ffd23f';ctx.fillRect(hx-2,hy-2,5,5);ctx.fillStyle='#14121c';ctx.fillRect(hx,hy,1,1);}
@@ -141,7 +141,6 @@ function drawEditOverlay(){
   const X=h.x*TS-cx,Y=h.y*TS;
   const box=col=>{ctx.strokeStyle=col;ctx.lineWidth=1;ctx.strokeRect(X+0.5,Y+0.5,TS-1,TS-1);};
   if(t.mode==='erase'||(d&&d.b===2)){box('#ff4a4a');return;}
-  if(t.mode==='move'){box('#9fe8ff');return;}
   if(t.mode==='pointer'){box('#ffffff');return;}
   if(t.mode==='pick'){box('#7fff7f');return;}
   const e=t.el,o=t.opt||{};ctx.globalAlpha=0.6;

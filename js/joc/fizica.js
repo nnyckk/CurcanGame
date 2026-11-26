@@ -10,7 +10,18 @@ function moveX(e){
   e.x+=e.vx;e.hitWall=false;const t=Math.floor(e.y/TS),b=Math.floor((e.y+e.h-0.01)/TS);
   if(e.vx>0){const tx=Math.floor((e.x+e.w-0.01)/TS);for(let ty=t;ty<=b;ty++)if(solid(tileAt(tx,ty))){e.x=tx*TS-e.w;e.hitWall=true;break;}}
   else if(e.vx<0){const tx=Math.floor(e.x/TS);for(let ty=t;ty<=b;ty++)if(solid(tileAt(tx,ty))){e.x=(tx+1)*TS;e.hitWall=true;break;}}
+  if(e.hitWall&&e===player&&ledgeHop(e))return;
   if(e.hitWall)e.vx=0;
+}
+// Ratezi marginea cu câțiva pixeli: urci pe ea
+const LEDGE_PX=5,CORNER_PX=5;
+function ledgeHop(e){
+  if(e.onGround||e.vy<-1)return false;
+  const tx=e.vx>0?Math.floor((e.x+e.w+0.5)/TS):Math.floor((e.x-0.5)/TS),bot=e.y+e.h,row=Math.floor((bot-0.01)/TS);
+  if(bot-row*TS>LEDGE_PX||!solid(tileAt(tx,row)))return false;
+  const ny=row*TS-e.h,l=Math.floor(e.x/TS),r=Math.floor((e.x+e.w-0.01)/TS);
+  for(let ty=Math.floor(ny/TS);ty<row;ty++){if(solid(tileAt(tx,ty)))return false;for(let c=l;c<=r;c++)if(solid(tileAt(c,ty)))return false;}
+  e.y=ny;e.vy=0;e.hitWall=false;return true;
 }
 function moveY(e){
   const pb=e.y+e.h,down=e.vy>0;e.y+=e.vy;e.onGround=false;e.headHit=null;e.plat=null;
@@ -19,6 +30,10 @@ function moveY(e){
     for(let tx=l;tx<=r;tx++){const c=tileAt(tx,ty);if(solid(c)||(ledge(tx,ty)&&pb<=ty*TS+0.5)){e.y=ty*TS-e.h;e.vy=0;e.onGround=true;break;}}}
   else if(e.vy<0){const ty=Math.floor(e.y/TS);let hit=null;const mc=e.x+e.w/2;
     for(let tx=l;tx<=r;tx++){const c=tileAt(tx,ty);if(solid(c)||(c==='V'&&e===player))if(!hit||Math.abs(tx*TS+8-mc)<Math.abs(hit[0]*TS+8-mc))hit=[tx,ty];}
+    // Colțul unui bloc, atins doar cu marginea capului: alunecă pe lângă
+    if(hit&&e===player&&l!==r){const sl=solid(tileAt(l,ty))||tileAt(l,ty)==='V',sr=solid(tileAt(r,ty))||tileAt(r,ty)==='V';
+      if(sl&&!sr&&(l+1)*TS-e.x<=CORNER_PX){e.x=(l+1)*TS;hit=null;}
+      else if(sr&&!sl&&e.x+e.w-r*TS<=CORNER_PX){e.x=r*TS-e.w;hit=null;}}
     if(hit){e.y=(ty+1)*TS;e.vy=0;e.headHit=hit;}}
   // Platformele care se mișcă / cad: ca scândurile '='
   if(down)for(const p of plats){

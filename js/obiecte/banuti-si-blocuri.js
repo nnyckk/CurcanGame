@@ -18,7 +18,7 @@ const COIN=mkSprite([
 function sparkle(x,y){for(let i=0;i<6;i++){const a=i/6*TAU;parts.push({x,y,vx:Math.cos(a)*1.4,vy:Math.sin(a)*1.4,g:0,life:16,max:16,col:i%2?'#fff':'#ffd23f',s:2});}}
 function addCoin(x,y){
   G.coins++;G.lvlCoins=(G.lvlCoins||0)+1;addScore(100);sfx.coin();   // lvlCoins: bănuții din nivelul ăsta
-  if(G.coins>=50){G.coins-=50;G.lives++;sfx.oneup();popup('1 VIAȚĂ!',x,y-10,'#7fff7f');}
+  if(G.coins>=100){G.coins-=100;G.lives++;sfx.oneup();popup('1 VIAȚĂ!',x,y-10,'#7fff7f');}
 }
 // top = lovit de sus (lovitura în pământ): ce iese din bloc iese pe dedesubt, dacă e loc
 function hitBlock(tx,ty,top){

@@ -21,7 +21,7 @@ function poundHole(){
   openHoles();G.underOpen=G.level;holeBurst(under.x,false);p.x=under.x*TS+(SUB_SHAFT*TS-p.w)/2;return true;
 }
 // Camera în peșteră: nu iese din pereți
-const underCam=()=>clamp(player.x+player.w/2-W*0.42,under.a*TS,(under.a+under.w)*TS-W);
+const underCam=()=>clamp(camX(),under.a*TS,(under.a+under.w)*TS-W);
 // Ce gaură e sub curcan
 function holeUnder(p){
   const c=Math.floor((p.x+p.w/2)/TS),u=under;
@@ -37,8 +37,8 @@ function subTeleport(){
     cam.x=underCam();
   }else{
     // Pornit din peșteră: găurile se deschid acum, ca după intrare
-    G.inUnder=false;if(!holesOpen()){openHoles();G.underOpen=G.level;}holeBurst(u.x2,true);p.x=u.x2*TS+(SUB_SHAFT*TS-p.w)/2;p.y=12*TS-p.h;p.vy=-6.5;p.vx=1.6;p.face=1;p.pop=20;p.walkOff=false;p.airMax=WALK_AIR;playSong(LEVELS[G.level].song||'main');
-    cam.x=clamp(p.x+p.w/2-W*0.42,0,camMax());
+    G.inUnder=false;if(!holesOpen()){openHoles();G.underOpen=G.level;}holeBurst(u.x2,true);p.x=u.x2*TS+(SUB_SHAFT*TS-p.w)/2;p.y=12*TS-p.h;p.vy=-6.5;p.vx=1.6;p.face=1;p.pop=20;p.noDrag=true;p.walkOff=false;p.airMax=WALK_AIR;playSong(LEVELS[G.level].song||'main');
+    cam.x=clamp(camX(),0,camMax());
   }
 }
 // Căderea într-o gaură / săritura în puțul de ieșire

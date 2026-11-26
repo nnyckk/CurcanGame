@@ -37,7 +37,7 @@ const MENU={
     {label:'PENE',badge:'pene',act:()=>openMenu('pene')},
     {label:'CURCANI',badge:'custi',act:()=>openMenu('custi')},
     {label:'ACHIEVEMENTS',badge:'ach',act:()=>{G.achPage=0;openMenu('ach');}},
-    {label:'NOUTĂȚI',badge:'news',act:()=>openMenu('news')}],
+    {label:'NOUTĂȚI',badge:'news',act:()=>{G.newsY=G.newsTo=0;openMenu('news');}}],
   news:[
     {label:'ÎNAPOI',act:()=>menuBack()}],
   settings:[],   // vezi settingsItems
@@ -59,11 +59,23 @@ const MENU={
     {label:'<',pg:-1,act:()=>{}},{label:'>',pg:1,act:()=>{}}]),
 };
 const mainIx=l=>Math.max(0,MENU.main.findIndex(it=>it.label===l));
-// NOUTĂȚI: ce aduce versiunea de acum, pe grupe (rânduri scurte, încap în cartonaș)
+// NOUTĂȚI: pe grupe; titlul cu litere mari, rândurile cum sunt scrise
 const NEWS=[
-  {t:'NIVELURILE TALE',items:['EDITOR DE NIVELURI','NIVELURILE MELE, ÎN MENIU','POVEȘTI DE PÂNĂ LA 10','COD DE PARTAJARE']},
-  {t:'CAFENEAUA',items:['GHICEȘTE CEȘCUȚA','BLOCURILE LUI MOȘ','JOCUL, ALES LA ÎNTÂMPLARE','GEAMUL ARATĂ CE E AFARĂ']},
-  {t:'ÎN JOC',items:['FERMIERI CARE DORM NOAPTEA','CÂRTIȚA MINER, MOB NOU','SUNETELE DE DEPARTE, MAI ÎNCET','BLOCURI DE FOC ȘI DE GHEAȚĂ','DEȘERTUL, ACUM ȘI ZIUA','CĂRĂMIZILE LASĂ FUNDALUL']}];
+  {t:'FERMIERII NOPȚII',items:['Unii dorm lângă felinar, la întâmplare','Zgomotul și lumina îi trezesc','Felinarele nu mai văd prin pereți','Fermierii coboară de pe blocuri']},
+  {t:'MOB NOU: CÂRTIȚA MINER',items:['Sapă și iese chiar în spatele tău','Lampa de pe cască te vede','O găsești în editor, la Inamici']},
+  {t:'EDITOR DE NIVELURI',items:['Îți faci nivelurile tale','Nivelurile mele, în meniu','Povești de până la 10 niveluri','Cod de partajare']},
+  {t:'CAFENEAUA',items:['Ghicește ceșcuța','Blocurile lui Moș','Jocul e ales la întâmplare','Geamul arată ce e afară']},
+  {t:'ÎN JOC',items:['Ucenicii fug de bombe','Sunetele de departe, mai încet','Blocuri de foc și de gheață','Deșertul, acum și ziua','Cărămizile lasă fundalul']}];
+// Chenarul listei și cât se derulează
+const NEWS_BOX={x:24,y:48,w:352,h:148},NEWS_TITLE=15,NEWS_ROW=12,NEWS_GAP=9;
+const newsH=()=>NEWS.reduce((h,g)=>h+NEWS_TITLE+g.items.length*NEWS_ROW+NEWS_GAP,8);
+function newsScroll(d){G.newsTo=clamp((G.newsTo||0)+d,0,Math.max(0,newsH()-NEWS_BOX.h));}
+cv.addEventListener('wheel',e=>{if(menuOn()&&G.menu==='news'){e.preventDefault();newsScroll(Math.sign(e.deltaY)*24);}},{passive:false});
+// Pe telefon: tragi lista cu degetul
+{let ly=null;
+  cv.addEventListener('pointerdown',e=>{ly=menuOn()&&G.menu==='news'?e.clientY:null;});
+  cv.addEventListener('pointermove',e=>{if(ly===null||!(menuOn()&&G.menu==='news'))return;const k=H/cv.getBoundingClientRect().height;newsScroll((ly-e.clientY)*k);G.newsY=G.newsTo;ly=e.clientY;});
+  addEventListener('pointerup',()=>{ly=null;});}
 const newsBadgeRect=()=>({x:106+(BADGE_W+4)*3,y:H-19,w:74,h:15});
 // Înapoi: o pagină mai sus
 function menuBack(){
@@ -95,6 +107,7 @@ function menuPick(i){const it=MENU[G.menu][i];if(it.pg){achFlip(it.pg,0,false);r
 function menuHover(i){G.hover=i;const it=MENU[G.menu][i];if(it&&!it.badge&&!it.pg)G.sel=i;}
 function menuKey(code){
   if(G.menu==='ach'&&code.startsWith('Arrow')){achMenuKey(code);return;}
+  if(G.menu==='news'&&(code==='ArrowUp'||code==='ArrowDown')){newsScroll(code==='ArrowUp'?-24:24);return;}   // derulează lista
   if(code==='KeyP'&&G.state==='play'){pauseClose();return;}   // P: înapoi în joc, din orice pagină
   // Săgețile trec doar prin butoanele obișnuite
   const idx=MENU[G.menu].map((it,i)=>it.badge?-1:i).filter(i=>i>=0),n=idx.length;

@@ -1,7 +1,7 @@
 'use strict';
 // ===== IARNA: lacurile înghețate =====
 // Fiecare tile de gheață strânge „crăpături” cât timp
-const ICE_CRACK_T=120,ICE_HEAL=0.6,ICE_REFREEZE_T=300,ICE_ACC=0.2,ICE_FRICTION=0.1;
+const ICE_CRACK_T=120,ICE_HEAL=0.6,ICE_REFREEZE_T=300,ICE_ACC=0.15,ICE_FRICTION=0.07;
 let iceCrack=new Float32Array(0),iceHole=new Int16Array(0),iceTouch=new Int32Array(0);
 function onIce(e){return e.onGround&&tileAt(Math.floor((e.x+e.w/2)/TS),Math.floor((e.y+e.h+1)/TS))==='I';}
 function iceUnder(e){const ty=Math.floor((e.y+e.h+1)/TS),out=[];
