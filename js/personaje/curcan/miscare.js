@@ -8,7 +8,7 @@ const WALK=2,RUN=2.85,RUN_ACC=0.18,TURN_ACC=0.4,STOP_K=0.85,AIR_STOP_K=0.9;
 const FALL_G=0.5,MAX_FALL=7.5,APEX_VY=1,APEX_T=6,APEX_G=0.21;
 function updatePlayer(){
   const p=player,L=inLeft(),R=inRight(),run=inRun(),jh=inJump();
-  if(p.inv>0)p.inv--;
+  if(p.inv>0)p.inv--;if(p.butt>0)p.butt--;
   const dir=(R&&!L)?1:(L&&!R)?-1:0;
   if(dir)p.face=dir;
   if((p.fire||p.ice)&&firePressed()&&feathers.length<FEATHER_MAX)throwFeather();
@@ -77,7 +77,7 @@ function updatePlayer(){
 // Lovitura a atins ceva: praf, zguduire, bufnitură. Dedesubt: blocurile M / power-up se deschid, cărămizile se sparg
 // (doar curcanul mare), gheața lacului se sparge pe loc. Dacă n-a mai rămas nimic solid sub el, continuă în jos.
 function poundLand(){
-  const p=player;p.pound=0;p.vx=0;
+  const p=player;p.pound=0;p.vx=0;p.butt=10;   // rămâne o clipă în fund
   G.shake=Math.max(G.shake,6);sfx.pound();noiseAt(p.x+p.w/2,p.y+p.h,5*TS);
   for(const s of [-1,1])for(let i=0;i<4;i++)parts.push({x:p.x+p.w/2+s*(3+i*2),y:p.y+p.h-1,vx:s*(0.8+Math.random()*1.4),vy:-0.5-Math.random()*0.9,g:0.05,life:20,max:20,col:'#efe6d6',s:2});
   // Pământul crăpat de deasupra peșterii se surpă: curcanul continuă în jos, prin gaură
