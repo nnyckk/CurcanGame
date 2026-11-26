@@ -47,11 +47,14 @@ function cupNear(c){
   const m=c.mg,p=player;if(!m||m.ph!=='pick'||!p||p.dead||!p.onGround||G.talk)return -1;
   const px=p.x+p.w/2;for(let i=0;i<3;i++)if(Math.abs(px-cupX(c,i))<9)return i;return -1;
 }
+// Stai la masa cu ceștile, jocul încă n-a început
+const CUPS_TABLE=[140,212];
+function cupsAtTable(){const c=cafe;if(!c||c.game!=='cups'||c.mg||c.done)return false;const px=player.x+player.w/2-c.a*TS;return px>=CUPS_TABLE[0]&&px<=CUPS_TABLE[1];}
 // Ce spune Moș când vorbești cu el
 function cupsTalk(c){
   if(c.done){openTalk([CAFE_BYE]);return;}
-  if(!c.mg){cupsStart(c);return;}
-  if(c.mg.ph==='pick')openTalk(['ALEGE O CEAȘCĂ, FIULE: STAI ÎN FAȚA EI ȘI APASĂ ↑.']);
+  if(!c.mg){openTalk(['JOCUL ÎNCEPE LA MASĂ, FIULE. TE AȘTEAPTĂ CEȘTILE!']);return;}   // jocul pornește de la masă
+  if(c.mg.ph==='pick')openTalk(['ALEGE O CEAȘCĂ, FIULE! UNDE E BOABA?']);
 }
 // Masa joasă, ceștile, premiul de sub ceașcă, săgeata
 function drawCups(cx){

@@ -3,7 +3,7 @@
 // Felinarul: conul de lumină din fața fermierului
 const LANTERN_LEN=110,LANTERN_HALF=0.3,LOST_T=150;
 // Felinarul mic, ținut de lanț în mâna din spate
-function lanternPos(e){return e.mole?{x:e.x+5+e.dir*3,y:e.y}:{x:e.x+5-e.dir*4,y:e.y+14};}   // cârtița: lanterna de pe cască
+function lanternPos(e){return e.mole?{x:e.x+5+e.dir*3,y:e.y}:{x:e.x+5-e.dir*4,y:e.y+14+(e.bob||0)};}   // cârtița: lanterna de pe cască
 // Cât merge o rază de lumină până dă de un perete
 function lightRay(x,y,ang,max){const c=Math.cos(ang),s=Math.sin(ang);for(let d=2;d<max;d+=2)if(solid(tileAt(Math.floor((x+c*d)/TS),Math.floor((y+s*d)/TS))))return d;return max;}
 const lanternLen=e=>e.mole?MOLE_LAMP:LANTERN_LEN;   // cârtița: mai scurtă

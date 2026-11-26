@@ -7,8 +7,8 @@ const CAFE_REACT=['PANĂ DE FOC! O SĂ-ȚI ÎNCĂLZEASCĂ IARNA!','AFINĂ ÎNGHE
 const CAFE_BYE='DRUM BUN SPRE MESOPOTAMIA!';
 // Dacă ai mai fost la el în alt joc, te ține minte
 // Ce spune despre mini-joc (blocul-slot e în CAFE_HELLO)
-const CAFE_GAME_HELLO={cups:'HAI LA MINE SĂ-ȚI TESTEZ ATENȚIA, FIULE! GHICEȘTI UNDE E BOABA DE AUR?',
-  blocks:'HAI LA MINE SĂ TE ÎNVĂȚ O MELODIE, FIULE! REPETĂ DUPĂ MINE ȘI PRIMEȘTI O RĂSPLATĂ.'};
+const CAFE_GAME_HELLO={cups:'HAIDE SĂ-ȚI TESTĂM ATENȚIA, FIULE! GHICEȘTI UNDE E BOABA DE AUR?',
+  blocks:'IA SĂ VEDEM CE URECHE MUZICALĂ AI, FIULE! REPETĂ MELODIA MEA ȘI PRIMEȘTI O RĂSPLATĂ.'};
 function cafeHello(game='slot'){
   if(game!=='slot')return CAFE_HELLO.slice(0,3).concat(CAFE_GAME_HELLO[game]||[]);
   if(MOS.cafe<=1)return CAFE_HELLO;

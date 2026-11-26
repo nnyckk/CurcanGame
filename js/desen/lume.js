@@ -74,6 +74,8 @@ function drawWorld(){
   for(const b of booms)ctx.drawImage(BOOM[Math.min(5,b.t>>2)],Math.round(b.x-cx-42),Math.round(b.y-42));
   for(const p of parts){
     if(p.type==='coin'){drawCoin(p.x-cx,p.y,G.t*0.3);continue;}
+    if(p.type==='bucket'){drawBucket(p,cx);continue;}
+    if(p.type==='twinkle'){const x=Math.round(p.x-cx),y=Math.round(p.y),k=p.life/p.max,r=k>0.3&&k<0.7?1:0;ctx.fillStyle='#ffe27a';ctx.fillRect(x-r,y,r*2+1,1);ctx.fillRect(x,y-r,1,r*2+1);ctx.fillStyle='#ffffff';ctx.fillRect(x,y,1,1);continue;}   // sclipirea cheii: o cruciuliță
     if(p.type==='gold'){ctx.globalAlpha=Math.min(1,p.life/(p.max*0.4));ctx.drawImage(GOLD_PANA,Math.round(p.x-cx)-3,Math.round(p.y)-7);ctx.globalAlpha=1;continue;}
     if(p.edge){ctx.fillStyle=p.edge;ctx.fillRect(Math.round(p.x-cx)-1,Math.round(p.y)-1,p.s+2,p.s+2);}
     ctx.globalAlpha=p.max?Math.min(1,p.life/(p.max*0.5)):1;ctx.fillStyle=p.col;ctx.fillRect(Math.round(p.x-cx),Math.round(p.y),p.s,p.s);ctx.globalAlpha=1;

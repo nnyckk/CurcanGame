@@ -61,10 +61,11 @@ const MENU={
 const mainIx=l=>Math.max(0,MENU.main.findIndex(it=>it.label===l));
 // NOUTĂȚI: pe grupe; titlul cu litere mari, rândurile cum sunt scrise
 const NEWS=[
-  {t:'COMPORTAMENT MOB',items:['Noaptea, unii fermieri dorm lângă felinar','Zgomotul și lumina îi trezesc','Felinarele nu mai văd prin pereți','Fermierii coboară de pe blocuri','Ucenicii fug de bombe']},
+  {t:'COMPORTAMENT MOB',items:['Noaptea, unii fermieri dorm lângă felinar','Zgomotul și lumina îi trezesc','Felinarele nu mai văd prin pereți','Fermierii coboară de pe blocuri','Ucenicii fug de bombe și scapă găleata','În peșteră, fermierii văd doar cu felinarul','Mobul cu cheia strălucește']},
   {t:'MOB NOU: CÂRTIȚA MINER',items:['Sapă și iese chiar în spatele tău','Lampa de pe cască te vede','O găsești în editor, la Inamici']},
   {t:'EDITOR DE NIVELURI',items:['Îți faci nivelurile tale','Nivelurile mele, în meniu','Povești de până la 10 niveluri','Cod de partajare, pentru prieteni']},
-  {t:'CAFENEAUA: MINI-JOCURI',items:['Ghicește ceșcuța: urmărești bila de aur','Blocurile lui Moș: le lovești în ordinea lui','Fiecare cafenea are alt mini-joc']},
+  {t:'CAFENEAUA: MINI-JOCURI',items:['Ghicește ceșcuța: urmărești bila de aur','Blocurile lui Moș: le lovești în ordinea lui','Fiecare cafenea are alt mini-joc','Ceștile încep de la masă','Poți cânta liber la blocuri']},
+  {t:'PERSONAJE',items:['Fermierul și ucenicul, desenați din profil','Mers mai bun, haine cu textură','Fermierul se miră când te vede']},
   {t:'MIȘCAREA CURCANULUI',items:['Pornește și se oprește lin','Săritura e mai fermă la cădere','Te ajută la colțuri și la margini','Camera arată mai mult în față']},
   {t:'ÎMBUNĂTĂȚIRI ȘI REPARAȚII',items:['Blocuri noi: de foc și de gheață','Deșertul are acum și ziua','Sunetele de departe se aud mai încet','Cărămizile sparte lasă fundalul','Geamul cafenelei arată ce e afară','Intrarea în peșteră se vede mai bine','Gheața e mai alunecoasă','Viață nouă la 100 de bănuți']}];
 // Chenarul listei și cât se derulează

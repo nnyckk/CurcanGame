@@ -199,8 +199,8 @@ function drawCafeNPC(cx){
 // Cât stai în fața unei uși sau lângă bătrânel
 function drawCafeHints(cx){
   const a=cafeAction();if(!a||G.talk)return;
-  const hx=a==='in'?cafe.x*TS+48:a==='out'?cafe.a*TS+CAFE_DOOR:cafe.npcX+OLD_W/2;
-  const hy=a==='in'?12*TS-49:a==='out'?CAFE_FLOOR*TS-47:CAFE_FLOOR*TS-OLD_H-14;
+  const hx=a==='in'?cafe.x*TS+48:a==='out'?cafe.a*TS+CAFE_DOOR:a==='cups'?cafe.a*TS+176:cafe.npcX+OLD_W/2;
+  const hy=a==='in'?12*TS-49:a==='out'?CAFE_FLOOR*TS-47:a==='cups'?CUPS_TOP-26:CAFE_FLOOR*TS-OLD_H-14;
   const x=Math.round(hx-cx)-4,y=hy;
   ctx.fillStyle='rgba(20,14,30,0.7)';ctx.fillRect(x,y,9,11);ctx.fillStyle='rgba(255,255,255,0.3)';ctx.fillRect(x,y,9,1);
   txt('↑',x+2,y+2,'#e0d8c8',1,'l',null);

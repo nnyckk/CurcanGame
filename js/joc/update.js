@@ -1,13 +1,17 @@
 'use strict';
 // ===== UPDATE: un cadru de joc =====
 // Camera arată mai mult în fața curcanului, oriunde se uită
-const CAM_LOOK=44;
+const CAM_LOOK=44,CAM_TURN_T=90,CAM_WALK_T=15,CAM_SPRING=0.0035,CAM_DAMP=0.88,CAM_FOLLOW=0.12;   // CAM_TURN_T: cât aștepți întors până se mută camera
 const camX=()=>player.x+player.w/2-W/2+(cam.look||0);
 function updateCam(){
-  cam.look=(cam.look||0)+(player.face*CAM_LOOK-(cam.look||0))*0.0558;
+  // Te uiți în spate: camera așteaptă puțin
+  if(player.face!==cam.dir){cam.turnT=(cam.turnT||0)+(player.vx*player.face>0.5?CAM_TURN_T/CAM_WALK_T:1);
+    if(cam.turnT>=CAM_TURN_T||cam.dir===undefined){cam.dir=player.face;cam.turnT=0;}}else cam.turnT=0;   // mergi încolo: se mută repede
+  // Arcul: pornește încet, se oprește încet (ca un resort moale)
+  cam.lv=((cam.lv||0)+(cam.dir*CAM_LOOK-(cam.look||0))*CAM_SPRING)*CAM_DAMP;cam.look=(cam.look||0)+cam.lv;
   // În lupta cu boss-ul, camera stă pe poiană
   const target=boss&&boss.lock?boss.a0-TS:inCafe()?cafe.a*TS+CAFE_CAMX:inUnder()?underCam():clamp(camX(),0,camMax());
-  cam.x+=(target-cam.x)*0.18;
+  cam.x+=(target-cam.x)*CAM_FOLLOW;
 }
 function updatePlay(){
   // Afară, cât vorbește cineva
@@ -33,7 +37,7 @@ function updatePlay(){
   if(G.state!=='play'){updateFx();return;}
   updateUnder();
   if(cafe){updateCafe();const d=cafeAction();
-    if(d&&upPressed()){if(d==='talk'){if(cafe.game==='cups')cupsTalk(cafe);else if(cafe.game==='blocks')notesTalk(cafe);else openTalk([cafeLine()]);}else{G.doorT=DOOR_T;G.doorTo=d;player.vx=0;sfx.bell();}}}
+    if(d&&upPressed()){if(d==='cups')cupsStart(cafe);else if(d==='talk'){if(cafe.game==='cups')cupsTalk(cafe);else if(cafe.game==='blocks')notesTalk(cafe);else openTalk([cafeLine()]);}else{G.doorT=DOOR_T;G.doorTo=d;player.vx=0;sfx.bell();}}}
   for(const e of enemies){
     if(e.remove)continue;
     if(!e.active){if(e.x<cam.x+W+24&&e.x>cam.x-80)e.active=true;else continue;}

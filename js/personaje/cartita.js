@@ -171,9 +171,9 @@ function drawMole(e,sx){
   if(e.ph==='dig'){if(e.t<MOLE_STRIKES){const dn=e.t%10>=5;drawPick(bx,by+moleSink(e),e.dir,dn?'dig':'wind');}return;}
   if(e.ph==='rise'){if(moleSink(e)===0)drawPick(bx,by,e.dir,'hold');return;}
   if(e.ph==='atk'){const wind=e.t<=MOLE_WIND,sh=wind&&e.t>8?((e.t>>1)%2?1:-1):0;
-    ctx.drawImage(MOLE.A[side],bx+sh,by);drawPick(bx+sh,by,e.dir,wind?'wind':'hit');return;}
+    ctx.drawImage(MOLE.A[side],bx+sh,by);keyShine(e,MOLE.A[side],bx+sh,by);drawPick(bx+sh,by,e.dir,wind?'wind':'hit');return;}
   const f=(e.vx!==0&&(Math.floor(e.anim/8)%2))?'B':'A';
-  ctx.drawImage(MOLE[f][side],bx,by);drawPick(bx,by,e.dir,'hold');
+  ctx.drawImage(MOLE[f][side],bx,by);keyShine(e,MOLE[f][side],bx,by);drawPick(bx,by,e.dir,'hold');
   if(e.alert>0)txt('!',sx+3,Math.round(e.y-12),'#ff4040',1,'l','#000');
   else if(e.puzzled>0)txt('?',sx+3,Math.round(e.y-12),'#ffd23f',1,'l','#000');
 }

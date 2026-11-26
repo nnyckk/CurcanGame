@@ -106,6 +106,8 @@ function drawTiles(cx){
     if(c==='G'||c==='D')img=earthBase(c,tx,ty);else if(c==='Z')img=zImg(tx,ty);else if(c==='W')img=wImg(tx,ty);
     if(c==='Y'){drawTunnel(tx,ty,cx);continue;}
     if(c==='G'||c==='D'){const u=behindEarth(tx,ty);if(u)ctx.drawImage(u,tx*TS-cx,ty*TS);}
+    // Dealul din spate peste cel și mai din spate: colțurile arată dealul de dedesubt
+    if(c==='Z'){const w=[[1,0],[-1,0],[0,1],[0,-1]].map(([a,b])=>[tx+a,ty+b]).find(([x,y])=>tileAt(x,y)==='W');if(w)ctx.drawImage(wImg(w[0],w[1]),tx*TS-cx,ty*TS);}
     // Pământul: margini rotunjite unde se termină
     // Pământul din spate continuă și în spatele celui din față
     if(c==='G'||c==='D'||c==='Z'||c==='W'){const n=c==='W'?(x,y)=>{const t=tileAt(x,y);return t==='W'||t==='Z'||EARTH_N.includes(t);}:c==='Z'?(x,y)=>{const t=tileAt(x,y);return t==='Z'||EARTH_N.includes(t);}:(x,y)=>EARTH_N.includes(tileAt(x,y));

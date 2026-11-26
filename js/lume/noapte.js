@@ -36,7 +36,7 @@ function drawNightLights(cx){
 function drawLantern(lx,ly,fl,hot){
   ctx.fillStyle='#8a8a9a';ctx.fillRect(lx,ly-4,1,2);
   ctx.fillStyle='#2a2018';ctx.fillRect(lx-1,ly-2,4,1);ctx.fillRect(lx-1,ly-1,1,3);ctx.fillRect(lx+2,ly-1,1,3);ctx.fillRect(lx-1,ly+2,4,1);
-  ctx.fillStyle=hot?(fl>0.9?'#ffb8a8':'#ff8070'):(fl>0.9?'#fff4c0':'#ffd56a');ctx.fillRect(lx,ly-1,2,3);
+  ctx.fillStyle=hot?(fl>0.9?'#f8b0a0':'#f08878'):(fl>0.9?'#ecc878':'#deb054');ctx.fillRect(lx,ly-1,2,3);   // flacăra
 }
 // Licurici ici-colo, aproape de sol
 function drawFireflies(cx){

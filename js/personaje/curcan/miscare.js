@@ -52,6 +52,8 @@ function updatePlayer(){
   if(p.pound<0&&p.onGround)poundLand();
 
   if(p.headHit)hitBlock(p.headHit[0],p.headHit[1]);
+  // Aterizat pe blocurile cu note: cântă și ele
+  if(p.onGround&&wasAir&&inCafe()){const ty=Math.floor((p.y+p.h+1)/TS),tx=Math.floor((p.x+p.w/2)/TS);if(tileAt(tx,ty)==='N')noteHit(tx,ty,true);}
   if(p.onGround&&wasAir&&vyB>3)dust(p.x+p.w/2,p.y+p.h,4);
   if(p.onGround&&wasAir&&vyB>5)noiseAt(p.x+p.w/2,p.y+p.h,40);   // aterizarea face zgomot
   // Curcanul de foc: jar din coadă și de pe costum

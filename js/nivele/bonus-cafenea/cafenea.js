@@ -62,7 +62,7 @@ function cafeTeleport(){
   // Înăuntru cântă piesa cafenelei
   if(G.doorTo==="in"&&!G.cafeSeen){G.cafeSeen=true;MOS.cafe++;mosSave();if(MOS.cafe>=10)achUnlock('nepot');}   // Moș Curcan ține minte că ai fost la el
   if(G.doorTo==="in"){G.inCafe=true;p.x=c.a*TS+CAFE_DOOR-p.w/2;cam.x=c.a*TS+CAFE_CAMX;playSong('cafe');}
-  else{G.inCafe=false;p.x=c.x*TS+48-p.w/2;cam.x=clamp(camX(),0,camMax());playSong(LEVELS[G.level].song||'main');}
+  else{G.inCafe=false;if(G.duck){G.duck=false;applyAudio();}p.x=c.x*TS+48-p.w/2;cam.x=clamp(camX(),0,camMax());playSong(LEVELS[G.level].song||'main');}
   p.y=(G.inCafe?CAFE_FLOOR:12)*TS-p.h;p.vx=0;p.vy=0;p.face=1;feathers=[];
 }
 // Blocul-slot e un mini-joc de îndemânare, nu noroc
@@ -103,5 +103,6 @@ function updateCafe(){
 function cafeAction(){
   const d=cafeDoor();if(d)return d;
   const p=player;if(!inCafe()||!p||p.dead||!p.onGround||G.talk||G.doorT>0)return null;
+  if(cupsAtTable())return 'cups';   // ceștile: pornești jocul de la masă
   return Math.abs(p.x+p.w/2-(cafe.npcX+OLD_W/2))<22?'talk':null;
 }

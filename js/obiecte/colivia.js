@@ -11,7 +11,7 @@ const cageTotal=()=>cageLevels().length;
 const cageFound=()=>cageLevels().filter(cageSaved).length;
 const cageOK=()=>cageTotal()>0&&cageFound()>=cageTotal();
 // Cheia: mică la brâu, mare pe jos
-const KEY_SM=mkSprite([".y.","yky",".y.",".y.",".yy",".y.",".yy"],{y:'#ffd23f',k:'#7a4a08'},false);
+
 const KEY_BIG=mkSprite([".kkkkk.","kYyyyYk","kyk.kYk","kYk.kYk","kYYYYYk",".kkYkk.","..kYk..","..kYk..","..kYkkk","..kYYYk","..kYkkk","..kYYk.","..kkkk."],
   {k:'#5a3408',Y:'#ffd23f',y:'#fff3b0'},false);
 // La pornirea nivelului
@@ -42,7 +42,21 @@ function cageOpen(){
   for(let i=0;i<16;i++){const a=i/16*TAU,s=1+Math.random()*1.5;
     parts.push({x:c.x+6,y:c.y-13,vx:Math.cos(a)*s,vy:Math.sin(a)*s,g:0.03,life:28,max:28,col:i%3?'#ffd23f':'#ffffff',s:i%4?1:2});}
 }
+// Mobul cu cheia: o dungă de luciu metalic trece des peste el, plus mici sclipiri
+const KEY_SHINE_T=110,KEY_SWEEP=30,[SHINE_C,SHINE_G]=mkCanvas(32,32);
+function keyShine(e,img,dx,dy){
+  if(!e.key||e.dead)return;const t=(G.t+Math.round(e.x))%KEY_SHINE_T;if(t>=KEY_SWEEP)return;
+  const w=img.width,h=img.height,g=SHINE_G,p=-4+(w+h+8)*t/KEY_SWEEP;
+  g.clearRect(0,0,32,32);g.drawImage(img,0,0);g.globalCompositeOperation='source-atop';
+  g.fillStyle='rgba(255,246,190,0.8)';g.beginPath();g.moveTo(p,0);g.lineTo(p+3,0);g.lineTo(p+3-h,h);g.lineTo(p-h,h);g.fill();
+  g.globalCompositeOperation='source-over';ctx.drawImage(SHINE_C,0,0,w,h,dx,dy,w,h);
+}
+function keySparkles(){
+  if(G.t%22)return;for(const e of enemies){if(!e.key||e.dead||e.remove||!e.active||(e.mole&&!moleOut(e)))continue;
+    parts.push({type:'twinkle',x:Math.round(e.x-1+Math.random()*(e.w+2)),y:Math.round(e.sleep||e.wake?e.y+5+Math.random()*(e.h-6):e.y+Math.random()*e.h),vx:0,vy:0,g:0,life:24,max:24});}
+}
 function updateCage(){
+  keySparkles();
   updateKey();
   const c=cage;if(!c)return;c.t++;if(c.shake>0)c.shake--;
   if(c.st==='locked'){if(cageNear()&&upPressed()){if(G.hasKey)cageOpen();else{c.shake=24;sfx.rattle();}}return;}
@@ -165,10 +179,6 @@ function drawCageHint(cx){
 }
 // Cheia la brâu și cheia căzută
 function drawKeys(cx){
-  for(const e of enemies){if(!e.key||e.dead||e.remove||(e.mole&&!moleOut(e)&&!(e.ph==='dig'&&e.t<14)))continue;
-    const sx=Math.round(e.x-cx);if(sx<-20||sx>W+20)continue;
-    const kx=sx+(e.dir>0?-1:8),ky=Math.round(e.y)+8;ctx.drawImage(KEY_SM,kx,ky);
-    if(G.t%90<8){ctx.fillStyle='#ffffff';ctx.fillRect(kx,ky+1,3,1);ctx.fillRect(kx+1,ky,1,3);}}
   const k=keyIt;if(!k)return;
   const x=Math.round(k.x-cx),y=Math.round(k.y+(k.onGround?Math.sin(G.t*0.1)*1.5-2:0));
   if(theme.night||inUnder())glow(x+3,y+6,15,'255,210,90',0.6);

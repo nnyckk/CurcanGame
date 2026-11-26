@@ -9,7 +9,7 @@ function drawEnemy(e,cx){
   const sx=Math.round(e.x-cx);if(sx<-24||sx>W+24)return;
   if(e.frozen&&!e.dead){drawFrozen(e,sx);return;}
   if(e.mole){drawMole(e,sx);return;}
-  if(e.type==='man'){
+  if(e.type==='man'){e.bob=0;
     const S=e.boy?BOY:MAN;
     if(e.dead===1){ctx.drawImage(S.A[e.dir>0?'r':'l'],sx-3,Math.round(e.y+e.h-8),16,8);return;}
     if(e.dead===2){ctx.drawImage(S.FLIP,sx-3,Math.round(e.y-2));return;}
@@ -18,11 +18,12 @@ function drawEnemy(e,cx){
       // Sprite-urile de atac sunt mai late
       const wind=e.atk<=MAN_WIND_T,img=(wind?MAN.WIND:MAN.STAB)[e.dir>0?'r':'l'];
       const shake=wind&&e.atk>6?((e.atk>>1)%2?1:-1):0;
-      ctx.drawImage(img,sx-3-(e.dir>0?0:img.width-16)+shake,Math.round(e.y-2));
+      ctx.drawImage(img,sx-3-(e.dir>0?0:img.width-16)+shake,Math.round(e.y-2));keyShine(e,img,sx-3-(e.dir>0?0:img.width-16)+shake,Math.round(e.y-2));
       return;
     }
-    const f=(e.vx!==0&&(Math.floor(e.anim/7)%2))?'B':'A';
-    ctx.drawImage(S[f][e.dir>0?'r':'l'],sx-3,Math.round(e.y-2));
+    // 4 faze: pas, picioarele împreună, celălalt pas, împreună
+    const ph=e.vx!==0?Math.floor(e.anim/6)%4:-1,img=e.boy&&e.scared>0?(ph===0?BOY.SC1:ph===2?BOY.SC2:BOY.SCP):e.noBucket?(ph===0?BOY.NW1:ph===2?BOY.NW2:BOY.NA):ph===0?S.W1:ph===2?S.W2:(e.alert>0&&!e.boy)?MAN.SURP:S.A;   // ucenicul speriat: mâinile sus
+    ctx.drawImage(img[e.dir>0?'r':'l'],sx-3,Math.round(e.y-2)+e.bob);keyShine(e,img[e.dir>0?'r':'l'],sx-3,Math.round(e.y-2)+e.bob);
     if(e.alert>0||e.scared>SCARE_T-45)txt('!',sx+3,Math.round(e.y-12),'#ff4040',1,'l','#000');
     else if(e.puzzled>0)txt('?',sx+3,Math.round(e.y-12),'#ffd23f',1,'l','#000');
   }else{

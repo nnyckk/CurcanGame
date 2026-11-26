@@ -1,7 +1,7 @@
 'use strict';
 // ===== DUȘMANI ÎNGHEȚAȚI =====
-MAN.ICE=spr(MAN_TOP.concat(MLEG_A),icePal(MAN_PAL));
-BOY.ICE=spr(BOY_TOP.concat(BLEG_A),icePal(BOY_PAL));
+MAN.ICE=spr(MAN_FRONT.concat(MLEG_FRONT),icePal(MAN_PAL));
+BOY.ICE=spr(BOY_FRONT.concat(BLEG_FRONT),icePal(BOY_PAL));
 BOMB.ICE=spr(bombTop(0).concat(BF_A),icePal(BOMB_PAL));
 // Cât stau înghețați
 const FREEZE_T=300,THAW_WARN=60;

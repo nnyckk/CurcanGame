@@ -16,7 +16,7 @@ function startLevel(quiet){
   const def=LEVELS[G.level],m=def.build();
   grid=m.grid;cols=m.w;theme=THEMES[def.theme];tiles=getTiles(def.theme);bg=getBG(def.theme);goal=m.goalDef;
   enemies=m.ents.map(d=>makeEnemy(d.type,d.x,d.y));
-  G.frame=0;plats=m.plats.map(makePlat);boss=m.bossDef?makeBoss(m.bossDef):null;cafe=m.cafeDef?makeCafe(m.cafeDef):null;under=m.underDef?makeUnder(m.underDef):null;G.inUnder=false;G.subT=0;G.doorT=0;G.inCafe=false;G.talk=null;G.lift=0;golds=makeGolds(m);
+  if(G.duck){G.duck=false;applyAudio();}G.frame=0;plats=m.plats.map(makePlat);boss=m.bossDef?makeBoss(m.bossDef):null;cafe=m.cafeDef?makeCafe(m.cafeDef):null;under=m.underDef?makeUnder(m.underDef):null;G.inUnder=false;G.subT=0;G.doorT=0;G.inCafe=false;G.talk=null;G.lift=0;golds=makeGolds(m);
   // Mobii puși pe o platformă care se mișcă stau pe ea de la început
   for(const e of enemies){const p=plats.find(p=>Math.abs(p.y-(e.y+e.h))<1&&e.x+e.w>p.x&&e.x<p.x+p.w);if(p)e.plat=p;}
   makeCage(m);   // colivia și cine are cheia
@@ -36,7 +36,7 @@ function startLevel(quiet){
   player={x:sx,y:gy*TS-(big?20:13),w:big?12:10,h:big?20:13,big,fire:big&&!!G.carryFire,ice:big&&!!G.carryIce,vx:0,vy:0,face:1,onGround:false,coyote:0,jbuf:0,inv:0,anim:0,combo:0,dead:false,alpha:1};
   G.growT=0;
   G.time=300;G.frame=0;G.paused=false;G.tally=0;
-  cam.look=player.face*CAM_LOOK;cam.x=clamp(camX(),0,cols*TS-W);
+  cam.dir=player.face;cam.turnT=0;cam.lv=0;cam.look=player.face*CAM_LOOK;cam.x=clamp(camX(),0,cols*TS-W);
   if(atCp&&inCaveX(G.cp.x)){G.inUnder=true;cam.x=underCam();}   // checkpointul din peșteră
   // Startul din peșteră (nivelul din editor)
   if(!atCp&&def.startCave!=null&&under){G.inUnder=true;player.x=(under.a+def.startCave)*TS+3;
