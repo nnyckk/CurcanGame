@@ -67,7 +67,7 @@ const NEWS=[
   {t:'CAFENEAUA',items:['Ghicește ceșcuța','Blocurile lui Moș','Jocul e ales la întâmplare','Geamul arată ce e afară']},
   {t:'ÎN JOC',items:['Ucenicii fug de bombe','Sunetele de departe, mai încet','Blocuri de foc și de gheață','Deșertul, acum și ziua','Cărămizile lasă fundalul']}];
 // Chenarul listei și cât se derulează
-const NEWS_BOX={x:24,y:48,w:352,h:148},NEWS_TITLE=15,NEWS_ROW=12,NEWS_GAP=9;
+const NEWS_BOX={x:24,y:59,w:352,h:139},NEWS_TITLE=15,NEWS_ROW=12,NEWS_GAP=9;
 const newsH=()=>NEWS.reduce((h,g)=>h+NEWS_TITLE+g.items.length*NEWS_ROW+NEWS_GAP,8);
 function newsScroll(d){G.newsTo=clamp((G.newsTo||0)+d,0,Math.max(0,newsH()-NEWS_BOX.h));}
 cv.addEventListener('wheel',e=>{if(menuOn()&&G.menu==='news'){e.preventDefault();newsScroll(Math.sign(e.deltaY)*24);}},{passive:false});

@@ -18,7 +18,7 @@ function drawTitle(){
   if(G.menu==='controls'){txtCute('CONTROALE',W/2,20,3,'#e8323e','#000000');drawControls();drawMenuButtons();return;}
   if(G.menu==='custi'){txtCute('CURCANI PRINȘI',W/2,30,3,'#e8323e','#000000');drawCageInfo();drawMenuButtons();return;}
   if(G.menu==='pene'){txtCute('PENE DE AUR',W/2,30,3,'#e8323e','#000000');drawGoldInfo();drawMenuButtons();return;}
-  if(G.menu==='news'){txtCute('NOUTĂȚI',W/2,8,3,'#e8323e','#000000');drawNewsInfo();drawMenuButtons();return;}
+  if(G.menu==='news'){txtCute('NOUTĂȚI',W/2,14,3,'#e8323e','#000000');drawNewsInfo();drawMenuButtons();return;}
   if(G.menu==='mine'){txtCute('NIVELURILE MELE',W/2,10,3,'#e8323e','#000000');drawMineInfo();drawMenuButtons();return;}
   if(G.menu==='ach'){txtCute('ACHIEVEMENTS',W/2,5,3,'#e8323e','#000000');drawMenuButtons();drawAchInfo();return;}
   txtCute('CURCANUL',W/2,18,4,'#e8323e','#000000');
@@ -304,7 +304,7 @@ function drawNewsBadge(b,on){
 }
 // Pagina NOUTĂȚI: versiunea, apoi o listă pe grupe care se derulează
 function drawNewsInfo(){
-  txt('VERSIUNEA '+GAME_VERSION,W/2,34,'#ffd23f',1,'c','#000');
+  txt('VERSIUNEA '+GAME_VERSION,W/2,47,'#ffd23f',1,'c','#000');
   const B=NEWS_BOX,max=Math.max(0,newsH()-B.h);G.newsTo=clamp(G.newsTo||0,0,max);
   G.newsY=(G.newsY||0)+(G.newsTo-(G.newsY||0))*0.3;if(Math.abs(G.newsTo-G.newsY)<0.5)G.newsY=G.newsTo;
   uiBox(B.x,B.y,B.w,B.h);
