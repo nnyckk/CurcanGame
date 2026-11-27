@@ -17,7 +17,7 @@ function openHoles(u=under){for(const x of [u.x,u.x2])for(let j=12;j<14;j++)for(
 function holeBurst(x,up){for(let i=0;i<16;i++)parts.push({x:x*TS+Math.random()*SUB_SHAFT*TS,y:12*TS-2+Math.random()*4,vx:(Math.random()-0.5)*2.2,vy:up?-2-Math.random()*2.5:-0.5-Math.random(),g:0.2,life:26,max:26,col:i%3?theme.dirt:theme.dirtD,s:i%3?1:2});G.shake=5;sfx.brk();}
 // Pe pământul crăpat: doar lovitura în pământ (săritură + ↓) îl surpă. Întoarce true dacă s-a deschis.
 function poundHole(){
-  const p=player;if(!under||G.inUnder||holesOpen()||holeUnder(p)!=='in')return false;
+  const p=player;if(!under||G.inUnder||holesOpen()||holeUnder(p)!=='in'||Math.floor((p.y+p.h+1)/TS)!==12)return false;   // doar stând pe ea
   openHoles();G.underOpen=G.level;holeBurst(under.x,false);p.x=under.x*TS+(SUB_SHAFT*TS-p.w)/2;return true;
 }
 // Camera în peșteră: nu iese din pereți
