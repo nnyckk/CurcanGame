@@ -6,7 +6,7 @@ const CUSTOM_IX=LEVELS.push(CUSTOM)-1;   // și pentru NIVELURILE MELE din meniu
 const ED={marks:{sel:null,hi:null},tool:{mode:'paint',el:'D'},hover:null,down:null,lastShow:0,dirty:false,view:'',iconTheme:-1,region:'main'};
 function edUse(L){const o=edNorm(L);CUSTOM.L=o;CUSTOM.theme=edTheme(o);CUSTOM.song=edSong(CUSTOM.theme);CUSTOM.start=o.start;CUSTOM.capt=o.cage?o.cage.capt:o.cave&&o.cave.cage?o.cave.cage.capt:0;CUSTOM.startCave=o.cave&&o.cstart!=null?o.cstart:undefined;}
 // Ca la modul de test: nivelul de la zero
-function edReset(){G.slotUsed=null;G.bossMet=false;G.goldLv=-1;G.cageLv=-1;G.cafeSeen=false;G.underOpen=-1;G.cageRun=false;
+function edReset(){G.slotUsed=null;G.cafeLv=-1;G.bossMet=false;G.goldLv=-1;G.cageLv=-1;G.cafeSeen=false;G.underOpen=-1;G.cageRun=false;
   G.lvlHurt=false;G.lvlSeen=false;G.fullRun=false;G.carryBig=false;G.carryFire=false;G.carryIce=false;G.paused=false;G.inCafe=false;G.inUnder=false;}
 // Zona desenată: drumul sau camera peșterii (prima coloană, lățimea)
 const edZone=()=>ED.region==='cave'&&under?{a:under.a,w:under.w}:{a:0,w:CUSTOM.L.w};
@@ -30,6 +30,7 @@ function edShow(L){
 // Joci nivelul: de la start sau de la coloana from
 function edPlay(L,from,god){
   edUse(L);edReset();G.level=CUSTOM_IX;G.god=!!god;
+  {const f=(ED.test||{}).form||'small';G.carryBig=f!=='small';G.carryFire=f==='fire';G.carryIce=f==='ice';}   // forma aleasă în Test
   G.cp=Number.isInteger(from)?{level:CUSTOM_IX,x:clamp(from,0,CUSTOM.L.w-1)}:null;
   startLevel();
 }
@@ -64,7 +65,7 @@ function edIcons(){
   const CPI=can(16,16,g=>{g.fillStyle='#cfd3dc';g.fillRect(3,1,2,15);g.fillStyle='#ffcf40';g.fillRect(5,2,9,6);});
   const plank=img=>can(32,8,g=>{g.drawImage(img,0,0);g.drawImage(img,16,0);});
   const Dc=can(16,16,g=>{g.drawImage(tiles.D,0,0);g.fillStyle=theme.dirtL;g.fillRect(0,0,16,1);});   // pământul din peșteră: fără iarbă
-  toParent({edIcons:{D:u(tiles.G),Dc:u(Dc),H_ice:u(tiles.A[0]),H_fire:u(tiles.R[0]),Z:u(tiles.ZG),W:u(tiles.WG),Y:u(tiles.Yv[0]),X:u(tiles.X),I:u(tiles.I),'^':u(tiles['^']),spk_up:u(tiles['^']),spk_down:u(tiles.v),spk_left:u(tiles['<']),spk_right:u(tiles['>']),'=':u(tiles['=']),
+  toParent({edIcons:{D:u(tiles.G),Dc:u(Dc),H_ice:u(tiles.A[0]),H_fire:u(tiles.R[0]),Z:u(tiles.ZG),W:u(tiles.WG),Y:u(tiles.Yv[0]),X:u(tiles.X),I:u(tiles.I),'^':u(tiles['^']),tk_small:u(TKS.A.r),tk_big:u(TK.A.r),tk_fire:u(TKF.A.r),tk_ice:u(TKI.A.r),spk_up:u(tiles['^']),spk_down:u(tiles.v),spk_left:u(tiles['<']),spk_right:u(tiles['>']),'=':u(tiles['=']),
     B:u(tiles.B),M:u(tiles.M[0]),H:u(H),water:u(sw(theme.water.body,11,5)),coin:u(COIN),cp:u(CPI),start:u(TKS.A.r),
     boy:u(BOY.A.r),man:u(MAN.A.r),mole:u(MOLE.A.r),bomb:u(BOMB.A.r),head:u(HEAD),
     gopen:u(GOLD_PANA),gbrick:u(can(16,16,g=>{g.drawImage(tiles.B,0,0);g.drawImage(GOLD_PANA,5,1);})),
@@ -199,6 +200,10 @@ const ED_CMDS={
   edHello(){edIcons();ED.view='';},
   edLevel(d){if(G.state==='edit'||G.state==='title')edShow(d.L);else edUse(d.L);},
   edGrid(d){ED.grid=!!d.v;},
+  // Din secțiunea Test: viteza, cheia, curcanul de aur, hitbox-urile, forma de la start
+  edTest(d){const k=!!d.key;if(k!==!!G.testKey&&G.state==='play')G.hasKey=k;
+    ED.test={form:['small','big','fire','ice'].includes(d.form)?d.form:'small'};G.speed=[0.25,0.5,1,1.5].includes(+d.speed)?+d.speed:1;G.testKey=k;G.testGold=!!d.gold;G.showHB=!!d.hb;},
+  edForm(d){if(G.state==='play')testForm(d.form);},   // cât testezi: pe loc
   edCamY(d){if(G.state==='edit')cam.y=edCamClampY(+d.y||0);},
   edTool(d){ED.tool={mode:d.mode,el:d.el,opt:d.opt||{}};},
   edCam(d){if(G.state==='edit'){const z=edZone();cam.x=edCamClamp((z.a+(+d.x||0))*TS);}},
@@ -229,6 +234,8 @@ if(EDIT){
   cv.addEventListener('wheel',e=>{if(G.state!=='edit')return;e.preventDefault();if(e.altKey){cam.y=edCamClampY(cam.y+e.deltaY*0.6);return;}cam.x=edCamClamp(cam.x+(Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY)*0.6);},{passive:false});
   // Scurtăturile ajung la panou și când jocul are focusul
   addEventListener('keydown',e=>{
+    // T: pornește / oprește testul (Shift+T: de aici)
+    if(e.code==='KeyT'&&!e.ctrlKey&&!e.metaKey&&!e.altKey&&!e.repeat){e.preventDefault();toParent({edKey:e.shiftKey?'here':'test'});return;}
     if(G.state!=='edit')return;
     if(e.code==='Home'){e.preventDefault();cam.y=edCamClampY(0);return;}   // camera înapoi jos
     const k=(e.ctrlKey||e.metaKey)?(e.code==='KeyZ'?(e.shiftKey?'redo':'undo'):e.code==='KeyY'?'redo':e.code==='KeyS'?'save':null):({KeyP:'pointer',KeyB:'paint',KeyE:'erase',KeyR:'rect',KeyV:'move',KeyI:'pick',KeyG:'grid',Escape:'esc',Delete:'del',Backspace:'del'})[e.code]||(e.key==='?'?'help':null);

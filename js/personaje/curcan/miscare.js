@@ -71,7 +71,7 @@ function updatePlayer(){
   // Țepii rănesc doar când calci pe ei de sus
   if(p.onGround&&standsOnSpikes(p))hurt(-p.face);
   else{const sd=spikeTouch(p);if(sd)hurt(sd);}   // țepii de pe tavan și de pe pereți
-  if(inUnder()){if(p.y+p.h>H-12&&overPit(p))die('pit');}   // în peșteră: țepii din groapă
+  if(inUnder()){if(p.y+p.h>PIT_TIP_Y&&overPit(p))die('pit');}   // în peșteră: țepii din groapă
   else if(p.y+p.h>WATER_Y&&overPit(p))drown();
   else if(p.y>H+8)die('pit');
 }

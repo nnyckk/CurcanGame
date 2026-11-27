@@ -130,7 +130,10 @@
   #pos{font:12px ui-monospace,Consolas,monospace;color:var(--dim);white-space:nowrap}
 
   /* ---- Dreapta: elementul ales, nivelul */
-  aside.props{width:272px}
+  aside.props{width:272px;overflow:hidden}
+  /* Elementul ales se derulează; Testul stă fix jos */
+  #propsEl{flex:1;min-height:0;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--line2) transparent}
+  #testEl{flex:none}
   .ihead{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;margin-bottom:10px}
   .ihead .big{display:flex;align-items:center;justify-content:center;width:100%;min-height:96px;background:var(--card);border:1px solid var(--line);border-radius:var(--r2);padding:10px}
   .ihead .big img{image-rendering:pixelated;display:block}
@@ -141,6 +144,9 @@
   .opt{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--muted);font-size:12.5px}
   .opt + .opt{margin-top:8px}
   .props .opt b{min-width:64px;text-align:center}
+  #testEl .opt{margin:10px 0 6px}
+  .seg.tspd button{white-space:normal;line-height:1.15;font-size:11.5px}
+  .seg.tform img{width:auto;height:26px}
   .seg{display:flex;gap:3px;padding:3px;background:var(--card);border:1px solid var(--line);border-radius:var(--r2)}
   .seg button{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;min-height:34px;padding:4px 6px;border:0;border-radius:6px;background:none;color:var(--muted);font-size:12.5px;white-space:nowrap}
   .seg button:hover:not(:disabled){color:var(--text);background:var(--card2)}
@@ -270,7 +276,7 @@
   <div class="grp">
     <label class="toggle" data-tip="Invincibil||Când testezi, nimic nu te rănește. Apa și gropile tot te omoară."><input type="checkbox" id="god" checked><span class="lbl">Invincibil</span></label>
     <button class="btn" id="here" data-tip="Testează de aici||Pornești din stânga ecranului de acum."><i data-px="play"></i><span class="lbl">De aici</span></button>
-    <button class="btn primary" id="test"><i data-px="play"></i>Testează</button>
+    <button class="btn primary" id="test" data-tip="Testează|T|Pornește sau oprește testul. Shift+T: de aici."><i data-px="play"></i>Testează</button>
   </div>
 </header>
 
@@ -337,6 +343,13 @@
 
   <aside id="props" class="props" aria-label="Elementul ales și setările nivelului">
     <div id="propsEl"></div>
+    <div id="testEl"><section><h2>Test</h2>
+      <div class="opt"><span>Viteza jocului</span></div>
+      <div class="seg tspd" id="tSpeed" role="group" aria-label="Viteza"><button data-spd="0.25">Foarte încet</button><button data-spd="0.5">Încet</button><button data-spd="1">Normal</button><button data-spd="1.5">Rapid</button></div>
+      <div class="opt"><span>Curcanul (și la start)</span></div>
+      <div class="seg pw tform" id="tForm" role="group" aria-label="Forma curcanului"><button data-form="small"><img data-cicon="tk_small" alt="">Mic</button><button data-form="big"><img data-cicon="tk_big" alt="">Mare</button><button data-form="fire"><img data-cicon="tk_fire" alt="">Foc</button><button data-form="ice"><img data-cicon="tk_ice" alt="">Gheață</button></div>
+      <div class="seg" id="tTog" role="group" aria-label="Ajutoare"><button data-tog="key" data-tip="Cheia||Ai cheia coliviei de la început.">Cheie</button><button data-tog="gold" data-tip="Curcanul de aur||Doar cum arată.">De aur</button><button data-tog="hb" data-tip="Hitbox-uri||Arată cutiile de lovire.">Hitbox</button></div>
+    </section></div>
   </aside>
 </div>
 
@@ -368,6 +381,7 @@
       <dt><kbd>E</kbd></dt><dd>Gumă (click dreapta șterge cu orice unealtă)</dd>
       <dt><kbd>I</kbd></dt><dd>Pipetă: click pe ceva și devine elementul pensulei</dd>
       <dt><kbd>G</kbd></dt><dd>Arată sau ascunde grila</dd>
+      <dt><kbd>T</kbd></dt><dd>Testează / oprește testul · <kbd>Shift</kbd> <kbd>T</kbd> testează de aici</dd>
       <dt><kbd>←</kbd><kbd>→</kbd></dt><dd>Mută harta (și rotița); cu <kbd>Shift</kbd> mai repede</dd>
       <dt><kbd>↑</kbd><kbd>↓</kbd></dt><dd>Mută harta în sus (până la rândul -14) și în jos (cât se vede la dialog); și <kbd>Alt</kbd> + rotița · <kbd>Home</kbd> te aduce înapoi jos</dd>
       <dt><kbd>Ctrl</kbd><kbd>Z</kbd></dt><dd>Anulează · <kbd>Ctrl</kbd> <kbd>Y</kbd> refă</dd>

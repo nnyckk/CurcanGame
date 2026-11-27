@@ -67,27 +67,27 @@ const MODES=[{id:'pointer',name:'Pointer',k:'V',px:'move',d:'Click pe orice ca s
 const ELS=[
   {g:'teren',id:'D',name:'Pământ'},{g:'teren',id:'Z',name:'Deal din spate'},{g:'teren',id:'W',name:'Deal îndepărtat'},
   {g:'teren',id:'Y',name:'Tunel'},{g:'teren',id:'X',name:'Piatră'},{g:'teren',id:'I',name:'Gheață',snow:true},
-  {g:'teren',id:'water',name:'Apă'},{g:'teren',id:'^',name:'Țepi'},{g:'teren',id:'=',name:'Scândură'},
-  {g:'cteren',id:'D',name:'Pământ',icon:'Dc'},{g:'cteren',id:'X',name:'Piatră'},{g:'cteren',id:'^',name:'Țepi'},{g:'cteren',id:'=',name:'Scândură'},{g:'cteren',id:'Y',name:'Tunel'},
+  {g:'teren',id:'water',name:'Apă'},{g:'teren',id:'^',name:'Țepi'},
+  {g:'cteren',id:'D',name:'Pământ',icon:'Dc'},{g:'cteren',id:'X',name:'Piatră'},{g:'cteren',id:'^',name:'Țepi'},{g:'cteren',id:'icicle',name:'Țurțure care cade',px:'icicle'},{g:'cteren',id:'Y',name:'Tunel'},
   {g:'blocuri',id:'B',name:'Cărămidă'},{g:'blocuri',id:'M',name:'Bloc M'},{g:'blocuri',id:'H',name:'Bloc cu putere'},
   {g:'obiecte',id:'coin',name:'Bănuț'},{g:'obiecte',id:'cp',name:'Checkpoint'},{g:'obiecte',id:'start',name:'Start'},
   {g:'obiecte',id:'gopen',name:'Pană vizibilă'},{g:'obiecte',id:'gbrick',name:'Pană în cărămidă'},{g:'obiecte',id:'ghidden',name:'Pană ascunsă'},
   {g:'obiecte',id:'cage',name:'Colivie'},
   {g:'final',id:'sign',name:'Semn de final',px:'sign'},{g:'final',id:'rest',name:'Restaurant',px:'rest'},{g:'final',id:'cafe',name:'MesoCafé',px:'cafe'},
-  {g:'platforme',id:'mvx',name:'Se mișcă ↔'},{g:'platforme',id:'mvy',name:'Se mișcă ↕'},{g:'platforme',id:'fall',name:'Cade'},
+  {g:'platforme',id:'=',name:'Scândură'},{g:'platforme',id:'mvx',name:'Se mișcă ↔'},{g:'platforme',id:'mvy',name:'Se mișcă ↕'},{g:'platforme',id:'fall',name:'Cade'},
   {g:'inamici',id:'boy',name:'Ucenic'},{g:'inamici',id:'man',name:'Fermier'},{g:'inamici',id:'bomb',name:'Bombă'},{g:'inamici',id:'mole',name:'Cârtița miner'},
   {g:'pestera',id:'cavein',name:'Intrare',px:'cavein'},{g:'pestera',id:'caveout',name:'Ieșire',px:'caveout'},
-  {g:'decor',id:'gem',name:'Cristal',px:'gem'},{g:'decor',id:'bat',name:'Liliac',px:'bat'},{g:'decor',id:'icicle',name:'Țurțure care cade',px:'icicle'},
+  {g:'decor',id:'gem',name:'Cristal',px:'gem'},{g:'decor',id:'bat',name:'Liliac',px:'bat'},
   {g:'decor',id:'pool',name:'Baltă',px:'pool'},{g:'puturi',id:'cin',name:'Unde cazi',px:'cavein'},{g:'puturi',id:'cout',name:'Pe unde ieși',px:'caveout'}];
 // Categoriile: zone = doar pe drum sau doar în peșteră
 const CATS=[
-  {id:'teren',name:'Teren',icon:'D',zone:'main',tip:'Pământ, dealuri, tunel, apă, țepi, scânduri.'},
-  {id:'cteren',name:'Teren',icon:'Dc',zone:'cave',tip:'Pământul peșterii, piatră, țepi, scânduri.'},
+  {id:'teren',name:'Teren',icon:'D',zone:'main',tip:'Pământ, dealuri, tunel, apă, țepi.'},
+  {id:'cteren',name:'Teren',icon:'Dc',zone:'cave',tip:'Pământul peșterii, piatră, țepi, țurțuri care cad, tunel.'},
   {id:'blocuri',name:'Blocuri',icon:'M',tip:'Cărămizi, blocuri M și blocuri cu putere.'},
   {id:'obiecte',name:'Obiecte',icon:'coin',tip:'Bănuți, pene, start, checkpoint, colivie.'},
   {id:'inamici',name:'Inamici',icon:'man',tip:'Ucenici, fermieri și bombe.'},
-  {id:'platforme',name:'Platforme',icon:'mvx',tip:'Platforme care se mișcă sau cad.'},
-  {id:'decor',name:'Decor',px:'gem',zone:'cave',tip:'Cristale, lilieci, țurțuri și bălți.'},
+  {id:'platforme',name:'Platforme',icon:'mvx',tip:'Scânduri și platforme care se mișcă sau cad.'},
+  {id:'decor',name:'Decor',px:'gem',zone:'cave',tip:'Cristale, lilieci și bălți.'},
   {id:'puturi',name:'Puțuri',px:'caveout',zone:'cave',tip:'Puțul prin care cazi în peșteră și cel prin care ieși.'},
   {id:'pestera',name:'Peștera',px:'cavein',zone:'main',tip:'Intrarea, ieșirea și camera de sub pământ.'},
   {id:'final',name:'Locuri',px:'rest',zone:'main',tip:'Clădirile și semnele: semnul de final, restaurantul și MesoCafé.'}];
@@ -106,7 +106,8 @@ const CAFE_GAMES=[{id:'slot',name:'Blocul-slot',px:'slot',d:'Dai cu capul în bl
   {id:'cups',name:'Ghicește ceșcuța',px:'cup',d:'Moș ascunde premiul sub o ceașcă și le amestecă.'},
   {id:'blocks',name:'Blocurile lui Moș',px:'note',d:'Moș aprinde blocurile într-o ordine; tu le lovești la fel. Trei runde.'},
   {id:'mouse',name:'Prinde șoricelul',px:'mouse',d:'Vine în curând.',soon:true},
-  {id:'hotcold',name:'Cald sau rece',px:'temp',d:'Vine în curând.',soon:true}];
+  {id:'hotcold',name:'Cald sau rece',px:'temp',d:'Vine în curând.',soon:true},
+  {id:'random',name:'La întâmplare',px:'help',d:'La fiecare joc, Moș alege unul dintre mini-jocuri.'}];
 const GEM_SZ=['Mic','Mijlociu','Mare'],GEM_CN=['Mov','Albastru','Verde'];
 const gemSC=g=>g[0]==='L'||g[0]==='R'?[g[2],g[3]]:[g[3],g[4]];
 $('#modes').innerHTML=MODES.map(m=>`<button class="mode" data-mode="${m.id}" data-tip="${m.name}|${m.k}|${m.d}"><i data-px="${m.px||m.id}"></i>${m.name}<kbd>${m.k}</kbd></button>`).join('');
@@ -579,6 +580,22 @@ helpBox.addEventListener('click',e=>{if(e.target===helpBox)closeBoxes();});
 // Grila din joc: pornită sau ascunsă (ținut minte)
 function toggleGrid(){gridOn=!gridOn;try{localStorage.setItem('curcan_editor_grila',gridOn?'1':'0');}catch(e){}send('edGrid',{v:gridOn});syncUI();status(gridOn?'Grila e pornită.':'Grila e ascunsă.');}
 $('#gridBtn').addEventListener('click',toggleGrid);
+// ---- Testul: viteza, forma curcanului, cheia, curcanul de aur, hitbox-urile (se țin minte) ----
+const TST={speed:1,form:'small',key:false,gold:false,hb:false};
+try{Object.assign(TST,JSON.parse(localStorage.getItem('curcan_editor_test')||'{}'));}catch(e){}
+const sendTest=()=>send('edTest',TST);
+function drawTest(){
+  $$('#tSpeed button').forEach(b=>b.setAttribute('aria-pressed',+b.dataset.spd===TST.speed));
+  $$('#tForm button').forEach(b=>b.setAttribute('aria-pressed',b.dataset.form===TST.form));
+  $$('#tTog button').forEach(b=>b.setAttribute('aria-pressed',!!TST[b.dataset.tog]));
+}
+$('#testEl').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.spd)TST.speed=+b.dataset.spd;
+  else if(b.dataset.form){TST.form=b.dataset.form;send('edForm',{form:TST.form});}
+  else if(b.dataset.tog)TST[b.dataset.tog]=!TST[b.dataset.tog];
+  try{localStorage.setItem('curcan_editor_test',JSON.stringify(TST));}catch(e){}
+  sendTest();drawTest();focusGame();});
+drawTest();
 $('#camDown').addEventListener('click',()=>{send('edCamY',{y:0});focusGame();});   // camera înapoi sub rândul 0
 const when=d=>{const t=new Date(d);return t.toLocaleDateString('ro-RO',{day:'numeric',month:'short'})+', '+t.toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit'});};
 function drawMine(){
@@ -713,7 +730,7 @@ function setTool(mode,el){
 const sendTool=()=>send('edTool',{mode:tool.mode,el:tool.el,opt:OPT[tool.el]||{}});
 $('#modes').addEventListener('click',e=>{const b=e.target.closest('[data-mode]');if(b)setTool(b.dataset.mode);});
 $('#pal').addEventListener('click',e=>{const b=e.target.closest('[data-el]');if(b&&!b.disabled)setTool(null,b.dataset.el);});
-function keyCmd(k){if(k==='esc')clearSel();else if(k==='del')delSel();else if(k==='undo')undoIt();else if(k==='redo')redoIt();else if(k==='save')saveLevel();else if(k==='grid')toggleGrid();else if(k==='help')openHelp();else if(MODES.some(m=>m.id===k))setTool(k);}
+function keyCmd(k){if(k==='test'){$('#test').click();return;}if(k==='here'){if(!playing)$('#here').click();return;}if(k==='esc')clearSel();else if(k==='del')delSel();else if(k==='undo')undoIt();else if(k==='redo')redoIt();else if(k==='save')saveLevel();else if(k==='grid')toggleGrid();else if(k==='help')openHelp();else if(MODES.some(m=>m.id===k))setTool(k);}
 addEventListener('keydown',e=>{
   if((e.ctrlKey||e.metaKey)&&e.code==='KeyS'){e.preventDefault();if(askBox.hidden&&mineBox.hidden&&codeBox.hidden&&helpBox.hidden)saveLevel();return;}
   if(!askBox.hidden)return;
@@ -723,7 +740,7 @@ addEventListener('keydown',e=>{
   else if((e.ctrlKey||e.metaKey)&&e.code==='KeyY'){e.preventDefault();keyCmd('redo');}
   else if(e.code==='Escape')keyCmd('esc');
   else if(e.code==='Delete'||e.code==='Backspace'){e.preventDefault();keyCmd('del');}
-  else if(!e.ctrlKey&&!e.metaKey&&!e.altKey){if(e.key==='?'){openHelp();return;}if(e.code==='KeyG'){toggleGrid();return;}const m=MODES.find(m=>'Key'+m.k===e.code);if(m)setTool(m.id);}
+  else if(!e.ctrlKey&&!e.metaKey&&!e.altKey){if(e.key==='?'){openHelp();return;}if(e.code==='KeyG'){toggleGrid();return;}if(e.code==='KeyT'&&!e.repeat){keyCmd(e.shiftKey?'here':'test');return;}const m=MODES.find(m=>'Key'+m.k===e.code);if(m)setTool(m.id);}
 });
 // ---- Panoul din dreapta: poza elementului, ce face, setările lui ----
 const DESC={D:'Pământ. Iarba, marginile și colțurile se pun singure.',Z:'Deal din spate, mai închis: pe iarba lui de sus se poate sta.',
@@ -887,7 +904,7 @@ function goStart(){
   if((region==='cave')!==cave)setRegion(cave?'cave':'main');
   send('edCam',{x:x-Math.floor((view.view||25)/3)});
 }
-frame.addEventListener('load',()=>{send('edHello');send('edGrid',{v:gridOn});sendTool();send('edLevel',{L});if(region==='cave')send('edRegion',{r:'cave'});goStart();focusGame();});
+frame.addEventListener('load',()=>{send('edHello');sendTest();send('edGrid',{v:gridOn});sendTool();send('edLevel',{L});if(region==='cave')send('edRegion',{r:'cave'});goStart();focusGame();});
 
 // ---- Harta mică: drumul sau camera peșterii ----
 const mapCv=$('#map'),mg=mapCv.getContext('2d');
@@ -965,6 +982,8 @@ function layout(){
   const w=Math.max(320,Math.floor(Math.min(aw,ah*400/224))),h=Math.round(w*224/400);
   frame.style.width=w+B+'px';frame.style.height=h+B+'px';
   for(const id of ['#regionbar','#mapbox','#statusbar'])$(id).style.width=w+B+'px';
+  // Testul: jos, în dreptul jocului (deasupra hărții mici)
+  {const pr=$('#props').getBoundingClientRect(),fb=frame.getBoundingClientRect().bottom;$('#testEl').style.marginBottom=Math.max(0,Math.round(pr.bottom-fb))+'px';}
   drawMap();
 }
 addEventListener('resize',layout);

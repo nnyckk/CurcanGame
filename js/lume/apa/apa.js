@@ -1,7 +1,7 @@
 'use strict';
 // ===== APA: gropile cu apă, iazurile, lacurile =====
 // Coloanele fără sol pe rândul 12 sunt gropi cu apă
-const WATER_Y=12*TS+5;
+const WATER_Y=12*TS+5,PIT_TIP_Y=H-20;   // PIT_TIP: vârfurile țepilor din groapa peșterii
 // Apă doar unde lipsește tot solul (adânciturile au pământ jos)
 const waterCol=tx=>'.I'.includes(tileAt(tx,12))&&tileAt(tx,13)==='.'&&!(under&&tx>=under.a);   // groapa din peșteră nu e apă
 function overPit(e){const tx=Math.floor((e.x+e.w/2)/TS);return tileAt(tx,12)==='.'&&tileAt(tx,13)==='.';}
@@ -46,7 +46,7 @@ function sinkStep(e){
 }
 // Căzut pe țepii din peșteră: rămâne înfipt puțin, apoi se face praf
 function spikeStep(e){
-  const tipY=H-12;
+  const tipY=PIT_TIP_Y;
   if(e.y+e.h<tipY){e.vy=Math.min(e.vy+0.35,6);e.y+=e.vy;e.x=clamp(e.x+e.vx,e.pitL+2,e.pitR-e.w-2);if(e.y+e.h>=tipY){e.y=tipY-e.h;e.vy=0;e.vx=0;sfx.brk();G.shake=3;}return;}
   if(++e.stuckT>=40){e.remove=true;for(let i=0;i<10;i++)parts.push({x:e.x+Math.random()*e.w,y:e.y+Math.random()*e.h,vx:(Math.random()-0.5)*1.4,vy:-0.6-Math.random(),g:0.1,life:22,max:22,col:i%2?'#9a96a2':'#5e5a66',s:i%3?1:2});}
 }

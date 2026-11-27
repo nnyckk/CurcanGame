@@ -141,14 +141,32 @@ function drawHitboxes(cx){
   ctx.lineWidth=1;
   const r=(o,col)=>{ctx.strokeStyle=col;ctx.strokeRect(Math.round(o.x-cx)+0.5,Math.round(o.y)+0.5,Math.max(1,Math.round(o.w)-1),Math.max(1,Math.round(o.h)-1));};
   if(player&&!player.dead)r(player,'#00ff66');
-  for(const e of enemies){if(!e.active||e.dead||e.remove)continue;
+  const edit=G.state==='edit';   // în editor: toți mobii, cu furca / târnăcopul arătate mereu
+  for(const e of enemies){if(!(e.active||edit)||e.dead||e.remove)continue;
     r(e.sit?e:mobBox(e),e.type==='man'?(e.boy?'#ffffff':'#ff4040'):'#ffa000');
-    if(e.type==='man'&&e.atk>MAN_WIND_T&&e.atk-MAN_WIND_T<=10)r(forkBox(e),'#ff40ff');
-    if(e.mole&&e.ph==='atk'&&e.t>MOLE_WIND&&e.t<=MOLE_WIND+6)r(pickBox(e),'#ff40ff');
+    if(e.type==='man'&&!e.boy&&!e.mole&&(edit||e.atk>MAN_WIND_T&&e.atk-MAN_WIND_T<=10))r(forkBox(e),'#ff40ff');
+    if(e.mole&&(edit||e.ph==='atk'&&e.t>MOLE_WIND&&e.t<=MOLE_WIND+6))r(pickBox(e),'#ff40ff');
     if(e.type==='bomb'&&e.sit&&BOMB_PUSH_PAD)r({x:e.x-BOMB_PUSH_PAD,y:e.y,w:e.w+BOMB_PUSH_PAD*2,h:e.h},'#ffff40');}
   for(const it of items)r(it,'#40c0ff');
   for(const f of feathers)r(f,'#ffc080');
   for(const p of plats)if(p.solid)r(p,'#40ffd0');
+  // Stalactitele care cad (în peșteră)
+  const ud=under&&G.inUnder&&under.deco;
+  if(ud)for(const s of ud.falls)if(s.st!=='gone')r({x:s.x+1,y:s.y+s.len*0.3,w:s.w-2,h:s.len*0.7},'#ff60c0');
+  // Bomba aprinsă: cât prinde explozia (după mijlocul tău)
+  ctx.strokeStyle='#ffa000';ctx.setLineDash([3,3]);
+  for(const e of enemies)if(e.type==='bomb'&&e.lit>0&&!e.dead){ctx.beginPath();ctx.arc(Math.round(e.x+6-cx),Math.round(e.y+6),38,0,TAU);ctx.stroke();}
+  for(const b of booms)if(b.t<10){ctx.beginPath();ctx.arc(Math.round(b.x-cx),Math.round(b.y),38,0,TAU);ctx.stroke();}
+  ctx.setLineDash([]);
+  // Apa și gropile: linia de sub care mori (mijlocul tău peste groapă)
+  {const dy=ud?PIT_TIP_Y:WATER_Y,xa=Math.max(0,Math.floor(cx/TS)),xb=Math.min(cols-1,Math.floor((cx+W)/TS));
+    ctx.fillStyle='#40a0ff';for(let tx=xa;tx<=xb;tx++)if(tileAt(tx,12)==='.'&&tileAt(tx,13)==='.')ctx.fillRect(tx*TS-cx,dy,TS,1);}
+  // Țepii: partea cu vârfuri, cea care rănește
+  {const x0=Math.max(0,Math.floor(cx/TS)),x1=Math.min(cols-1,Math.floor((cx+W)/TS)),cy=Math.round(cam.y),y0=Math.max(topRow,Math.floor(cy/TS)),y1=Math.min(ROWS-1,Math.floor((cy+H)/TS));
+    for(let ty=y0;ty<=y1;ty++)for(let tx=x0;tx<=x1;tx++){const c=tileAt(tx,ty),X=tx*TS,Y=ty*TS;
+      // un pixel sub vârfuri (vârful e la 3 px de margine)
+      if(c==='^')r({x:X,y:Y+4,w:TS,h:3},'#ff60c0');else if(c==='v')r({x:X,y:Y+TS-7,w:TS,h:3},'#ff60c0');
+      else if(c==='<')r({x:X+4,y:Y,w:3,h:TS},'#ff60c0');else if(c==='>')r({x:X+TS-7,y:Y,w:3,h:TS},'#ff60c0');}}
   if(bossFighting()||(boss&&boss.st==='wait')){r(boss,'#ff4040');for(const f of boss.forks)if(!f.stuckT)r(forkTip(f),'#ff40ff');
     if(boss.st==='strike'&&boss.ext>0)r(bossStrikeBox(),'#ff40ff');}
 }

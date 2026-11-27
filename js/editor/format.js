@@ -12,7 +12,7 @@ const edSong=t=>t===3?'night':t===1||t===5?'winter':undefined;
 const ED_TILES='DZWYXI^=BMHARv<>';   // v < > = țepii întorși (tavan, pereți)
 const ED_SPIKES={up:'^',down:'v',left:'<',right:'>'},ED_SPIKE_NAMES={up:'În sus',down:'În jos',left:'Spre stânga',right:'Spre dreapta'};   // H, A, R = bloc cu putere: normală, gheață, foc
 // Mini-jocurile din cafenea (blocks, mouse, hotcold: vin pe rând)
-const ED_CAFE_GAMES=['slot','cups','blocks','mouse','hotcold'];
+const ED_CAFE_GAMES=['slot','cups','blocks','mouse','hotcold','random'];   // random: Moș alege unul, la fiecare joc
 const ED_MOBS=['boy','man','bomb','mole'];   // mole: cârtița miner, doar în peșteră
 const ED_GOLD_KINDS=['open','brick','hidden'];
 // Viteza platformei care se mișcă: 1–5, în pătrate pe secundă

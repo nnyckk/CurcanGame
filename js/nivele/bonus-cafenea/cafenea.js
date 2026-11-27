@@ -24,8 +24,8 @@ const MESO_LOGO=(()=>{
 // În jocul principal, mini-jocul se alege la întâmplare o dată pe nivel (rămâne la fel după o viață pierdută)
 const CAFE_RANDOM=['slot','cups','blocks'];
 function cafeGameFor(d){
-  if(LEVELS[G.level].custom)return d.game||'slot';
-  if(G.cafeLv!==G.level||!G.cafeGame){G.cafeLv=G.level;G.cafeGame=CAFE_RANDOM[Math.random()*CAFE_RANDOM.length|0];}
+  if(LEVELS[G.level].custom&&d.game!=='random')return d.game||'slot';   // editorul: cel ales, sau la întâmplare
+  const k=G.level+'/'+d.x;if(G.cafeLv!==k||!G.cafeGame){G.cafeLv=k;G.cafeGame=CAFE_RANDOM[Math.random()*CAFE_RANDOM.length|0];}
   return G.cafeGame;
 }
 function makeCafe(d){
