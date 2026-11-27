@@ -10,8 +10,8 @@ function drawTitle(){
   if(G.menu==='main'){
   const f=TK_RUN[Math.floor(G.t/5)%4],bob=Math.floor(G.t/5)%2?-1:0;
   ctx.drawImage(tkSmall()[f].r,239,176+bob);
-  const mf=Math.floor(G.t/6)%2?'B':'A';
-  ctx.drawImage(MAN[mf].r,175,172);ctx.drawImage(BOY[mf==='A'?'B':'A'].r,145,172);
+  const mf=Math.floor(G.t/6)%8;
+  ctx.drawImage(MAN.WK[mf].r,175,172);ctx.drawImage(BOY.WK[(mf+4)%8].r,145,172);
   if((G.t>>4)%2)txt('!',180,160,'#ff4040');}
   if(THEMES[0].farm)drawGroundDecor(fc,THEMES[0],()=>true);   // în fața personajelor
   if(G.menu==='settings'){txtCute('SETĂRI',W/2,40,3,'#e8323e','#000000');drawMenuButtons();return;}

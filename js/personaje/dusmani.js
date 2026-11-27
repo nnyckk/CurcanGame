@@ -21,8 +21,8 @@ function drawEnemy(e,cx){
       ctx.drawImage(img,sx-3-(e.dir>0?0:img.width-16)+shake,Math.round(e.y-2));keyShine(e,img,sx-3-(e.dir>0?0:img.width-16)+shake,Math.round(e.y-2));
       return;
     }
-    // 4 faze: pas, picioarele împreună, celălalt pas, împreună
-    const ph=e.vx!==0?Math.floor(e.anim/6)%4:-1,img=e.boy&&e.scared>0?(ph===0?BOY.SC1:ph===2?BOY.SC2:BOY.SCP):e.noBucket?(ph===0?BOY.NW1:ph===2?BOY.NW2:BOY.NA):ph===0?S.W1:ph===2?S.W2:(e.alert>0&&!e.boy)?MAN.SURP:S.A;   // ucenicul speriat: mâinile sus
+    // 8 faze de mers (WK)
+    const ph=e.vx!==0?Math.floor(e.anim/6)%8:-1,img=e.boy&&e.scared>0?(ph<0?BOY.SCP:BOY.SCK[ph]):e.noBucket?(ph<0?BOY.NA:BOY.NWK[ph]):ph>=0?S.WK[ph]:(e.alert>0&&!e.boy)?MAN.SURP:S.A;   // ucenicul speriat: mâinile sus
     ctx.drawImage(img[e.dir>0?'r':'l'],sx-3,Math.round(e.y-2)+e.bob);keyShine(e,img[e.dir>0?'r':'l'],sx-3,Math.round(e.y-2)+e.bob);
     if(e.alert>0||e.scared>SCARE_T-45)txt('!',sx+3,Math.round(e.y-12),'#ff4040',1,'l','#000');
     else if(e.puzzled>0)txt('?',sx+3,Math.round(e.y-12),'#ffd23f',1,'l','#000');
