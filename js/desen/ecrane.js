@@ -18,7 +18,7 @@ function drawTitle(){
   if(G.menu==='controls'){txtCute('CONTROALE',W/2,20,3,'#e8323e','#000000');drawControls();drawMenuButtons();return;}
   if(G.menu==='custi'){txtCute('CURCANI PRINȘI',W/2,30,3,'#e8323e','#000000');drawCageInfo();drawMenuButtons();return;}
   if(G.menu==='pene'){txtCute('PENE DE AUR',W/2,30,3,'#e8323e','#000000');drawGoldInfo();drawMenuButtons();return;}
-  if(G.menu==='news'){txtCute('NOUTĂȚI',W/2,14,3,'#e8323e','#000000');drawNewsInfo();drawMenuButtons();return;}
+  if(G.menu==='news'){txtCute('CHANGELOG',W/2,14,3,'#e8323e','#000000');drawNewsInfo();drawMenuButtons();return;}
   if(G.menu==='mine'){txtCute('NIVELURILE MELE',W/2,10,3,'#e8323e','#000000');drawMineInfo();drawMenuButtons();return;}
   if(G.menu==='ach'){txtCute('ACHIEVEMENTS',W/2,5,3,'#e8323e','#000000');drawMenuButtons();drawAchInfo();return;}
   txtCute('CURCANUL',W/2,18,4,'#e8323e','#000000');
@@ -300,11 +300,10 @@ function drawStoryEnd(){
 // Insigna NOUTĂȚI, lângă celelalte: steluță și textul
 function drawNewsBadge(b,on){
   const {x,y,w,h}=b;if(on)uiBox(x,y,w,h,'#e8323e','#ffffff','#ff6a72','#a01822');else uiBox(x,y,w,h);
-  icon(STAR_ICON,x+5,y+4,on?'#ffffff':'#ffd23f');txt('NOUTĂȚI',x+w-6,y+4,'#ffffff',1,'r',on?'#7a0a10':null);
+  icon(STAR_ICON,x+5,y+4,on?'#ffffff':'#ffd23f');txt('CHANGELOG',x+w-6,y+4,'#ffffff',1,'r',on?'#7a0a10':null);
 }
 // Pagina NOUTĂȚI: versiunea, apoi o listă pe grupe care se derulează
 function drawNewsInfo(){
-  txt('VERSIUNEA '+GAME_VERSION,W/2,47,'#1a1020',1,'c',null);
   const B=NEWS_BOX,max=Math.max(0,newsH()-B.h);G.newsTo=clamp(G.newsTo||0,0,max);
   G.newsY=(G.newsY||0)+(G.newsTo-(G.newsY||0))*0.3;if(Math.abs(G.newsTo-G.newsY)<0.5)G.newsY=G.newsTo;
   uiBox(B.x,B.y,B.w,B.h);
@@ -312,7 +311,8 @@ function drawNewsInfo(){
   let y=B.y+8-Math.round(G.newsY);
   for(const g of NEWS){
     txt(g.t,B.x+12,y,'#ffd23f',1,'l',null);ctx.fillStyle='rgba(255,255,255,0.15)';ctx.fillRect(B.x+12,y+10,B.w-36,1);y+=NEWS_TITLE;
-    for(const t of g.items){ctx.fillStyle='#ffd23f';ctx.fillRect(B.x+16,y+3,2,2);txtMix(t,B.x+23,y,'#e8f4ff');y+=NEWS_ROW;}
+    for(const c of g.cats){txt(c.c,B.x+16,y,'#9fd4ff',1,'l',null);y+=NEWS_CAT;   // categoria
+      for(const t of c.items){ctx.fillStyle='#ffd23f';ctx.fillRect(B.x+20,y+3,2,2);txtMix(t,B.x+27,y,'#e8f4ff');y+=NEWS_ROW;}y+=3;}
     y+=NEWS_GAP;}
   ctx.restore();
   // Bara de derulare

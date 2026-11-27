@@ -37,7 +37,7 @@ const MENU={
     {label:'PENE',badge:'pene',act:()=>openMenu('pene')},
     {label:'CURCANI',badge:'custi',act:()=>openMenu('custi')},
     {label:'ACHIEVEMENTS',badge:'ach',act:()=>{G.achPage=0;openMenu('ach');}},
-    {label:'NOUTĂȚI',badge:'news',act:()=>{G.newsY=G.newsTo=0;openMenu('news');}}],
+    {label:'CHANGELOG',badge:'news',act:()=>{G.newsY=G.newsTo=0;openMenu('news');}}],
   news:[
     {label:'ÎNAPOI',act:()=>menuBack()}],
   settings:[],   // vezi settingsItems
@@ -59,18 +59,18 @@ const MENU={
     {label:'<',pg:-1,act:()=>{}},{label:'>',pg:1,act:()=>{}}]),
 };
 const mainIx=l=>Math.max(0,MENU.main.findIndex(it=>it.label===l));
-// NOUTĂȚI: pe grupe; titlul cu litere mari, rândurile cum sunt scrise
+// CHANGELOG: ce aduce fiecare versiune, cea mai nouă prima
 const NEWS=[
-  {t:'COMPORTAMENT MOB',items:['Noaptea, unii fermieri dorm lângă felinar','Zgomotul și lumina îi trezesc','Felinarele nu mai văd prin pereți','Fermierii coboară de pe blocuri','Ucenicii fug de bombe și scapă găleata','În peșteră, fermierii văd doar cu felinarul','Mobul cu cheia strălucește']},
-  {t:'MOB NOU: CÂRTIȚA MINER',items:['Sapă și iese chiar în spatele tău','Lampa de pe cască te vede','O găsești în editor, la Inamici']},
-  {t:'EDITOR DE NIVELURI',items:['Îți faci nivelurile tale','Nivelurile mele, în meniu','Povești de până la 10 niveluri','Cod de partajare, pentru prieteni']},
-  {t:'CAFENEAUA: MINI-JOCURI',items:['Ghicește ceșcuța: urmărești bila de aur','Blocurile lui Moș: le lovești în ordinea lui','Fiecare cafenea are alt mini-joc','Ceștile încep de la masă','Poți cânta liber la blocuri']},
-  {t:'PERSONAJE',items:['Fermierul și ucenicul, desenați din profil','Mers mai bun, haine cu textură','Fermierul se miră când te vede']},
-  {t:'MIȘCAREA CURCANULUI',items:['Pornește și se oprește lin','Săritura e mai fermă la cădere','Te ajută la colțuri și la margini','Camera arată mai mult în față']},
-  {t:'ÎMBUNĂTĂȚIRI ȘI REPARAȚII',items:['Blocuri noi: de foc și de gheață','Deșertul are acum și ziua','Sunetele de departe se aud mai încet','Cărămizile sparte lasă fundalul','Geamul cafenelei arată ce e afară','Intrarea în peșteră se vede mai bine','Gheața e mai alunecoasă','Viață nouă la 100 de bănuți']}];
+  {t:'VERSIUNEA 1.2.4.1',cats:[{c:'ANIMAȚII',items:['Curcanul are acum o animație de fugă','Lovitura în pământ: aterizează în fund']}]},
+  {t:'VERSIUNEA 1.2.4',cats:[{c:'MOBI',items:['Ucenicul speriat scapă găleata cu un bănuț','Mobul cu cheia strălucește','În peșteră, fermierii văd doar cu felinarul','Cârtița rănește doar când e afară pe jumătate']},{c:'GRAFICĂ',items:['Fermierul și ucenicul, desenați din profil','Haine texturate și mers mai bun','Fermierul se miră când te vede','Stalactitele stau pe tavan și sub platforme','Intrarea în peșteră se vede mai bine']},{c:'MECANICI',items:['Ieși din peșteră și pe gaura de intrare','Camera se întoarce cu întârziere, mai lin']},{c:'EDITOR',items:['Puțurile peșterii au înălțime reglabilă']},{c:'CAFENEA',items:['Ceștile încep de la masă','La blocuri cânți liber; muzica mai încet','Premiu doar după toate rundele']},{c:'REPARAȚII',items:['Minor bug fixes']}]},
+  {t:'VERSIUNEA 1.2.3.1',cats:[{c:'MECANICI',items:['Curcanul pornește și se oprește lin','Te ajută la colțuri și la margini','Camera arată mai mult în față','Gheața e mai alunecoasă','Viață nouă la 100 de bănuți']},{c:'EDITOR',items:['Pointer și Mutare într-o singură unealtă']},{c:'REPARAȚII',items:['Minor bug fixes']}]},
+  {t:'VERSIUNEA 1.2.3',cats:[{c:'MOBI',items:['Noaptea, unii fermieri dorm lângă felinar','Zgomotul și lumina îi trezesc','Ucenicii fug de bombe','Fermierii coboară de pe blocuri']}]},
+  {t:'VERSIUNEA 1.2.2',cats:[{c:'MOBI',items:['Mob nou: cârtița miner, în editor','Felinarele nu mai văd prin pereți']},{c:'SUNET',items:['Sunetele de departe se aud mai încet']}]},
+  {t:'VERSIUNEA 1.2.1',cats:[{c:'CAFENEA',items:['Mini-jocuri: Ghicește ceșcuța, Blocurile lui Moș','Fiecare cafenea are alt mini-joc']},{c:'NIVELURI',items:['Blocuri de foc și de gheață','Deșertul are acum și ziua']}]},
+  {t:'VERSIUNEA 1.2',cats:[{c:'EDITOR',items:['Editor de niveluri și Nivelurile mele','Povești de până la 10 niveluri','Cod de partajare, pentru prieteni']}]}];
 // Chenarul listei și cât se derulează
-const NEWS_BOX={x:24,y:59,w:352,h:139},NEWS_TITLE=15,NEWS_ROW=12,NEWS_GAP=9;
-const newsH=()=>NEWS.reduce((h,g)=>h+NEWS_TITLE+g.items.length*NEWS_ROW+NEWS_GAP,8);
+const NEWS_BOX={x:24,y:44,w:352,h:154},NEWS_TITLE=15,NEWS_CAT=11,NEWS_ROW=12,NEWS_GAP=9;
+const newsH=()=>NEWS.reduce((h,g)=>h+NEWS_TITLE+g.cats.reduce((k,c)=>k+NEWS_CAT+c.items.length*NEWS_ROW+3,0)+NEWS_GAP,8);
 function newsScroll(d){G.newsTo=clamp((G.newsTo||0)+d,0,Math.max(0,newsH()-NEWS_BOX.h));}
 cv.addEventListener('wheel',e=>{if(menuOn()&&G.menu==='news'){e.preventDefault();newsScroll(Math.sign(e.deltaY)*24);}},{passive:false});
 // Pe telefon: tragi lista cu degetul
