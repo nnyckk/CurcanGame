@@ -66,7 +66,7 @@ function drawWater(cx){
       ctx.globalAlpha=iced?0.35:0.82;
       if(iced){ctx.fillStyle=w.body;ctx.fillRect(x,12*TS+ICE_SLAB,1,WATER_Y+9-12*TS-ICE_SLAB);}
       else{ctx.fillStyle=w.body;ctx.fillRect(x,top+1,1,8);}
-      ctx.fillStyle=w.deep;ctx.fillRect(x,top+9,1,H-top-9);
+      ctx.fillStyle=w.deep;ctx.fillRect(x,top+9,1,botRow*TS-top-9);
       ctx.globalAlpha=1;
       if(!iced){ctx.fillStyle=w.top;ctx.fillRect(x,top,1,1);}
     }

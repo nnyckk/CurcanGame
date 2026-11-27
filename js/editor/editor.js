@@ -127,8 +127,10 @@ function commit(){
   if(pending!==null){undo.push(pending);if(undo.length>100)undo.shift();redo=[];pending=null;}
   changed();
 }
-function undoIt(){if(!undo.length||playing)return;redo.push(JSON.stringify(L));L=JSON.parse(undo.pop());afterLoad();changed();}
-function redoIt(){if(!redo.length||playing)return;undo.push(JSON.stringify(L));L=JSON.parse(redo.pop());afterLoad();changed();}
+// Zona de acum: pe drum se desenează și deasupra (rândurile -1 … -14)
+const zTop=()=>inMain()?-ED_SKY:0,zBot=()=>inMain()?ED_ROWS+ED_DEEP:ED_ROWS;   // zBot: pe drum și cele 5 rânduri de dedesubt
+function undoIt(){if(!undo.length||playing)return;redo.push(JSON.stringify(L));L=edSkyFix(JSON.parse(undo.pop()));afterLoad();changed();}
+function redoIt(){if(!redo.length||playing)return;undo.push(JSON.stringify(L));L=edSkyFix(JSON.parse(redo.pop()));afterLoad();changed();}
 // Dacă peștera a dispărut, ieși din ea
 function afterLoad(){sel=null;insp=null;if(typeof clearSel==='function')clearSel();if(region==='cave'&&!L.cave)setRegion('main');}
 // După orice schimbare: jocul, ciorna, harta, butoanele
@@ -153,7 +155,7 @@ function gemAt(c,x,y){return c.gems.find(g=>typeof g==='number'?g===x&&y>=7:g[0]
 const allGolds=()=>L.golds.length+(L.cave?L.cave.golds.length:0);
 function setT(z,x,y,c){const r=z.grid[y];if(r[x]===c)return false;z.grid[y]=r.slice(0,x)+c+r.slice(x+1);return true;}
 // Rândul pe care stă curcanul la start
-function startRow(x,z=L){let gy=12;while(gy>0&&SOLID.includes(z.grid[gy-1][x]))gy--;return gy;}
+function startRow(x,z=L){let gy=12;const top=z.sky?-ED_SKY:0;while(gy>top&&SOLID.includes(z.grid[gy-1][x]))gy--;return gy;}
 // Ce ocupă fiecare lucru mare din pătrățelul (x, y), pe drum
 // Steagul: pe drum de la rândul 9 în jos; în peșteră, deasupra podelei
 function hitCp(x,y){const z=zone();if(!(z.cps||[]).includes(x))return false;if(inMain())return y>=9;const sr=startRow(x,z);return y>=sr-3&&y<sr;}
@@ -262,7 +264,8 @@ function platGuard(x,y,erase){
 // first = click, nu trasul mai departe
 function applyAt(x,y,erase,first){
   const z=zone();
-  if(x<0||x>=z.w||y<0||y>=ED_ROWS)return false;
+  if(x<0||x>=z.w||y<zTop()||y>=zBot())return false;
+  if(y>=ED_ROWS&&!erase&&!ED_TILES.includes(tool.el))return false;   // sub nivel: doar teren
   if(!inMain()&&(x===0||x===z.w-1)){if(first)status('Pereții din margine ai camerei rămân: altfel ai ieși din peșteră.');return false;}
   if(cageGuard(x,y,erase)){if(first)status('Locul coliviei rămâne liber: acolo sare curcanul când iese. Mut-o sau șterge-o întâi.');return false;}
   if(holeGuard(x,y,erase)){if(first)status('Intrarea și ieșirea peșterii rămân libere. Mută-le întâi.');return false;}
@@ -386,17 +389,17 @@ function cutR(r){
 }
 // Pune înapoi, mutat cu (dx, dy)
 function pasteR(it,dx,dy){
-  const z=zone(),ok=(x,y)=>x>=0&&x<z.w&&y>=0&&y<ED_ROWS&&(inMain()||(x>0&&x<z.w-1));
-  for(const [x,y,c] of it.tiles)if(ok(x+dx,y+dy))setT(z,x+dx,y+dy,c);
+  const z=zone(),okT=(x,y)=>x>=0&&x<z.w&&y>=zTop()&&y<zBot()&&(inMain()||(x>0&&x<z.w-1)),ok=(x,y)=>okT(x,y)&&y<ED_ROWS;
+  for(const [x,y,c] of it.tiles)if(okT(x+dx,y+dy))setT(z,x+dx,y+dy,c);
   for(const c of it.coins)if(ok(c[0]+dx,c[1]+dy))z.coins.push([c[0]+dx,c[1]+dy]);
   for(const e of it.ents)if(ok(e.x+dx,e.y+dy))z.ents.push({t:e.t,x:e.x+dx,y:e.y+dy});
   for(const g of it.golds)if(ok(g.x+dx,g.y+dy))z.golds.push({x:g.x+dx,y:g.y+dy,kind:g.kind});
   for(const p of it.plats)if(ok(p.x+dx,p.y+dy))z.plats.push(Object.assign({},p,{x:p.x+dx,y:p.y+dy}));
 }
-function startChunk(x,y){const before=JSON.stringify(L),it=cutR(selR);chunk={base:JSON.stringify(L),it,x,y,r:selR,before};L=JSON.parse(before);}
+function startChunk(x,y){const before=JSON.stringify(L),it=cutR(selR);chunk={base:JSON.stringify(L),it,x,y,r:selR,before};L=edSkyFix(JSON.parse(before));}
 function dragChunk(x,y){
   const c=chunk,dx=x-c.x,dy=y-c.y;
-  L=JSON.parse(c.base);pasteR(c.it,dx,dy);
+  L=edSkyFix(JSON.parse(c.base));pasteR(c.it,dx,dy);
   selR={x0:c.r.x0+dx,y0:c.r.y0+dy,x1:c.r.x1+dx,y1:c.r.y1+dy};marks();commit();
 }
 // Selecția și ce arată Pointerul: pe harta din joc
@@ -410,7 +413,7 @@ function clearSel(){if(selR||marq){selR=null;marq=null;marks();}}
 function delSel(){if(!selR||playing)return;begin();cutR(selR);selR=null;marks();commit();}
 // Pointer: cursorul de mutare peste ce se poate trage
 function ptrCursor(p){let c='';
-  if(!playing&&tool.mode==='pointer'&&(p.r||'main')===region&&p.x>=0&&p.y>=0){const z=zone();if(pick(p.x,p.y)||inR(selR,p.x,p.y)||(z.grid[p.y]&&z.grid[p.y][p.x]!=='.'))c='move';}
+  if(!playing&&tool.mode==='pointer'&&(p.r||'main')===region&&p.x>=0&&p.y>=zTop()){const z=zone();if(pick(p.x,p.y)||inR(selR,p.x,p.y)||(z.grid[p.y]&&z.grid[p.y][p.x]!=='.'))c='move';}
   try{frame.contentDocument.body.style.cursor=c;}catch(e){}}
 function onPtr(p){
   hover=p;showPos();ptrCursor(p);
@@ -464,6 +467,7 @@ $('#time').addEventListener('click',e=>{const b=e.target.closest('[data-night]')
 function resize(w){
   w=Math.max(ED_MIN_W,Math.min(ED_MAX_W,w));if(w===L.w)return;
   L.grid=L.grid.map((r,y)=>w>L.w?r+(y>=12?'D':'.').repeat(w-L.w):r.slice(0,w));
+  L.sky=L.sky.map(r=>w>L.w?r+'.'.repeat(w-L.w):r.slice(0,w));edSkyFix(L);   // și rândurile de sus
   L.w=w;const inW=x=>x<w;
   L.coins=L.coins.filter(c=>inW(c[0]));L.ents=L.ents.filter(m=>inW(m.x));L.golds=L.golds.filter(g=>inW(g.x));L.cps=L.cps.filter(inW);
   L.plats=L.plats.filter(p=>inW(p.x));if(L.start>=w)L.start=w-1;
@@ -572,6 +576,7 @@ helpBox.addEventListener('click',e=>{if(e.target===helpBox)closeBoxes();});
 // Grila din joc: pornită sau ascunsă (ținut minte)
 function toggleGrid(){gridOn=!gridOn;try{localStorage.setItem('curcan_editor_grila',gridOn?'1':'0');}catch(e){}send('edGrid',{v:gridOn});syncUI();status(gridOn?'Grila e pornită.':'Grila e ascunsă.');}
 $('#gridBtn').addEventListener('click',toggleGrid);
+$('#camDown').addEventListener('click',()=>{send('edCamY',{y:0});focusGame();});   // camera înapoi sub rândul 0
 const when=d=>{const t=new Date(d);return t.toLocaleDateString('ro-RO',{day:'numeric',month:'short'})+', '+t.toLocaleTimeString('ro-RO',{hour:'2-digit',minute:'2-digit'});};
 function drawMine(){
   $$('[data-mtab]').forEach(b=>press(b,b.dataset.mtab===mineTab));

@@ -1,5 +1,8 @@
 'use strict';
 // ===== EDITORUL: formatul nivelului (în joc și în editor.html) =====
+const ED_SKY=14;   // rândurile de deasupra (= SKY_ROWS din joc), în L.sky: sky[0] = rândul -14
+// L.grid are ED_ROWS+ED_DEEP rânduri: ultimele 5 sunt sub nivel, doar decor (doar teren)
+const ED_DEEP=5;
 const ED_ROWS=14,ED_MIN_W=25,ED_MAX_W=2000,ED_CAVE_MIN=25,ED_CAVE_MAX=80,ED_GOLDS=3,ED_CAFE_W=25;
 // Biomul, zi sau noapte → tema jocului
 const ED_BIOMES={ferma:{name:'Fermă',day:0,night:3},iarna:{name:'Iarnă',day:1,night:5},desert:{name:'Deșert',day:7,night:2}};
@@ -17,7 +20,16 @@ const ED_SPEEDS=[1,2,3,4,6],ED_SPEED_NAMES=['Foarte încet','Încet','Normal','R
 function edNewLevel(w=60){
   const L={v:1,name:'NIVEL NOU',biome:'ferma',night:false,w,grid:[],coins:[],ents:[],cps:[],start:2,
     golds:[],cage:null,plats:[],goal:null,cave:null,cafe:null};
-  for(let y=0;y<ED_ROWS;y++)L.grid.push((y>=12?'D':'.').repeat(w));
+  for(let y=0;y<ED_ROWS+ED_DEEP;y++)L.grid.push((y>=12?'D':'.').repeat(w));
+  L.sky=Array.from({length:ED_SKY},()=>'.'.repeat(w));
+  return edSkyFix(L);
+}
+// Rândul de sub nivel, din rândul 13: doar pământul și fundalul continuă
+const edDeepRow=r=>[...r].map(c=>'DZWYX'.includes(c)?c:'.').join('');
+// L.grid[-1] … L.grid[-14] citesc și scriu în L.sky (după JSON.parse trebuie puse din nou)
+function edSkyFix(L){
+  if(!L||!Array.isArray(L.grid)||!Array.isArray(L.sky))return L;
+  for(let k=1;k<=ED_SKY;k++)Object.defineProperty(L.grid,-k,{get(){return L.sky[ED_SKY-k];},set(v){L.sky[ED_SKY-k]=v;},configurable:true,enumerable:false});
   return L;
 }
 // Camera peșterii, nouă: doar pereții (îi face jocul)
@@ -33,33 +45,36 @@ function edCaveBase(w,ceil){
 }
 function edNewCave(x,x2){const w=30;return {v:2,x,x2,w,in:2,out:w-4,grid:edCaveBase(w),coins:[],ents:[],golds:[],gems:[],bats:[],fall:[],pools:[],plats:[],cps:[]};}
 // Rândurile grilei, curățate
-function edRows(src,w,def){const out=[];
-  for(let y=0;y<ED_ROWS;y++){const r=String(src&&src[y]||'');let s='';
+function edRows(src,w,def,n=ED_ROWS){const out=[];
+  for(let y=0;y<n;y++){const r=String(src&&src[y]||'');let s='';
     for(let x=0;x<w;x++){const c=r[x];s+=c&&ED_TILES.includes(c)?c:(r.length?'.':def(y));}
     out.push(s);}
   return out;}
 const edInt=(v,a,b,d)=>Number.isInteger(v)&&v>=a&&v<=b?v:d;
-function edObjs(src,w,o){   // bănuți, inamici, pene, într-o zonă lată de w
-  const inX=x=>Number.isInteger(x)&&x>=0&&x<w,inY=y=>Number.isInteger(y)&&y>=0&&y<ED_ROWS,seen=new Set();
+function edObjs(src,w,o,top=0){   // bănuți, inamici, pene, într-o zonă lată de w (top: -ED_SKY pe drum)
+  const inX=x=>Number.isInteger(x)&&x>=0&&x<w,inY=y=>Number.isInteger(y)&&y>=top&&y<ED_ROWS,seen=new Set();
   o.coins=[];for(const c of (src&&src.coins)||[])if(Array.isArray(c)&&inX(c[0])&&inY(c[1])&&!seen.has(c+'')){seen.add(c+'');o.coins.push([c[0],c[1]]);}
   o.ents=[];for(const e of (src&&src.ents)||[])if(e&&ED_MOBS.includes(e.t)&&inX(e.x)&&inY(e.y))o.ents.push({t:e.t,x:e.x,y:e.y});
   o.golds=[];for(const g of (src&&src.golds)||[])if(g&&ED_GOLD_KINDS.includes(g.kind)&&inX(g.x)&&inY(g.y))o.golds.push({x:g.x,y:g.y,kind:g.kind});
 }
 // Repară un nivel venit din altă parte
 // Platformele (pe drum sau în peșteră)
-function edPlats(a,inX){const o=[];for(const p of a||[])if(p&&(p.kind==='move'||p.kind==='fall')&&inX(p.x)&&Number.isInteger(p.y)&&p.y>=0&&p.y<ED_ROWS)
+function edPlats(a,inX,top=0){const o=[];for(const p of a||[])if(p&&(p.kind==='move'||p.kind==='fall')&&inX(p.x)&&Number.isInteger(p.y)&&p.y>=top&&p.y<ED_ROWS)
     o.push(p.kind==='move'?{kind:'move',x:p.x,y:p.y,w:edInt(p.w,1,ED_MAX_W,3),ax:p.ax==='y'?'y':'x',range:edInt(p.range,1,ED_MAX_W,p.ax==='y'?4:6),speed:edInt(p.speed,1,5,3)}:{kind:'fall',x:p.x,y:p.y,w:edInt(p.w,1,ED_MAX_W,1)});
   return o;}
 function edNorm(L){
   L=L||{};
   const w=edInt(L.w,ED_MIN_W,ED_MAX_W,60),inX=x=>Number.isInteger(x)&&x>=0&&x<w;
   const o={v:1,name:String(L.name||'NIVEL NOU').slice(0,24),biome:ED_BIOMES[L.biome]?L.biome:'ferma',night:!!L.night,w};
-  o.grid=edRows(L.grid,w,y=>y>=12?'D':'.');
-  edObjs(L,w,o);
+  const deepIn=Array.isArray(L.grid)&&L.grid.length>ED_ROWS;
+  o.grid=edRows(L.grid,w,y=>y>=12?'D':'.',ED_ROWS+ED_DEEP);
+  if(!deepIn)for(let y=ED_ROWS;y<ED_ROWS+ED_DEEP;y++)o.grid[y]=edDeepRow(o.grid[ED_ROWS-1]);   // nivel vechi: pământul continuă în jos
+  o.sky=edRows(L.sky,w,()=>'.',ED_SKY);edSkyFix(o);
+  edObjs(L,w,o,-ED_SKY);
   o.cps=[...new Set((L.cps||[]).filter(inX))].sort((a,b)=>a-b);
   o.start=inX(L.start)?L.start:2;
-  o.cage=L.cage&&inX(L.cage.x)?{x:L.cage.x,y:edInt(L.cage.y,1,13,12),capt:edInt(L.cage.capt,0,4,0)}:null;
-  o.plats=edPlats(L.plats,inX);
+  o.cage=L.cage&&inX(L.cage.x)?{x:L.cage.x,y:edInt(L.cage.y,1-ED_SKY,13,12),capt:edInt(L.cage.capt,0,4,0)}:null;
+  o.plats=edPlats(L.plats,inX,-ED_SKY);
   o.goal=L.goal&&(L.goal.type==='sign'||L.goal.type==='restaurant')&&inX(L.goal.x)?{type:L.goal.type,x:L.goal.x}:null;
   o.cafe=L.cafe&&inX(L.cafe.x)?{x:L.cafe.x,game:ED_CAFE_GAMES.includes(L.cafe.game)?L.cafe.game:'slot'}:null;
   const c=L.cave;o.cave=null;o.cstart=null;
@@ -93,7 +108,7 @@ function edNorm(L){
 const ED_CAGE_GROUND='DBMHARXI=';
 const edCageBox=(x,y)=>({x0:x-2,x1:x+1,y0:y-3,y1:y-1});
 function edCageWhy(L,x,y){
-  if(x<2||x>L.w-2||y<4)return 'Colivia nu încape aici.';
+  if(x<2||x>L.w-2||y<(L.sky?4-ED_SKY:4))return 'Colivia nu încape aici.';
   const b=edCageBox(x,y),inB=(px,py)=>px>=b.x0&&px<=b.x1&&py>=b.y0&&py<=b.y1,cols=(a,w)=>a<=b.x1&&a+w-1>=b.x0;
   for(let i=b.x0;i<=x;i++)if(!ED_CAGE_GROUND.includes(L.grid[y][i]))return 'Sub colivie și în stânga ei, unde aterizează curcanul, trebuie pământ drept.';
   for(let r=b.y0;r<=b.y1;r++)for(let i=b.x0;i<=b.x1;i++)if((ED_CAGE_GROUND+'^').includes(L.grid[r][i]))return 'Colivia are nevoie de loc liber: curcanul sare afară prin stânga.';
@@ -108,14 +123,14 @@ const ED_SOLID='DBMHARXI=^';
 function edPlatBox(p){const mv=p.kind==='move';return {x0:p.x,x1:p.x+p.w-1+(mv&&p.ax==='x'?p.range:0),y0:p.y,y1:p.y+(mv&&p.ax==='y'?p.range:0)};}
 function edPlatWhy(L,p){
   const b=edPlatBox(p);
-  if(b.x0<0||b.x1>=L.w||b.y0<0||b.y1>=ED_ROWS)return 'Platforma iese din nivel.';
+  if(b.x0<0||b.x1>=L.w||b.y0<(L.sky?-ED_SKY:0)||b.y1>=ED_ROWS)return 'Platforma iese din nivel.';
   const inB=(x,y)=>x>=b.x0&&x<=b.x1&&y>=b.y0&&y<=b.y1,hit=r=>r.x0<=b.x1&&r.x1>=b.x0&&r.y0<=b.y1&&r.y1>=b.y0;
   for(let y=b.y0;y<=b.y1;y++)for(let x=b.x0;x<=b.x1;x++)if(ED_SOLID.includes(L.grid[y][x]))return 'Platforma nu intră în pământ sau în blocuri: pe drumul ei e ceva în cale.';
   if(L.ents.some(m=>inB(m.x,m.y)||inB(m.x,m.y-1))||L.golds.some(g=>inB(g.x,g.y)))return 'Pe drumul platformei e un inamic sau o pană.';
   if(L.plats.some(q=>q!==p&&hit(edPlatBox(q))))return 'Drumul platformei se lovește de altă platformă.';
   if(L.cage&&hit(edCageBox(L.cage.x,L.cage.y)))return 'Platforma trece prin locul coliviei.';
   if(L.cave&&(hit(edHoleBox(L,'in'))||hit(edHoleBox(L,'out'))))return 'Platforma blochează intrarea sau ieșirea peșterii.';
-  let sr=12;if(Number.isInteger(L.start))while(sr>0&&'DBMHXI^'.includes(L.grid[sr-1][L.start]))sr--;
+  let sr=12;if(Number.isInteger(L.start))while(sr>(L.sky?-ED_SKY:0)&&'DBMHXI^'.includes(L.grid[sr-1][L.start]))sr--;
   const g=L.goal,sg=g&&g.type==='sign';
   if(Number.isInteger(L.in)&&(hit({x0:L.in,x1:L.in+1,y0:0,y1:(L.inH||6)-1})||hit({x0:L.out,x1:L.out+1,y0:0,y1:(L.outH||6)-1})))return 'Platforma blochează puțul peșterii.';
   if(hit({x0:L.start,x1:L.start,y0:sr-1,y1:sr})||(L.cps||[]).some(c=>hit({x0:c,x1:c,y0:9,y1:13}))
@@ -139,7 +154,11 @@ function customBuild(L){
   const cv=L.cave,ca=L.w+(cv?cv.w:0),m=newMap(ca+(L.cafe?CAFE_W:0));
   const put=(rows,ox)=>rows.forEach((r,y)=>{for(let x=0;x<r.length;x++)if(r[x]!=='.')m.grid[y][ox+x]=r[x];});
   const objs=(o,ox)=>{for(const [x,y] of o.coins)m.c(ox+x,y);for(const e of o.ents)m.e(e.t,ox+e.x,e.y);for(const g of o.golds)m.pana(ox+g.x,g.y,g.kind);};
+  for(let y=ED_ROWS;y<ED_ROWS+ED_DEEP;y++)m.grid[y]=new Array(m.w).fill('.');   // rândurile de dedesubt (doar decor)
   put(L.grid,0);
+  if(cv){const cr=edDeepRow(cv.grid[ED_ROWS-1]);for(let y=ED_ROWS;y<ED_ROWS+ED_DEEP;y++)for(let x=0;x<cr.length;x++)if(cr[x]!=='.')m.grid[y][L.w+x]=cr[x];}   // sub peșteră: pământ
+  if(L.sky)L.sky.forEach((r,i)=>{for(let x=0;x<r.length;x++)if(r[x]!=='.')m.grid[i-ED_SKY][x]=r[x];});   // rândurile de sus
+  m.tall=true;   // nivelurile din editor: camera urcă oricând curcanul trece de marginea de sus
   // Perioada: dus-întors cu viteza aleasă
   const plats=(a,ox)=>{for(const p of a||[])if(p.kind==='move')m.mv(ox+p.x,p.y,p.w,p.ax,p.range,Math.max(40,Math.round(2*p.range*60/ED_SPEEDS[(p.speed||3)-1])));else m.fall(ox+p.x,p.y,p.w);};
   plats(L.plats,0);
@@ -164,15 +183,15 @@ const edUnrle=r=>r.replace(/(\D)(\d*)/g,(m,c,n)=>c.repeat(n?Math.min(+n,ED_MAX_W
 const edB64=str=>{const b=new TextEncoder().encode(str);let s='';for(let i=0;i<b.length;i+=0x8000)s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000));return btoa(s);};
 const edUnB64=t=>new TextDecoder().decode(Uint8Array.from(atob(t),c=>c.charCodeAt(0)));
 // Nivelul strâns (rândurile scurtate) și desfăcut la loc
-function edPack(L){const o=JSON.parse(JSON.stringify(edNorm(L)));o.grid=o.grid.map(edRle);if(o.cave)o.cave.grid=o.cave.grid.map(edRle);return o;}
-function edUnpack(o){if(!o||!Array.isArray(o.grid))return null;o.grid=o.grid.map(r=>edUnrle(String(r)));if(o.cave&&Array.isArray(o.cave.grid))o.cave.grid=o.cave.grid.map(r=>edUnrle(String(r)));return edNorm(o);}
+function edPack(L){const o=JSON.parse(JSON.stringify(edNorm(L)));o.grid=o.grid.map(edRle);o.sky=o.sky.map(edRle);if(o.cave)o.cave.grid=o.cave.grid.map(edRle);return o;}
+function edUnpack(o){if(!o||!Array.isArray(o.grid))return null;o.grid=o.grid.map(r=>edUnrle(String(r)));if(Array.isArray(o.sky))o.sky=o.sky.map(r=>edUnrle(String(r)));if(o.cave&&Array.isArray(o.cave.grid))o.cave.grid=o.cave.grid.map(r=>edUnrle(String(r)));return edNorm(o);}
 function edEncode(L){return ED_CODE+edB64(JSON.stringify(edPack(L)));}
 // Nivelul din cod, sau null dacă nu e un cod bun
 function edDecode(code){
   const t=String(code||'').replace(/\s+/g,''),i=t.indexOf(ED_CODE);if(i<0)return null;
   try{const s=atob(t.slice(i+ED_CODE.length)),o=JSON.parse(new TextDecoder().decode(Uint8Array.from(s,c=>c.charCodeAt(0))));
     if(!o||!Array.isArray(o.grid))return null;
-    o.grid=o.grid.map(r=>edUnrle(String(r)));if(o.cave&&Array.isArray(o.cave.grid))o.cave.grid=o.cave.grid.map(r=>edUnrle(String(r)));
+    o.grid=o.grid.map(r=>edUnrle(String(r)));if(Array.isArray(o.sky))o.sky=o.sky.map(r=>edUnrle(String(r)));if(o.cave&&Array.isArray(o.cave.grid))o.cave.grid=o.cave.grid.map(r=>edUnrle(String(r)));
     return edNorm(o);}catch(e){return null;}
 }
 // ---- Codul poveștii: CURCANP1: + numele și nivelurile ei (cel mult 10) ----

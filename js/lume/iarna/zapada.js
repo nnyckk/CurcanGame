@@ -21,7 +21,7 @@ function drawSnowfall(){
   const WW=W+20,HH=H+10;
   for(let i=0;i<SNOW_N;i++){const h=vhash(i,31),d=0.35+(h%100)/160,vy=0.22+d*0.38;
     const x=((((h>>>8)%WW)-cam.x*d*0.6+G.t*0.12+Math.sin(G.t*0.013+i)*6)%WW+WW)%WW-10;
-    const y=(((h>>>16)%HH)+G.t*vy)%HH-5;
+    const cy=Math.round(cam.y),y=((((h>>>16)%HH)+G.t*vy-cy*d*0.6)%HH+HH)%HH-5+cy;   // camera sus: fulgii rămân pe ecran
     ctx.globalAlpha=0.55+d*0.4;const s=d>0.85?2:1;ctx.fillRect(Math.round(x),Math.round(y),s,s);}
   ctx.globalAlpha=1;
 }

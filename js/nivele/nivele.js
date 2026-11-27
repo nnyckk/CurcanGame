@@ -2,8 +2,9 @@
 // ===== NIVELURILE: cum se construiește o hartă și lista LEVELS =====
 function newMap(w){
   const grid=[];for(let y=0;y<ROWS;y++)grid.push(new Array(w).fill('.'));
+  for(let y=1;y<=SKY_ROWS;y++)grid[-y]=new Array(w).fill('.');   // rândurile de sus: grid[-1] … grid[-14]
   const m={w,grid,coins:[],ents:[],cps:[],goalDef:null,plats:[],bossDef:null,cafeDef:null,golds:[]};
-  m.set=(x,y,c)=>{if(x>=0&&x<w&&y>=0&&y<ROWS)grid[y][x]=c;};
+  m.set=(x,y,c)=>{if(x>=0&&x<w&&y>=-SKY_ROWS&&y<ROWS)grid[y][x]=c;};
   m.f=(x,y,ww,hh,c)=>{for(let j=0;j<hh;j++)for(let i=0;i<ww;i++)m.set(x+i,y+j,c);};
   m.g=(a,b)=>m.f(a,12,b-a+1,2,'D');
   m.pit=(a,b)=>m.f(a,12,b-a+1,2,'.');
@@ -51,7 +52,7 @@ function newMap(w){
     if(SUB_CEIL<6){for(let i=1;i<w-1;i++){const e=Math.sin(i*0.45)+Math.sin(i*0.21+1)*0.5>0.6?1:0;m.f(a+i,SUB_CEIL,1,e,'D');}
       for(const s of [2,w-4]){m.f(a+s-1,SUB_CEIL,4,6-SUB_CEIL,'D');m.f(a+s,0,2,6,'Y');}}};
   // În peșteră nu crește iarbă
-  m.done=()=>{const u=m.underDef;for(let y=0;y<ROWS;y++)for(let x=0;x<w;x++)if(grid[y][x]==='D'&&!(u&&x>=u.a)&&(y===0||(grid[y-1][x]!=='D'&&grid[y-1][x]!=='G')))grid[y][x]='G';return m;};
+  m.done=()=>{const u=m.underDef;for(let y=-SKY_ROWS;y<grid.length;y++)for(let x=0;x<w;x++)if(grid[y][x]==='D'&&!(u&&x>=u.a)&&(y===-SKY_ROWS||(grid[y-1][x]!=='D'&&grid[y-1][x]!=='G')))grid[y][x]='G';return m;};
   return m;
 }
 // Numărul nivelului i, cum îl vede jucătorul

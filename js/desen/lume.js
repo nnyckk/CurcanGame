@@ -5,10 +5,12 @@ function drawWorld(){
   const cx=clamp(Math.round(cam.x)+sh,0,cols*TS-W);   // zguduirea nu arată marginea hărții
   // În cafenea, camera dinăuntru ține loc de cer și fundal
   const lift=inCafe()?0:Math.round(G.lift||0),vy=inCafe()?CAFE_VY:-lift;ctx.save();ctx.translate(0,vy);
-  if(inCafe())drawCafeRoom(cx);else if(inUnder())drawUnderBG(cx);else drawBG();
+  const cy=inRoom()?0:Math.round(cam.y);   // camera sus / jos
+  if(inCafe())drawCafeRoom(cx);else if(inUnder())drawUnderBG(cx);else drawBG(cy);
+  ctx.translate(0,-cy);
   // Noaptea: lumea de joc se desenează pe un canvas separat
   const night=theme.night||inUnder(),main=ctx;   // în peșteră e mereu întuneric
-  if(night){ctx=shadeCtx;ctx.clearRect(0,0,W,H);}
+  if(night){ctx=shadeCtx;ctx.setTransform(1,0,0,1,0,-cy);ctx.clearRect(0,cy,W,H);}
   const drawItem=it=>{
     const gx=Math.round(it.x-cx),gy=Math.round(it.y),ice=it.type==='ice',berry=it.type==='berry'||ice;
     // Aură care pulsează: aurie pentru grăunte
@@ -52,9 +54,9 @@ function drawWorld(){
   if(lakeLife&&!inRoom())drawLakeLife(cx);   // în peșteră nu sunt pești
   if(night){
     // Umbra de noapte
-    ctx.globalCompositeOperation='source-atop';ctx.fillStyle='rgba(12,18,56,0.4)';ctx.fillRect(0,0,W,H);
-    ctx.globalCompositeOperation='source-over';
-    ctx=main;drawRestaurantBehind(cx);ctx.drawImage(shadeCv,0,0);   // ferestrele luminate, sub umbră
+    ctx.globalCompositeOperation='source-atop';ctx.fillStyle='rgba(12,18,56,0.4)';ctx.fillRect(0,cy,W,H);
+    ctx.globalCompositeOperation='source-over';ctx.setTransform(1,0,0,1,0,0);
+    ctx=main;drawRestaurantBehind(cx);ctx.drawImage(shadeCv,0,cy);   // ferestrele luminate, sub umbră
     // Curcanul de aur luminează noaptea
     if(player&&!player.dead&&goldSkinOn()){ctx.globalAlpha=0.62+0.18*Math.sin(G.t*0.035);drawPlayer(cx);ctx.globalAlpha=1;}
     drawNightLights(cx);
@@ -88,7 +90,8 @@ function drawWorld(){
   if(TEST&&G.showHB)drawHitboxes(cx);
   ctx.restore();
   // Lumea urcată
-  for(let y=H-lift;y<H;y+=TS){const h=Math.min(TS,H-y);ctx.drawImage(cv,0,H-lift-TS,W,h,0,y,W,h);}
+  // (și în editor, sub rândul 13: ce se vede la dialog)
+  const bot=H-lift-cy+(botRow-ROWS)*TS;for(let y=bot;y<H;y+=TS){const h=Math.min(TS,H-y);ctx.drawImage(cv,0,bot-TS,W,h,0,y,W,h);}
   drawTalk();   // caseta de dialog, fixă pe ecran
   // Intrarea / ieșirea din cafenea
   const fade=G.doorT>0?G.doorT:G.subT>0?G.subT:0;   // ușa cafenelei sau gaura peșterii

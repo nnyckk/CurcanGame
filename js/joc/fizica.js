@@ -2,7 +2,7 @@
 // ===== FIZICA: tile-uri solide, mișcare cu coliziuni =====
 // P = cărămidă cu o pană de aur înăuntru
 function solid(c){return c==='G'||c==='D'||c==='B'||c==='P'||c==='M'||c==='H'||c==='A'||c==='R'||c==='N'||c==='U'||c==='X'||c==='^'||c==='I'||c==='F'||c==='S'||c==='E'||c==='K';}
-function tileAt(tx,ty){if(tx<0||tx>=cols)return 'X';if(ty<0||ty>=ROWS)return '.';return grid[ty][tx];}
+function tileAt(tx,ty){if(tx<0||tx>=cols)return 'X';if(ty<topRow||ty>=ROWS)return '.';return grid[ty][tx];}
 // Pe ce stai doar de sus: scândurile și iarba de pe pământul din spate
 // W = pământul din spate, al doilea strat (mai departe); pe iarba lui de sus stai, dacă nu-l acoperă cel din față
 function ledge(tx,ty){const c=tileAt(tx,ty),u=tileAt(tx,ty-1);return c==='='||(c==='Z'&&u!=='Z')||(c==='W'&&u!=='W'&&u!=='Z');}

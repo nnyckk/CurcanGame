@@ -11,15 +11,18 @@ function edReset(){G.slotUsed=null;G.bossMet=false;G.goldLv=-1;G.cageLv=-1;G.caf
 // Zona desenată: drumul sau camera peșterii (prima coloană, lățimea)
 const edZone=()=>ED.region==='cave'&&under?{a:under.a,w:under.w}:{a:0,w:CUSTOM.L.w};
 const edCamClamp=x=>{const z=edZone();return clamp(x,z.a*TS,Math.max(z.a*TS,(z.a+z.w)*TS-W));};
+// Sus: până la rândul -14; jos: 5 pătrate sub nivel (ce se vede la dialog). În peșteră: fix
+const ED_DOWN=5*TS;
+const edCamClampY=y=>ED.region==='cave'?0:clamp(y,topRow*TS,ED_DOWN);
 // Arată nivelul nemișcat, pentru desenat
 function edShow(L){
-  const cx=cam.x,now=performance.now(),quick=now-ED.lastShow<300,oldShade=SHADE.cv,oldTheme=theme,wasCave=ED.region==='cave'&&!!under;
+  const cx=cam.x,cy=cam.y,now=performance.now(),quick=now-ED.lastShow<300,oldShade=SHADE.cv,oldTheme=theme,wasCave=ED.region==='cave'&&!!under;
   ED.lastShow=now;edUse(L);edReset();G.level=CUSTOM_IX;G.cp=null;
-  startLevel(true);G.state='edit';
+  startLevel(true);G.state='edit';topRow=-SKY_ROWS;   // în editor se desenează și sus
   if(!under)ED.region='main';
   G.inUnder=ED.region==='cave';
-  player.x=-999;player.y=-99;player.vx=0;player.vy=0;
-  cam.x=edCamClamp(wasCave===G.inUnder?cx:G.inUnder?under.a*TS:0);
+  player.x=-999;player.y=-9999;player.vx=0;player.vy=0;
+  cam.x=edCamClamp(wasCave===G.inUnder?cx:G.inUnder?under.a*TS:0);cam.y=edCamClampY(wasCave===G.inUnder?cy:0);
   // Umbra pământului se reface doar când te oprești din desenat
   if(quick&&oldShade&&oldShade.width===cols*TS&&theme===oldTheme){SHADE.grid=grid;SHADE.cv=oldShade;ED.dirty=true;}
   if(ED.iconTheme!==CUSTOM.theme)edIcons();
@@ -30,14 +33,15 @@ function edPlay(L,from,god){
   G.cp=Number.isInteger(from)?{level:CUSTOM_IX,x:clamp(from,0,CUSTOM.L.w-1)}:null;
   startLevel();
 }
-function edStop(){stopSong();const cx=cam.x,inside=!!G.inUnder;if(inside!==(ED.region==='cave'))ED.region=inside?'cave':'main';edShow(CUSTOM.L);cam.x=edCamClamp(cx);}
+function edStop(){stopSong();const cx=cam.x,cy=cam.y,inside=!!G.inUnder;if(inside!==(ED.region==='cave'))ED.region=inside?'cave':'main';edShow(CUSTOM.L);cam.x=edCamClamp(cx);cam.y=edCamClampY(cy);}
 // Un cadru în editor: camera, umbra, animațiile
 function edUpdate(){
   if(innerWidth!==ED.vw||innerHeight!==ED.vh){ED.vw=innerWidth;ED.vh=innerHeight;resize();}   // mărimea ferestrei, verificată la fiecare cadru
   if(!grid)return;
   const sp=keys.ShiftLeft||keys.ShiftRight?14:6;
   if(keys.ArrowLeft||keys.KeyA)cam.x-=sp;if(keys.ArrowRight||keys.KeyD)cam.x+=sp;
-  cam.x=edCamClamp(cam.x);
+  if(keys.ArrowUp||keys.KeyW)cam.y-=sp;if(keys.ArrowDown||keys.KeyS)cam.y+=sp;   // sus / jos
+  cam.x=edCamClamp(cam.x);cam.y=edCamClampY(cam.y);
   if(ED.dirty&&performance.now()-ED.lastShow>250){SHADE.grid=null;ED.dirty=false;}
   updateFx();
 }
@@ -71,7 +75,7 @@ function edIcons(){
     edTheme:{sky:theme.sky,grass:theme.grass,dirt:theme.dirt,water:theme.water.body,night:!!theme.night,snow:!!theme.snow}});
 }
 // Rândul pe care stă curcanul la start (ca în startLevel)
-function edStartRow(x){let gy=12;while(gy>0&&solid(tileAt(x,gy-1)))gy--;return gy;}
+function edStartRow(x){let gy=12;while(gy>topRow&&solid(tileAt(x,gy-1)))gy--;return gy;}
 const edLabel=(s,x,y,col)=>tinyTxt(s,x-Math.floor(tinyW(s)/2),y,col);
 // Peste lume: grila, startul, semnele, fantoma uneltei
 // Locul coliviei: aerul liber, pământul de sub ea și unde aterizează curcanul
@@ -90,12 +94,15 @@ function edBox(b,cx,bad,fill){
   ctx.strokeStyle=bad?'#ff4a4a':'#7fff7f';ctx.lineWidth=1;ctx.setLineDash([3,2]);ctx.strokeRect(b.x0*TS-cx+0.5,b.y0*TS+0.5,(b.x1-b.x0+1)*TS-1,(b.y1-b.y0+1)*TS-1);ctx.setLineDash([]);
   ctx.globalAlpha=a;
 }
-function drawEditOverlay(){
+// Peste lume, cu camera sus / jos
+function drawEditOverlay(){const cy=ED.region==='cave'?0:Math.round(cam.y);ctx.save();ctx.translate(0,-cy);try{drawEditMarks(cy);}finally{ctx.restore();}}
+function drawEditMarks(cy){
   const cx=Math.round(cam.x),x0=Math.floor(cx/TS),x1=Math.min(cols-1,x0+W/TS+1),L=CUSTOM.L,main=ED.region==='main';
   if(ED.grid!==false){ctx.fillStyle='rgba(255,255,255,0.07)';   // grila (se poate ascunde)
-    for(let x=-(cx%TS);x<W;x+=TS)ctx.fillRect(x,0,1,H);
-    for(let y=TS;y<H;y+=TS)ctx.fillRect(0,y,W,1);}
-  for(let ty=0;ty<ROWS;ty++)for(let tx=x0;tx<=x1;tx++){const c=grid[ty][tx],x=tx*TS-cx,y=ty*TS;
+    for(let x=-(cx%TS);x<W;x+=TS)ctx.fillRect(x,cy,1,H);
+    for(let y=Math.floor(cy/TS)*TS+TS;y<cy+H;y+=TS)ctx.fillRect(0,y,W,1);
+    ctx.fillStyle='rgba(255,210,63,0.35)';if(cy<0)ctx.fillRect(0,0,W,1);if(cy>0)ctx.fillRect(0,ROWS*TS,W,1);}   // rândul 0 și capătul nivelului (dedesubt: doar decor)
+  for(let ty=topRow;ty<botRow;ty++)for(let tx=x0;tx<=x1;tx++){const c=grid[ty][tx],x=tx*TS-cx,y=ty*TS;
     // Blocul cu putere: semn roșu, ca să nu-l confunzi cu M
     if(c==='H'){ctx.fillStyle='#e8323e';ctx.fillRect(x+11,y+1,4,4);ctx.fillStyle='#fff';ctx.fillRect(x+12,y+2,2,2);}
     // Pana din cărămidă și pana ascunsă
@@ -191,9 +198,10 @@ const ED_CMDS={
   edHello(){edIcons();ED.view='';},
   edLevel(d){if(G.state==='edit'||G.state==='title')edShow(d.L);else edUse(d.L);},
   edGrid(d){ED.grid=!!d.v;},
+  edCamY(d){if(G.state==='edit')cam.y=edCamClampY(+d.y||0);},
   edTool(d){ED.tool={mode:d.mode,el:d.el,opt:d.opt||{}};},
   edCam(d){if(G.state==='edit'){const z=edZone();cam.x=edCamClamp((z.a+(+d.x||0))*TS);}},
-  edRegion(d){if(G.state!=='edit')return;ED.region=d.r==='cave'&&under?'cave':'main';G.inUnder=ED.region==='cave';cam.x=edCamClamp(G.inUnder?under.a*TS:(under?under.x*TS-W/2:0));ED.view='';},
+  edRegion(d){if(G.state!=='edit')return;ED.region=d.r==='cave'&&under?'cave':'main';G.inUnder=ED.region==='cave';cam.y=0;cam.x=edCamClamp(G.inUnder?under.a*TS:(under?under.x*TS-W/2:0));ED.view='';},
   edPlay(d){edPlay(d.L,d.from,d.god);},
   edStop(){if(G.state!=='edit')edStop();},
   edGod(d){G.god=!!d.v;},
@@ -206,8 +214,8 @@ if(EDIT){
     ED_CMDS[d.cmd](d);
   });
   // Mouse-ul pe hartă: pătrățelul de sub el (în coloanele zonei) ajunge la panou
-  const tileOf=e=>{const r=cv.getBoundingClientRect(),z=edZone();
-    return {x:clamp(Math.floor(((e.clientX-r.left)/r.width*W+Math.round(cam.x))/TS),z.a,z.a+z.w-1),y:clamp(Math.floor((e.clientY-r.top)/r.height*H/TS),0,ROWS-1)};};
+  const tileOf=e=>{const r=cv.getBoundingClientRect(),z=edZone(),cy=ED.region==='cave'?0:Math.round(cam.y);
+    return {x:clamp(Math.floor(((e.clientX-r.left)/r.width*W+Math.round(cam.x))/TS),z.a,z.a+z.w-1),y:clamp(Math.floor(((e.clientY-r.top)/r.height*H+cy)/TS),ED.region==='cave'?0:topRow,ED.region==='cave'?ROWS-1:botRow-1)};};
   const send=(t,p,b)=>toParent({edPtr:{t,x:p.x-edZone().a,y:p.y,b,r:ED.region}});
   cv.addEventListener('pointerdown',e=>{if(G.state!=='edit')return;cv.setPointerCapture(e.pointerId);const p=tileOf(e);ED.hover=p;ED.down={x:p.x,y:p.y,b:e.button};send('down',p,e.button);});
   cv.addEventListener('pointermove',e=>{if(G.state!=='edit')return;const p=tileOf(e),h=ED.hover;
@@ -217,10 +225,11 @@ if(EDIT){
   cv.addEventListener('pointerleave',()=>{if(!ED.down)ED.hover=null;});
   cv.addEventListener('contextmenu',e=>e.preventDefault());
   // Rotița mută harta
-  cv.addEventListener('wheel',e=>{if(G.state!=='edit')return;e.preventDefault();cam.x=edCamClamp(cam.x+(Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY)*0.6);},{passive:false});
+  cv.addEventListener('wheel',e=>{if(G.state!=='edit')return;e.preventDefault();if(e.altKey){cam.y=edCamClampY(cam.y+e.deltaY*0.6);return;}cam.x=edCamClamp(cam.x+(Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:e.deltaY)*0.6);},{passive:false});
   // Scurtăturile ajung la panou și când jocul are focusul
   addEventListener('keydown',e=>{
     if(G.state!=='edit')return;
+    if(e.code==='Home'){e.preventDefault();cam.y=edCamClampY(0);return;}   // camera înapoi jos
     const k=(e.ctrlKey||e.metaKey)?(e.code==='KeyZ'?(e.shiftKey?'redo':'undo'):e.code==='KeyY'?'redo':e.code==='KeyS'?'save':null):({KeyP:'pointer',KeyB:'paint',KeyE:'erase',KeyR:'rect',KeyV:'move',KeyI:'pick',KeyG:'grid',Escape:'esc',Delete:'del',Backspace:'del'})[e.code]||(e.key==='?'?'help':null);
     if(k){e.preventDefault();toParent({edKey:k});}
   });

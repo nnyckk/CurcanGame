@@ -2,12 +2,13 @@
 // ===== SETUP: ecranul, constantele de bază, utilitare =====
 // ?toate: pene, curcani și achievements, toate deblocate (fără să salveze)
 const ALL_OPEN=/[?&]toate\b/.test(location.search);
-const GAME_VERSION='1.2.4.1';
+const GAME_VERSION='1.2.5';
 // Editorul de niveluri: jocul din editor.html (merge ca modul de test)
 const EDIT=/[?&]edit\b/.test(location.search);
 // Modul de test: arenă de test, comenzi din test.html
 const TEST=EDIT||/[?&]test\b/.test(location.search);
 const W=400,H=224,TS=16,ROWS=14,TAU=Math.PI*2;
+const SKY_ROWS=14,DEEP_ROWS=5;   // DEEP: sub rândul 13, doar decor (se vede la dialog)   // rândurile de deasupra (-1 … -14), doar în nivelurile din editor
 const cv=document.getElementById('game');
 // „let”: noaptea
 let ctx=cv.getContext('2d');

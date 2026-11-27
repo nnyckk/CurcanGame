@@ -52,7 +52,7 @@ const moleOnEarth=e=>{const ty=Math.floor((e.y+e.h+1)/TS),a=Math.floor((e.x+1)/T
 // Unde poate ieși: o coloană cu pământ dedesubt și două pătrate libere deasupra
 function moleSpots(x0,x1){
   const ok=(tx,r)=>'DG'.includes(tileAt(tx,r))&&!solid(tileAt(tx,r-1))&&!solid(tileAt(tx,r-2))&&tileAt(tx,r-1)!=='^';
-  const out=[];for(let tx=x0;tx<=x1;tx++)for(let r=2;r<ROWS;r++)if(ok(tx,r)&&(ok(tx-1,r)||ok(tx+1,r)))out.push({tx,ty:r});   // nu pe un singur bloc
+  const out=[];for(let tx=x0;tx<=x1;tx++)for(let r=topRow+2;r<ROWS;r++)if(ok(tx,r)&&(ok(tx-1,r)||ok(tx+1,r)))out.push({tx,ty:r});   // nu pe un singur bloc
   return out;
 }
 // Calmă: sapă rar și doar cu un scop

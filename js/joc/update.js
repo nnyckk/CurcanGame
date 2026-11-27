@@ -15,7 +15,19 @@ function updateCam(){
   // În lupta cu boss-ul, camera stă pe poiană
   const target=boss&&boss.lock?boss.a0-TS:inCafe()?cafe.a*TS+CAFE_CAMX:inUnder()?underCam():clamp(camX(),0,camMax());
   cam.x+=(target-cam.x)*CAM_FOLLOW;
+  updateCamY();
 }
+// Sus și jos: doar în nivelurile înalte; curcanul stă între margini
+const CAM_TOP=3*TS,CAM_BOT=5*TS,CAM_FOLLOW_Y=0.15,CAM_BACK_Y=0.08;   // BACK: coborârea, mai lină
+function updateCamY(){
+  if(topRow>=0||inRoom()){cam.y=0;return;}
+  const p=player;let t=cam.y;
+  if(p.y+p.h>0)t=0;   // sub rândul 0: ecranul obișnuit, ca și cum sus n-ar exista
+  else if(p.y-cam.y<CAM_TOP)t=p.y-CAM_TOP;else if(p.y+p.h-cam.y>H-CAM_BOT)t=p.y+p.h-(H-CAM_BOT);
+  t=clamp(t,topRow*TS,0);cam.y+=(t-cam.y)*(t>cam.y?CAM_BACK_Y:CAM_FOLLOW_Y);if(Math.abs(t-cam.y)<0.3)cam.y=t;
+}
+// La pornire: camera direct la curcan
+function snapCamY(){cam.y=0;if(topRow>=0||inRoom())return;if(player.y+player.h<=0)cam.y=clamp(player.y-CAM_TOP,topRow*TS,0);}
 function updatePlay(){
   // Afară, cât vorbește cineva
   G.lift=(G.lift||0)+((G.talk&&!inCafe()?TALK_LIFT:0)-(G.lift||0))*0.25;if(G.lift<0.5&&!G.talk)G.lift=0;

@@ -14,7 +14,8 @@ function toIntro(first){
 // quiet = doar pregătește nivelul, fără muzică
 function startLevel(quiet){
   const def=LEVELS[G.level],m=def.build();
-  grid=m.grid;cols=m.w;theme=THEMES[def.theme];tiles=getTiles(def.theme);bg=getBG(def.theme);goal=m.goalDef;
+  grid=m.grid;cols=m.w;topRow=m.tall?-SKY_ROWS:0;botRow=m.grid.length;cam.y=0;   // sus: doar în nivelurile înalte (editorul îl pune și el)
+  theme=THEMES[def.theme];tiles=getTiles(def.theme);bg=getBG(def.theme);goal=m.goalDef;
   enemies=m.ents.map(d=>makeEnemy(d.type,d.x,d.y));
   if(G.duck){G.duck=false;applyAudio();}G.frame=0;plats=m.plats.map(makePlat);boss=m.bossDef?makeBoss(m.bossDef):null;cafe=m.cafeDef?makeCafe(m.cafeDef):null;under=m.underDef?makeUnder(m.underDef):null;G.inUnder=false;G.subT=0;G.doorT=0;G.inCafe=false;G.talk=null;G.lift=0;golds=makeGolds(m);
   // Mobii puși pe o platformă care se mișcă stau pe ea de la început
@@ -32,7 +33,7 @@ function startLevel(quiet){
   const sx=(atCp?G.cp.x:def.start!==undefined?def.start:2)*TS+3;   // start: coloana din editor
   const big=!!G.carryBig;
   // Pe sol, chiar dacă pământul de acolo e mai sus (insulă înălțată, deal)
-  let gy=12;const gx=[Math.floor(sx/TS),Math.floor((sx+11)/TS)];while(gy>0&&gx.some(c=>solid(tileAt(c,gy-1))))gy--;
+  let gy=12;const gx=[Math.floor(sx/TS),Math.floor((sx+11)/TS)];while(gy>topRow&&gx.some(c=>solid(tileAt(c,gy-1))))gy--;
   player={x:sx,y:gy*TS-(big?20:13),w:big?12:10,h:big?20:13,big,fire:big&&!!G.carryFire,ice:big&&!!G.carryIce,vx:0,vy:0,face:1,onGround:false,coyote:0,jbuf:0,inv:0,anim:0,combo:0,dead:false,alpha:1};
   G.growT=0;
   G.time=300;G.frame=0;G.paused=false;G.tally=0;
@@ -42,6 +43,7 @@ function startLevel(quiet){
   if(!atCp&&def.startCave!=null&&under){G.inUnder=true;player.x=(under.a+def.startCave)*TS+3;
     let cy=12;const c0=[Math.floor(player.x/TS),Math.floor((player.x+11)/TS)];while(cy>0&&c0.some(c=>solid(tileAt(c,cy-1))))cy--;
     player.y=cy*TS-player.h;cam.x=underCam();}
+  snapCamY();
   lakeLife=initLakeLife();
   G.state='play';if(quiet)return;
   playSong(G.inUnder?'cave':def.song||'main');

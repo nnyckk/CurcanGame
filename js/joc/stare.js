@@ -10,4 +10,5 @@ function applyAudio(){if(!AC)return;musicG.gain.value=G.music?(G.paused?0.06:G.d
 function saveHi(){if(G.custRun)return;if(G.score>G.hi){G.hi=G.score;try{localStorage.setItem('curcan_hi',G.hi);}catch(e){}}}
 let grid=null,cols=0,theme=THEMES[0],tiles=getTiles(0),bg=getBG(0),goal=null;
 let player=null,enemies=[],coins=[],items=[],parts=[],popups=[],booms=[],bumps=[],cps=[],feathers=[],plats=[],boss=null,cafe=null;
-const cam={x:0};
+const cam={x:0,y:0};
+let topRow=0,botRow=ROWS;   // botRow: până unde se desenează (ROWS + rândurile de dedesubt)   // cel mai de sus rând folosit: 0 sau -SKY_ROWS
