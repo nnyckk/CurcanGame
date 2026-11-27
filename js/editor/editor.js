@@ -100,7 +100,8 @@ const ICON_K={boy:2,man:2,bomb:2,mole:2,start:2,coin:2,gopen:2,cage:0.85,mvx:1,m
 // Opțiunile elementelor (lățimea platformei, raza, curcanul din colivie)
 const POWER={normal:'H',ice:'A',fire:'R'},POWER_NAMES={normal:'Normală',ice:'Gheață',fire:'Foc'};
 const kindOf=c=>c==='A'?'ice':c==='R'?'fire':'normal';
-const OPT={H:{kind:'normal'},mvx:{w:3,range:6,speed:3},mvy:{w:3,range:4,speed:3},fall:{w:1},cage:{capt:0},gem:{sz:1,c:0},cafe:{game:'slot'}};
+const spikeDir=c=>({v:'down','<':'left','>':'right'})[c]||'up';
+const OPT={'^':{dir:'up'},H:{kind:'normal'},mvx:{w:3,range:6,speed:3},mvy:{w:3,range:4,speed:3},fall:{w:1},cage:{capt:0},gem:{sz:1,c:0},cafe:{game:'slot'}};
 const CAFE_GAMES=[{id:'slot',name:'Blocul-slot',px:'slot',d:'Dai cu capul în bloc fix când arată ce vrei.'},
   {id:'cups',name:'Ghicește ceșcuța',px:'cup',d:'Moș ascunde premiul sub o ceașcă și le amestecă.'},
   {id:'blocks',name:'Blocurile lui Moș',px:'note',d:'Moș aprinde blocurile într-o ordine; tu le lovești la fel. Trei runde.'},
@@ -275,7 +276,8 @@ function applyAt(x,y,erase,first){
   if(!inMain()&&!CAVE_EL.has(e))return false;
   if(e==='I'){if(!isSnow())return false;const a=setT(z,x,12,'I');return setT(z,x,13,'.')||a;}   // gheața: doar pe rândul solului, cu apă dedesubt
   if(e==='water'){const a=setT(z,x,12,'.');return setT(z,x,13,'.')||a;}   // apa: scoate solul din coloană
-  if(e==='H')return setT(z,x,y,POWER[o.kind||'normal']);   // blocul cu puterea aleasă
+  if(e==='H')return setT(z,x,y,POWER[o.kind||'normal']);
+  if(e==='^')return setT(z,x,y,ED_SPIKES[o.dir||'up']);   // țepii, întorși cum ai ales   // blocul cu puterea aleasă
   if(ED_TILES.includes(e))return setT(z,x,y,e);
   if(e==='coin'){if(z.coins.some(c=>c[0]===x&&c[1]===y))return false;z.coins.push([x,y]);return true;}
   if(!first)return false;
@@ -353,7 +355,7 @@ function elAt(x,y){
   if(d){if(d.k==='ent')return d.o.t;if(d.k==='coin')return 'coin';if(d.k==='gold')return {open:'gopen',brick:'gbrick',hidden:'ghidden'}[d.o.kind];
     if(['plat','pwidth','range'].includes(d.k))return d.o.kind==='fall'?'fall':d.o.ax==='x'?'mvx':'mvy';
     if(d.k==='hole')return d.h==='x'?'cavein':'caveout';if(d.k==='goal')return L.goal.type==='sign'?'sign':'rest';return d.k;}
-  const c=z.grid[y][x];if(c!=='.')return c==='A'||c==='R'?'H':c;
+  const c=z.grid[y][x];if(c!=='.')return c==='A'||c==='R'?'H':'v<>'.includes(c)?'^':c;
   return inMain()&&y>=12&&z.grid[12][x]==='.'&&z.grid[13][x]==='.'?'water':null;
 }
 // Pipeta: ce e sub cursor devine elementul pensulei
@@ -361,6 +363,7 @@ function pickAt(x,y){
   const z=zone();let e=elAt(x,y);
   if(!inMain()){const g=gemAt(z,x,y);if(g){if(typeof g!=='number'){const [a,c]=gemSC(g);if(a!=null)OPT.gem={sz:a,c};}e='gem';}}
   if(e==='H')OPT.H.kind=kindOf(z.grid[y][x]);
+  if(e==='^')OPT['^'].dir=spikeDir(z.grid[y][x]);
   if(!e||!ELS.some(q=>q.id===e)){status('Aici nu e nimic de luat cu pipeta.');return;}
   if(!inMain()&&!CAVE_EL.has(e)){status('Elementul ăsta nu merge în peșteră.');return;}
   setTool('paint',e);status('Pipeta a luat: '+ELS.find(q=>q.id===e).name+'. Acum desenezi cu el.');
@@ -368,7 +371,7 @@ function pickAt(x,y){
 function pointAt(x,y){
   const d=pick(x,y);
   sel=d&&['plat','pwidth','range'].includes(d.k)?{k:'plat',o:d.o}:d&&d.k==='cage'?{k:'cage'}:d&&d.k==='cafe'?{k:'cafe'}:null;
-  if(!d&&'HAR'.includes(zone().grid[y][x]))sel={k:'tile',x,y,z:region};
+  if(!d&&'HAR^v<>'.includes(zone().grid[y][x]))sel={k:'tile',x,y,z:region};
   if(!d&&!inMain()){const g=gemAt(L.cave,x,y);if(g&&typeof g!=='number')sel={k:'gem',o:g};}   // cristalul: îi schimbi mărimea și culoarea   // blocul cu putere: îi schimbi puterea
   insp=elAt(x,y);if(!insp)status('Aici nu e nimic.');
   marks();drawProps();
@@ -726,7 +729,7 @@ addEventListener('keydown',e=>{
 const DESC={D:'Pământ. Iarba, marginile și colțurile se pun singure.',Z:'Deal din spate, mai închis: pe iarba lui de sus se poate sta.',
   W:'Deal și mai din spate. Se pune după cele din față.',Y:'Pasaj prin deal: scobit în pământ, treci prin el.',X:'Piatră: bloc tare, pentru trepte.',
   I:'Gheață peste apă, pe rândul solului. Crapă dacă stai pe ea.',water:'Groapă cu apă: scoate solul din toată coloana.',
-  '^':'Țepi: te rănesc dacă sari pe ei.','=':'Scândură: stai pe ea, treci prin ea de dedesubt.',B:'Cărămidă: o spargi doar când ești mare.',
+  '^':'Țepi: te rănesc dacă îi atingi pe partea cu vârfuri. Îi poți întoarce: pe tavan sau pe pereți.','=':'Scândură: stai pe ea, treci prin ea de dedesubt.',B:'Cărămidă: o spargi doar când ești mare.',
   M:'Bloc M: lovit de dedesubt, dă un bănuț.',H:'Bloc cu putere: dă grăunte, boabă de foc sau afină de gheață.',coin:'Bănuț în aer. La 100 primești o viață.',
   cp:'Checkpoint: dacă mori, reapari aici.',start:'De aici pornește curcanul.',gopen:'Pană de aur la vedere, greu de luat.',
   gbrick:'Pană de aur într-o cărămidă: iese când o spargi.',ghidden:'Pană de aur într-un bloc invizibil: apare când îl lovești.',
@@ -745,6 +748,7 @@ function propTarget(){
   if(sel&&sel.k==='plat'&&zone().plats.includes(sel.o)){const p=sel.o;return {o:p,live:true,el:p.kind==='fall'?'fall':p.ax==='x'?'mvx':'mvy'};}
   if((tool.el==='cage'&&tool.mode!=='pointer')||(sel&&sel.k==='cage'&&anyCage()))return {o:anyCage()||OPT.cage,live:!!anyCage(),el:'cage'};
   if(sel&&sel.k==='tile'&&sel.z===region&&'HAR'.includes(zone().grid[sel.y][sel.x]))return {o:{kind:kindOf(zone().grid[sel.y][sel.x])},live:true,el:'H'};
+  if(sel&&sel.k==='tile'&&sel.z===region&&'^v<>'.includes(zone().grid[sel.y][sel.x]))return {o:{dir:spikeDir(zone().grid[sel.y][sel.x])},live:true,el:'^'};
   if(sel&&sel.k==='gem'&&region==='cave'&&L.cave&&L.cave.gems.includes(sel.o)){const [s,c]=gemSC(sel.o);return {o:{sz:s??1,c:c??0},live:true,el:'gem'};}
   if((tool.el==='cafe'&&tool.mode==='paint')||(sel&&sel.k==='cafe'&&L.cafe&&inMain()))return {o:L.cafe||OPT.cafe,live:!!L.cafe,el:'cafe'};
   if(tool.mode==='pointer')return {o:null,live:false,el:insp,info:true};
@@ -761,6 +765,9 @@ function drawProps(){
   if(o&&t.el==='H'){
     h+=`<p class="ictx">${t.live?`Blocul ales · coloana ${sel.x}, rândul ${sel.y}`:'Pentru blocurile pe care le pui'}</p><div class="opt"><span>Puterea</span></div><div class="seg pw">`+
       Object.keys(POWER).map(k=>`<button data-kind="${k}" aria-pressed="${o.kind===k}">${ICONS[k==='normal'?'H':'H_'+k]?`<img src="${ICONS[k==='normal'?'H':'H_'+k]}" alt="">`:''}${POWER_NAMES[k]}</button>`).join('')+'</div>';
+  }else if(o&&t.el==='^'){
+    h+=`<p class="ictx">${t.live?`Țepii aleși · coloana ${sel.x}, rândul ${sel.y}`:'Pentru țepii pe care îi pui'}</p><div class="opt"><span>Încotro arată</span></div><div class="seg pw">`+
+      Object.keys(ED_SPIKES).map(k=>`<button data-sdir="${k}" aria-pressed="${o.dir===k}">${ICONS['spk_'+k]?`<img src="${ICONS['spk_'+k]}" alt="">`:''}${ED_SPIKE_NAMES[k]}</button>`).join('')+'</div>';
   }else if(o&&t.el==='gem'){
     const im=(s,c)=>ICONS['gem'+s+c]?`<img src="${ICONS['gem'+s+c]}" alt="">`:'';
     h+=`<p class="ictx">${t.live?'Cristalul ales':'Pentru cristalele pe care le pui'}</p><div class="opt"><span>Mărimea</span></div><div class="seg pw">`+
@@ -787,6 +794,9 @@ propsBox.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||
   if(b.dataset.gsz!==undefined||b.dataset.gc!==undefined){const s=b.dataset.gsz!==undefined?+b.dataset.gsz:o.sz,c=b.dataset.gc!==undefined?+b.dataset.gc:o.c;
     OPT.gem={sz:s,c};
     if(t.live){const g=sel.o,n=g[0]==='L'||g[0]==='R'?2:3;begin();g.splice(n,2,s,c);commit();}else{sendTool();drawProps();}
+    return;}
+  if(b.dataset.sdir){const k=b.dataset.sdir;
+    if(t.live){const z=zone(),c=ED_SPIKES[k];if(z.grid[sel.y][sel.x]!==c){begin();setT(z,sel.x,sel.y,c);commit();}}else{OPT['^'].dir=k;sendTool();drawProps();}
     return;}
   if(b.dataset.kind){const k=b.dataset.kind;
     if(t.live){const z=zone(),c=POWER[k];if(z.grid[sel.y][sel.x]!==c){begin();setT(z,sel.x,sel.y,c);commit();}}else{OPT.H.kind=k;sendTool();drawProps();}
@@ -881,7 +891,7 @@ frame.addEventListener('load',()=>{send('edHello');send('edGrid',{v:gridOn});sen
 
 // ---- Harta mică: drumul sau camera peșterii ----
 const mapCv=$('#map'),mg=mapCv.getContext('2d');
-const TILE_COL={B:'#c98a4b',M:'#f2b630',H:'#f2b630',A:'#8ccfee',R:'#e8402c',X:'#8a8fa0','=':'#b5793a','^':'#d8dce6',I:'#dff4ff'};
+const TILE_COL={B:'#c98a4b',M:'#f2b630',H:'#f2b630',A:'#8ccfee',R:'#e8402c',X:'#8a8fa0','=':'#b5793a','^':'#d8dce6',v:'#d8dce6','<':'#d8dce6','>':'#d8dce6',I:'#dff4ff'};
 function drawMap(){
   const dpr=devicePixelRatio||1,Wd=Math.round(mapCv.clientWidth*dpr),Hd=Math.round(mapCv.clientHeight*dpr);
   if(!Wd||!Hd)return;if(mapCv.width!==Wd||mapCv.height!==Hd){mapCv.width=Wd;mapCv.height=Hd;}

@@ -87,11 +87,11 @@
 
   /* Categoriile: file cu iconițe */
   .palette{flex:1;display:flex;flex-direction:column;min-height:0;overflow-y:auto}   /* umple tot panoul */
-  .cats{display:grid;grid-template-columns:repeat(auto-fill,minmax(60px,1fr));gap:4px;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid var(--line)}
-  .cat{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:64px;padding:3px 2px;background:transparent;border:1px solid transparent;border-radius:var(--r2);font-size:11px;color:var(--muted)}
-  .cat .ci{display:flex;align-items:center;justify-content:center;width:34px;height:32px}
-  .cat .ci img{image-rendering:pixelated;max-width:34px;max-height:32px;min-width:16px}
-  .cat .ci .px{width:22px;height:22px;color:var(--text)}
+  .cats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding-bottom:12px;margin-bottom:12px;border-bottom:1px solid var(--line)}
+  .cat{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;height:82px;padding:4px 2px;background:transparent;border:1px solid transparent;border-radius:var(--r2);font-size:12px;color:var(--muted)}
+  .cat .ci{display:flex;align-items:center;justify-content:center;width:48px;height:44px}
+  .cat .ci img{image-rendering:pixelated;width:32px;max-width:48px;max-height:44px}
+  .cat .ci .px{width:30px;height:30px;color:var(--text)}
   .cat:hover{background:var(--card);color:var(--text)}
   .cat[aria-selected="true"]{background:var(--card2);border-color:var(--line2);color:var(--text);font-weight:600}
   .cat[aria-selected="true"] .ci .px{color:var(--accent)}

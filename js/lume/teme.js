@@ -137,6 +137,8 @@ function getTiles(ti){
   [c,g]=mkCanvas(16,16);
   for(let s=0;s<2;s++){const cx=s*8+4;for(let r=0;r<13;r++){const hw=Math.floor(r*4/13);g.fillStyle='#2a2a38';g.fillRect(cx-hw-1,3+r,hw*2+3,1);g.fillStyle=r<2?'#ffffff':'#d8dce6';g.fillRect(cx-hw,3+r,hw*2+1,1);g.fillStyle='#9aa0b0';g.fillRect(cx,3+r,hw+1,1);}}
   g.fillStyle='#4a4a5a';g.fillRect(0,15,16,1);T['^']=c;
+  // Țepii întorși: v = pe tavan, < = pe peretele din dreapta (spre stânga), > = pe cel din stânga
+  {const rot=a=>{const [c2,g2]=mkCanvas(16,16);g2.translate(8,8);g2.rotate(a);g2.drawImage(c,-8,-8);return c2;};T.v=rot(Math.PI);T['<']=rot(-Math.PI/2);T['>']=rot(Math.PI/2);}
   // Pământ moale: pete neregulate, firimituri, rar o pietricică (se repetă fără cusături)
   const ink='#120810';
   const earth=(seed,base,lite,dark)=>{const [c,g]=mkCanvas(16,16),R=rng(seed);g.fillStyle=base;g.fillRect(0,0,16,16);

@@ -64,7 +64,7 @@ function edIcons(){
   const CPI=can(16,16,g=>{g.fillStyle='#cfd3dc';g.fillRect(3,1,2,15);g.fillStyle='#ffcf40';g.fillRect(5,2,9,6);});
   const plank=img=>can(32,8,g=>{g.drawImage(img,0,0);g.drawImage(img,16,0);});
   const Dc=can(16,16,g=>{g.drawImage(tiles.D,0,0);g.fillStyle=theme.dirtL;g.fillRect(0,0,16,1);});   // pământul din peșteră: fără iarbă
-  toParent({edIcons:{D:u(tiles.G),Dc:u(Dc),H_ice:u(tiles.A[0]),H_fire:u(tiles.R[0]),Z:u(tiles.ZG),W:u(tiles.WG),Y:u(tiles.Yv[0]),X:u(tiles.X),I:u(tiles.I),'^':u(tiles['^']),'=':u(tiles['=']),
+  toParent({edIcons:{D:u(tiles.G),Dc:u(Dc),H_ice:u(tiles.A[0]),H_fire:u(tiles.R[0]),Z:u(tiles.ZG),W:u(tiles.WG),Y:u(tiles.Yv[0]),X:u(tiles.X),I:u(tiles.I),'^':u(tiles['^']),spk_up:u(tiles['^']),spk_down:u(tiles.v),spk_left:u(tiles['<']),spk_right:u(tiles['>']),'=':u(tiles['=']),
     B:u(tiles.B),M:u(tiles.M[0]),H:u(H),water:u(sw(theme.water.body,11,5)),coin:u(COIN),cp:u(CPI),start:u(TKS.A.r),
     boy:u(BOY.A.r),man:u(MAN.A.r),mole:u(MOLE.A.r),bomb:u(BOMB.A.r),head:u(HEAD),
     gopen:u(GOLD_PANA),gbrick:u(can(16,16,g=>{g.drawImage(tiles.B,0,0);g.drawImage(GOLD_PANA,5,1);})),
@@ -155,7 +155,7 @@ function drawEditMarks(cy){
   if(t.mode==='pick'){box('#7fff7f');return;}
   const e=t.el,o=t.opt||{};ctx.globalAlpha=0.6;
   if(e==='water'||e==='I'){ctx.fillStyle=e==='I'?'#dff4ff':theme.water.body;ctx.fillRect(X,12*TS+(e==='I'?0:5),TS,e==='I'?6:2*TS-5);}
-  else if(ED_TILES.includes(e)){const img=e==='D'?(ED.region==='cave'?tiles.D:tiles.G):e==='Z'?tiles.ZG:e==='W'?tiles.WG:e==='Y'?tiles.Yv[0]:e==='M'?tiles.M[0]:e==='H'?({ice:tiles.A,fire:tiles.R}[o.kind]||tiles.M)[0]:tiles[e];if(img)ctx.drawImage(img,X,Y);}
+  else if(ED_TILES.includes(e)){const img=e==='D'?(ED.region==='cave'?tiles.D:tiles.G):e==='Z'?tiles.ZG:e==='W'?tiles.WG:e==='Y'?tiles.Yv[0]:e==='M'?tiles.M[0]:e==='H'?({ice:tiles.A,fire:tiles.R}[o.kind]||tiles.M)[0]:e==='^'?tiles[ED_SPIKES[o.dir]||'^']:tiles[e];if(img)ctx.drawImage(img,X,Y);}
   else if(e==='coin')ctx.drawImage(COIN,X+2,Y+2);
   else if(e==='boy'||e==='man')ctx.drawImage((e==='boy'?BOY:MAN).A.r,X,Y+TS-20);
   else if(e==='mole')ctx.drawImage(MOLE.A.r,X,Y+TS-20);

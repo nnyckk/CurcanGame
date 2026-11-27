@@ -9,7 +9,8 @@ const ED_BIOMES={ferma:{name:'Fermă',day:0,night:3},iarna:{name:'Iarnă',day:1,
 const edTheme=L=>{const b=ED_BIOMES[L.biome]||ED_BIOMES.ferma;return L.night?b.night:b.day;};
 const edSong=t=>t===3?'night':t===1||t===5?'winter':undefined;
 // Terenul și blocurile care se pot desena
-const ED_TILES='DZWYXI^=BMHAR';   // H, A, R = bloc cu putere: normală, gheață, foc
+const ED_TILES='DZWYXI^=BMHARv<>';   // v < > = țepii întorși (tavan, pereți)
+const ED_SPIKES={up:'^',down:'v',left:'<',right:'>'},ED_SPIKE_NAMES={up:'În sus',down:'În jos',left:'Spre stânga',right:'Spre dreapta'};   // H, A, R = bloc cu putere: normală, gheață, foc
 // Mini-jocurile din cafenea (blocks, mouse, hotcold: vin pe rând)
 const ED_CAFE_GAMES=['slot','cups','blocks','mouse','hotcold'];
 const ED_MOBS=['boy','man','bomb','mole'];   // mole: cârtița miner, doar în peșteră
@@ -111,7 +112,7 @@ function edCageWhy(L,x,y){
   if(x<2||x>L.w-2||y<(L.sky?4-ED_SKY:4))return 'Colivia nu încape aici.';
   const b=edCageBox(x,y),inB=(px,py)=>px>=b.x0&&px<=b.x1&&py>=b.y0&&py<=b.y1,cols=(a,w)=>a<=b.x1&&a+w-1>=b.x0;
   for(let i=b.x0;i<=x;i++)if(!ED_CAGE_GROUND.includes(L.grid[y][i]))return 'Sub colivie și în stânga ei, unde aterizează curcanul, trebuie pământ drept.';
-  for(let r=b.y0;r<=b.y1;r++)for(let i=b.x0;i<=b.x1;i++)if((ED_CAGE_GROUND+'^').includes(L.grid[r][i]))return 'Colivia are nevoie de loc liber: curcanul sare afară prin stânga.';
+  for(let r=b.y0;r<=b.y1;r++)for(let i=b.x0;i<=b.x1;i++)if((ED_CAGE_GROUND+'^v<>').includes(L.grid[r][i]))return 'Colivia are nevoie de loc liber: curcanul sare afară prin stânga.';
   const busy=L.coins.some(c=>inB(c[0],c[1]))||L.ents.some(m=>inB(m.x,m.y)||inB(m.x,m.y-1))||L.golds.some(g=>inB(g.x,g.y))
     ||L.plats.some(p=>{const mv=p.kind==='move',mx=mv&&p.ax==='x'?p.range:0,my=mv&&p.ax==='y'?p.range:0;return cols(p.x,p.w+mx)&&p.y<=b.y1&&p.y+my>=b.y0;})
     ||(L.cps||[]).some(c=>cols(c,1))||cols(L.start,1)||(Number.isInteger(L.in)&&((b.y0<(L.inH||6)&&cols(L.in,2))||(b.y0<(L.outH||6)&&cols(L.out,2))))||(L.cave&&['in','out'].some(k=>{const r=edHoleBox(L,k);return r.x0<=b.x1&&r.x1>=b.x0&&r.y0<=y&&r.y1>=b.y0;}))
@@ -119,7 +120,7 @@ function edCageWhy(L,x,y){
   return busy?'Lângă colivie trebuie să fie liber: fără bănuți, inamici, platforme sau alte obiecte.':'';
 }
 // Platforma: tot drumul ei, fără teren, blocuri sau obiecte în cale
-const ED_SOLID='DBMHARXI=^';
+const ED_SOLID='DBMHARXI=^v<>';
 function edPlatBox(p){const mv=p.kind==='move';return {x0:p.x,x1:p.x+p.w-1+(mv&&p.ax==='x'?p.range:0),y0:p.y,y1:p.y+(mv&&p.ax==='y'?p.range:0)};}
 function edPlatWhy(L,p){
   const b=edPlatBox(p);
