@@ -1,7 +1,7 @@
 'use strict';
 // ===== FERMIERUL ȘI UCENICUL: comportamentul =====
 // Zona în care lovește furca, în fața fermierului
-function forkBox(e){return {x:e.dir>0?e.x+e.w:e.x-MAN_REACH,y:e.y+7,w:MAN_REACH,h:8};}
+function forkBox(e){return {x:e.dir>0?e.x+e.w-2:e.x-MAN_REACH+1,y:e.y+9,w:MAN_REACH+1,h:4};}   // doar coada furcii
 // pts = punctele fermierului cu furcă
 function killMan(e,mode,pts){
   e.dead=mode;e.deadT=mode===1?30:120;e.frozen=0;

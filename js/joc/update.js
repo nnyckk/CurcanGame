@@ -2,6 +2,8 @@
 // ===== UPDATE: un cadru de joc =====
 // Camera arată mai mult în fața curcanului, oriunde se uită
 const CAM_LOOK=44,CAM_TURN_T=90,CAM_WALK_T=15,CAM_SPRING=0.0035,CAM_DAMP=0.88,CAM_FOLLOW=0.12;   // CAM_TURN_T: cât aștepți întors până se mută camera
+const MOB_PAD=2;   // hitbox-ul mobilor, mai mic
+const mobBox=e=>{const sx=e.type==='bomb'?1:MOB_PAD,ty=e.type==='bomb'?0:MOB_PAD;return {x:e.x+sx,y:e.y+ty,w:e.w-sx*2,h:e.h-ty};};
 const camX=()=>player.x+player.w/2-W/2+(cam.look||0);
 function updateCam(){
   // Te uiți în spate: camera așteaptă puțin
@@ -46,7 +48,7 @@ function updatePlay(){
   }
   if(G.state==='play')for(const e of enemies){
     if(!e.active||e.dead||e.remove||e.sink||player.dead||offstage(e)||(e.mole&&moleUnder(e)))continue;   // cârtița mai mult de jumătate în pământ: nu se atinge
-    const box=e.sit?{x:e.x-BOMB_PUSH_PAD,y:e.y,w:e.w+BOMB_PUSH_PAD*2,h:e.h}:e;
+    const box=e.sit?{x:e.x-BOMB_PUSH_PAD,y:e.y,w:e.w+BOMB_PUSH_PAD*2,h:e.h}:mobBox(e);   // hitbox cu 2 px mai mic
     if(!overlap(player,box))continue;
     const stomp=player.vy>0&&(player.y+player.h-e.y)<=Math.max(8,player.vy+3);
     if(stomp&&e.mole&&!moleOut(e)){player.y=e.y-player.h;player.vy=-4.3;sfx.bump();continue;}   // cât intră/iese: săritura doar te respinge

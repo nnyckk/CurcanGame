@@ -141,7 +141,7 @@ function drawHitboxes(cx){
   const r=(o,col)=>{ctx.strokeStyle=col;ctx.strokeRect(Math.round(o.x-cx)+0.5,Math.round(o.y)+0.5,Math.max(1,Math.round(o.w)-1),Math.max(1,Math.round(o.h)-1));};
   if(player&&!player.dead)r(player,'#00ff66');
   for(const e of enemies){if(!e.active||e.dead||e.remove)continue;
-    r(e,e.type==='man'?(e.boy?'#ffffff':'#ff4040'):'#ffa000');
+    r(e.sit?e:mobBox(e),e.type==='man'?(e.boy?'#ffffff':'#ff4040'):'#ffa000');
     if(e.type==='man'&&e.atk>MAN_WIND_T&&e.atk-MAN_WIND_T<=10)r(forkBox(e),'#ff40ff');
     if(e.type==='bomb'&&e.sit&&BOMB_PUSH_PAD)r({x:e.x-BOMB_PUSH_PAD,y:e.y,w:e.w+BOMB_PUSH_PAD*2,h:e.h},'#ffff40');}
   for(const it of items)r(it,'#40c0ff');
