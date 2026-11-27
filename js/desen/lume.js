@@ -81,7 +81,8 @@ function drawWorld(){
     ctx.globalAlpha=p.max?Math.min(1,p.life/(p.max*0.5)):1;ctx.fillStyle=p.col;ctx.fillRect(Math.round(p.x-cx),Math.round(p.y),p.s,p.s);ctx.globalAlpha=1;
   }
   if(theme.snow&&!inRoom())drawSnowfall();
-  for(const p of popups)txt(p.s,p.x-cx,p.y,p.c,1,'c','#000');
+  // Textele plutitoare: litere mici, puțin transparente
+  ctx.globalAlpha=0.75;for(const p of popups){const s=String(p.s).toUpperCase(),x=Math.round(p.x-cx-tinyW(s)/2),y=Math.round(p.y);tinyTxt(s,x+1,y+1,'#000');tinyTxt(s,x,y,p.c);}ctx.globalAlpha=1;
   if(cafe)drawCafeHints(cx);
   drawCageHint(cx);drawRestHint(cx);
   if(TEST&&G.showHB)drawHitboxes(cx);

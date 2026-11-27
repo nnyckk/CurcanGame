@@ -84,6 +84,7 @@ const TEST_CMDS={
   form(d){testForm(d.form);},
   boy(){testSpawn('boy');},
   man(){testSpawn('man');},
+  mole(){testSpawn('mole');},
   bomb(){testSpawn('bomb');},
   sitbomb(){const e=testSpawn('bomb');if(e)sitBomb(e);},
   clear(){enemies=[];},
@@ -110,7 +111,7 @@ function testHello(){
     bonus:!!d.bonus,num:d.bonus?'★':String(levelNum(i))}));
   const themes=THEMES.map(t=>({sky:t.sky,grass:t.grass,night:!!t.night}));
   toParent({hello:{version:GAME_VERSION,levels,arenaTheme:TEST_LEVEL.theme,themes,
-    icons:{tks:u(TKS.A.r),tk:u(TK.A.r),tkf:u(TKF.A.r),tki:u(TKI.A.r),boy:u(BOY.A.l),man:u(MAN.A.l),bomb:u(BOMB.A.l),sit:u(BOMB.S.l),head:u(HEAD)}}});
+    icons:{tks:u(TKS.A.r),tk:u(TK.A.r),tkf:u(TKF.A.r),tki:u(TKI.A.r),boy:u(BOY.A.l),man:u(MAN.A.l),mole:u(MOLE.A.l),bomb:u(BOMB.A.l),sit:u(BOMB.S.l),head:u(HEAD)}}});
 }
 // Harta nivelului pentru panou
 function testMap(){
@@ -143,6 +144,7 @@ function drawHitboxes(cx){
   for(const e of enemies){if(!e.active||e.dead||e.remove)continue;
     r(e.sit?e:mobBox(e),e.type==='man'?(e.boy?'#ffffff':'#ff4040'):'#ffa000');
     if(e.type==='man'&&e.atk>MAN_WIND_T&&e.atk-MAN_WIND_T<=10)r(forkBox(e),'#ff40ff');
+    if(e.mole&&e.ph==='atk'&&e.t>MOLE_WIND&&e.t<=MOLE_WIND+6)r(pickBox(e),'#ff40ff');
     if(e.type==='bomb'&&e.sit&&BOMB_PUSH_PAD)r({x:e.x-BOMB_PUSH_PAD,y:e.y,w:e.w+BOMB_PUSH_PAD*2,h:e.h},'#ffff40');}
   for(const it of items)r(it,'#40c0ff');
   for(const f of feathers)r(f,'#ffc080');

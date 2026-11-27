@@ -3,7 +3,8 @@
 // Camera arată mai mult în fața curcanului, oriunde se uită
 const CAM_LOOK=44,CAM_TURN_T=90,CAM_WALK_T=15,CAM_SPRING=0.0035,CAM_DAMP=0.88,CAM_FOLLOW=0.12;   // CAM_TURN_T: cât aștepți întors până se mută camera
 const MOB_PAD=2;   // hitbox-ul mobilor, mai mic
-const mobBox=e=>{const sx=e.type==='bomb'?1:MOB_PAD,ty=e.type==='bomb'?0:MOB_PAD;return {x:e.x+sx,y:e.y+ty,w:e.w-sx*2,h:e.h-ty};};
+const mobBox=e=>{if(e.mole)return {x:e.dir>0?e.x:e.x+2,y:e.y+2,w:8,h:e.h-2};   // cârtița: corpul
+  const sx=e.type==='bomb'?1:MOB_PAD,ty=e.type==='bomb'?0:MOB_PAD;return {x:e.x+sx,y:e.y+ty,w:e.w-sx*2,h:e.h-ty};};
 const camX=()=>player.x+player.w/2-W/2+(cam.look||0);
 function updateCam(){
   // Te uiți în spate: camera așteaptă puțin

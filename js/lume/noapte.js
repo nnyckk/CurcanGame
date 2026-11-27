@@ -22,7 +22,7 @@ function drawNightLights(cx){
     // Felinarul și aura lui: nu peste curcan
     if(player&&!player.dead&&overlap(player,{x:l.x-7,y:l.y-7,w:15,h:14}))continue;
     glow(lx,ly,6*fl,hot?'255,125,110':'255,210,110',0.7);
-    if(e.mole){ctx.fillStyle=hot?'#ffa090':'#fff6b0';ctx.fillRect(lx-1,ly-1,2,2);continue;}   // lanterna de pe cască: fără lanț
+    if(e.mole){ctx.fillStyle=hot?(fl>0.9?'#f8b0a0':'#f08878'):(fl>0.9?'#fff0a0':'#f4d878');ctx.fillRect(lx-1,ly-1,2,2);continue;}   // lanterna de pe cască: fără lanț
     drawLantern(lx,ly,fl,hot);
   }
   if(!theme.snow)drawFireflies(cx);   // iarna nu sunt licurici
@@ -36,7 +36,7 @@ function drawNightLights(cx){
 function drawLantern(lx,ly,fl,hot){
   ctx.fillStyle='#8a8a9a';ctx.fillRect(lx,ly-4,1,2);
   ctx.fillStyle='#2a2018';ctx.fillRect(lx-1,ly-2,4,1);ctx.fillRect(lx-1,ly-1,1,3);ctx.fillRect(lx+2,ly-1,1,3);ctx.fillRect(lx-1,ly+2,4,1);
-  ctx.fillStyle=hot?(fl>0.9?'#f8b0a0':'#f08878'):(fl>0.9?'#ecc878':'#deb054');ctx.fillRect(lx,ly-1,2,3);   // flacăra
+  ctx.fillStyle=hot?(fl>0.9?'#f8b0a0':'#f08878'):(fl>0.9?'#fff0a0':'#f4d878');ctx.fillRect(lx,ly-1,2,3);   // flacăra
 }
 // Licurici ici-colo, aproape de sol
 function drawFireflies(cx){

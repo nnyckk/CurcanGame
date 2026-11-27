@@ -3,7 +3,7 @@ const MOLE_DIG_V=0.55;   // săpatul: mai încet
 // ===== CÂRTIȚA MINER: doar în peșteră (din editor) =====
 // Din profil, grasă, cu burtă, fără haine: blană închisă cu firicele, burta mai deschisă, bot și lăbuțe roz; casca galbenă cu lanternă
 const MOLE_PAL={k:'#1a0e10',D:'#3e2a26',F:'#5a3e36',f:'#74524a',T:'#463028',W:'#8a6a5a',w:'#a4826e',N:'#e89a90',n:'#b86a64',E:'#120808',
-  Y:'#e8c040',y:'#b08a28',h:'#fff0a0',L:'#fff8d0',P:'#e89a90',p:'#b86a64'};
+  Y:'#e8c040',y:'#b08a28',h:'#fff0a0',L:'#fff0a0',P:'#e89a90',p:'#b86a64'};
 const MOLE_TOP=[
 "......kkkkk.....",
 ".....kYhYYyLk...",
@@ -38,8 +38,10 @@ const moleHidden=e=>e.ph==='under'||e.ph==='dust';
 // Mai mult de jumătate în pământ: atingerea nu face nimic
 const moleUnder=e=>moleHidden(e)||(!moleOut(e)&&moleSink(e)>9);
 const moleSafe=e=>!!e.mole&&!moleOut(e);   // nu o atinge nimic: nici pene, nici bombe, nici săritura
+// Târnăcopul: doar coada și capul
+function pickBox(e){return {x:e.dir>0?e.x+8:e.x-9,y:e.y+7,w:11,h:6};}
 function makeMole(tx,ty){return {type:'man',mole:true,x:tx*TS+3,y:(ty+1)*TS-18,w:10,h:18,vx:0,vy:0,dir:-1,active:false,dead:0,deadT:0,anim:0,
-  ph:'walk',t:0,next:180+Math.random()*180|0,alert:0,cd:60,hunt:false,onGround:false,chasing:false,atk:0,holes:[]};}
+  ph:'walk',t:0,next:MOLE_NEXT(),turn:MOLE_TURN(),alert:0,cd:60,hunt:false,onGround:false,chasing:false,atk:0,holes:[]};}
 // Bulgări: în sus (up) sau aruncați în lateral, de ambele părți
 function moleDirt(x,y,n,up){for(let i=0;i<n;i++)parts.push({x:x+(Math.random()-0.5)*10,y,vx:(Math.random()-0.5)*1.6,vy:-(up?1.5:0.6)-Math.random()*(up?2:1),g:0.18,life:20+Math.random()*12|0,max:30,col:MOLE_DIRT[i%3],s:i%3?1:2});}
 function moleSpray(x,y){for(let i=0;i<3;i++){const d=i%2?1:-1;parts.push({x:x+d*4,y:y-1,vx:d*(1+Math.random()*1.4),vy:-1.6-Math.random()*1.6,g:0.2,life:22,max:22,col:MOLE_DIRT[(Math.random()*3)|0],s:Math.random()<0.3?2:1});}}
@@ -49,9 +51,18 @@ const moleHole=(e,x,y)=>e.holes.push({x,y,t:150});
 const moleOnEarth=e=>{const ty=Math.floor((e.y+e.h+1)/TS),a=Math.floor((e.x+1)/TS),b=Math.floor((e.x+e.w-1)/TS);return 'DG'.includes(tileAt(a,ty))&&'DG'.includes(tileAt(b,ty));};   // pământ sau iarbă
 // Unde poate ieși: o coloană cu pământ dedesubt și două pătrate libere deasupra
 function moleSpots(x0,x1){
-  const out=[];for(let tx=x0;tx<=x1;tx++)for(let r=2;r<ROWS;r++)if('DG'.includes(tileAt(tx,r))&&!solid(tileAt(tx,r-1))&&!solid(tileAt(tx,r-2))&&tileAt(tx,r-1)!=='^')out.push({tx,ty:r});
+  const ok=(tx,r)=>'DG'.includes(tileAt(tx,r))&&!solid(tileAt(tx,r-1))&&!solid(tileAt(tx,r-2))&&tileAt(tx,r-1)!=='^';
+  const out=[];for(let tx=x0;tx<=x1;tx++)for(let r=2;r<ROWS;r++)if(ok(tx,r)&&(ok(tx-1,r)||ok(tx+1,r)))out.push({tx,ty:r});   // nu pe un singur bloc
   return out;
 }
+// Calmă: sapă rar și doar cu un scop
+const MOLE_FAR=5*TS;   // mai departe de 5 pătrate: vine pe sub pământ
+const MOLE_NEXT=()=>600+Math.random()*600|0,MOLE_TURN=()=>200+Math.random()*300|0;
+// Drumul în față e închis: groapă, țepi sau perete
+function moleBlocked(e,dir){const tx=Math.floor((dir>0?e.x+e.w+1:e.x-1)/TS),ty=Math.floor((e.y+e.h-1)/TS);return !groundAhead(e,dir)||spikeAhead(e,dir)||solid(tileAt(tx,ty));}
+// Unde poate ieși: peste groapă / perete (în față) sau pe o platformă mai sus
+function moleGoal(e,why){const mc=Math.floor((e.x+5)/TS),mr=Math.floor((e.y+e.h)/TS);
+  return moleSpots(mc-7,mc+7).filter(s=>{const d=(s.tx-mc)*e.dir;return why==='edge'?d>=2&&d<=7&&s.ty<=mr+1:s.ty<mr&&Math.abs(s.tx-mc)<=7;});}
 // Ținta: aproape de curcan (3-7 pătrate, nu sub el) sau, liniștită, pe lângă locul ei
 function molePick(e){
   const inCave=under&&e.x>=under.a*TS,room=Math.min(cafe?cafe.a:cols,under?under.a:cols),a=inCave?under.a+1:0,b=inCave?under.a+under.w-2:room-2;   // afară: doar pe drum
@@ -61,6 +72,7 @@ function molePick(e){
     const back=-(player.face||1),pick=cs=>{const sp=moleSpots(Math.max(a,Math.min(...cs)),Math.min(b,Math.max(...cs))).filter(s=>cs.includes(s.tx)&&Math.abs(s.ty-pr)<=1);return sp.length?sp[Math.random()*sp.length|0]:null;};
     const s=pick([pc+back,pc+back*2])||pick([pc])||pick([pc-back,pc+back*3]);if(s)return s;
   }
+  if(!e.hunt&&e.why){const g=moleGoal(e,e.why);if(g.length){const top=Math.min(...g.map(s=>s.ty)),t=e.why==='up'?g.filter(s=>s.ty===top):g;return t[Math.random()*t.length|0];}}   // cu scop
   const c0=e.hunt?pc:mc,r0=e.hunt?pr:mr,lo=e.hunt?1:3,hi=e.hunt?7:6;
   let sp=moleSpots(Math.max(a,c0-hi),Math.min(b,c0+hi)).filter(s=>{const d=Math.abs(s.tx-c0);return d>=lo&&d<=hi;});
   if(!sp.length)return {tx:mc,ty:mr};
@@ -68,7 +80,7 @@ function molePick(e){
   if(e.hunt){const near=Math.min(...sp.map(s=>Math.abs(s.tx-c0)));sp=sp.filter(s=>Math.abs(s.tx-c0)<=near+1);}   // cât mai aproape de tine
   return sp[Math.random()*sp.length|0];
 }
-function moleDig(e,hunt){e.ph='dig';e.t=0;e.vx=0;e.hunt=hunt;e.atk=0;if(!hunt)e.chasing=false;}
+function moleDig(e,hunt,why){e.ph='dig';e.t=0;e.vx=0;e.hunt=hunt;e.why=why||null;e.atk=0;if(!hunt)e.chasing=false;}
 function updateMole(e){
   e.t++;if(e.cd>0)e.cd--;
   for(const h of e.holes)h.t--;e.holes=e.holes.filter(h=>h.t>0);
@@ -82,32 +94,39 @@ function updateMole(e){
   if(e.ph==='under'){if(e.t>=e.dur){const s=molePick(e);e.x=s.tx*TS+3;e.y=s.ty*TS-e.h;e.vy=0;e.ph='dust';e.t=0;}return;}
   if(e.ph==='dust'){if(e.t%5===0)moleDirt(gx,gy,2,false);if(e.t>=MOLE_DUST){e.ph='rise';e.t=0;mobSfx(e,'brk',MOLE_DIG_V);moleDirt(gx,gy,10,true);moleHole(e,gx,gy);
       e.dir=Math.sign(player.x+player.w/2-gx)||e.dir;}return;}
-  if(e.ph==='rise'){if(e.t%3===0&&e.t<MOLE_RISE-6)moleSpray(gx,gy);if(e.t>=MOLE_RISE){e.ph='walk';e.t=0;e.next=150+Math.random()*180|0;e.cd=e.hunt?90:30;if(e.hunt){e.chasing=true;e.lost=0;}e.hunt=false;}return;}   // după o vânătoare: o pauză până sapă iar
+  if(e.ph==='rise'){if(e.t%3===0&&e.t<MOLE_RISE-6)moleSpray(gx,gy);if(e.t>=MOLE_RISE){e.ph='walk';e.t=0;e.next=MOLE_NEXT();e.cd=e.hunt?90:30;if(e.hunt){e.chasing=true;e.lost=0;}e.hunt=false;}return;}   // după o vânătoare: o pauză până sapă iar
   const dx=(player.x+player.w/2)-gx,dy=(player.y+player.h)-gy;
   if(e.ph==='atk'){
     // Ridică târnăcopul (se întoarce după tine cât îl ridică), apoi lovește
     e.vx=0;
     if(e.t<MOLE_WIND-6&&Math.abs(dx)>6)e.dir=Math.sign(dx);
     if(e.t===MOLE_WIND)mobSfx(e,'stab');
-    if(e.t>MOLE_WIND&&e.t<=MOLE_WIND+6&&!player.dead&&overlap(player,{x:e.dir>0?e.x+e.w-2:e.x-MOLE_REACH+2,y:e.y+2,w:MOLE_REACH,h:14}))hurt(e.dir);
+    if(e.t>MOLE_WIND&&e.t<=MOLE_WIND+6&&!player.dead&&overlap(player,pickBox(e)))hurt(e.dir);
     if(e.t>=MOLE_WIND+MOLE_HIT){e.ph='walk';e.t=0;e.cd=40;}
   }else{
     const sees=!player.dead&&lanternSees(e),near=!player.dead&&Math.abs(dx)<16&&Math.abs(dy)<14;   // lovește doar când ești chiar lângă ea
     // Ca fermierul cu felinar: te vede în lumină (se face roșie), te urmărește; dacă te pierde, rămâne nedumerită
     if(e.chasing){if(sees){e.lost=0;e.lastX=player.x+player.w/2;}else if(++e.lost>LOST_T){e.chasing=false;e.puzzled=70;}}
     if(e.puzzled>0){e.puzzled--;e.vx=0;if(e.puzzled===35)e.dir*=-1;if(sees){e.puzzled=0;e.alert=24;}}
-    else if(e.alert>0){e.alert--;e.vx=0;if(Math.abs(dx)>2)e.dir=Math.sign(dx);if(e.alert===0){if(Math.abs(dx)>48&&moleOnEarth(e))moleDig(e,true);else{e.chasing=true;e.lost=0;e.cd=10;}}}   // la cel mult 3 pătrate: vine direct, fără să sape
+    else if(e.alert>0){e.alert--;e.vx=0;if(Math.abs(dx)>2)e.dir=Math.sign(dx);if(e.alert===0){if(Math.abs(dx)>MOLE_FAR&&moleOnEarth(e))moleDig(e,true);else{e.chasing=true;e.lost=0;e.cd=10;}}}   // până la 5 pătrate: vine pe jos
     // Ești lângă ea (în față sau în spate): se întoarce și lovește
     else if(near&&(e.chasing||sees)&&!e.cd&&e.onGround){if(Math.abs(dx)>3)e.dir=Math.sign(dx);e.ph='atk';e.t=0;e.vx=0;mobSfx(e,'windup');}   // doar dacă te-a văzut, ca fermierul
     else if(sees&&!e.chasing&&!e.cd&&e.onGround){e.alert=24;e.vx=0;if(G.t-G.lastAlert>30){mobSfx(e,'alert');G.lastAlert=G.t;}}
     else if(e.chasing){
       // Te urmărește (lumina roșie): dacă ești la mai mult de 3 pătrate, dar cel mult 12, vine pe sub pământ
       const tdx=(sees?player.x+player.w/2:e.lastX||gx)-gx;
-      if(!e.cd&&Math.abs(dx)>48&&Math.abs(dx)<=12*TS&&e.onGround&&moleOnEarth(e))moleDig(e,true);
+      if(!e.cd&&(Math.abs(dx)>MOLE_FAR||(Math.abs(dx)>48&&(Math.abs(dy)>=TS||moleBlocked(e,Math.sign(dx)))))&&Math.abs(dx)<=12*TS&&e.onGround&&moleOnEarth(e))moleDig(e,true);   // departe, pe alt etaj sau cu drumul închis
       else{if(Math.abs(tdx)>4)e.dir=Math.sign(tdx);e.vx=Math.abs(tdx)>4?e.dir*0.75:0;if(e.onGround&&(!groundAhead(e,e.dir)||spikeAhead(e,e.dir)))e.vx=0;}}
-    else if(e.t>=e.next&&e.onGround&&moleOnEarth(e))moleDig(e,false);   // din când în când se mută
+    else if(e.t>=e.next&&e.onGround){e.next=e.t+MOLE_NEXT();if(moleOnEarth(e)&&moleGoal(e,'up').length)moleDig(e,false,'up');}   // rar: urcă pe o platformă
+    else if(e.stop>0){e.stop--;e.vx=0;if(e.stop===15)e.dir*=-1;}   // se oprește și se întoarce
+    else if(--e.turn<=0){e.turn=MOLE_TURN();e.stop=30;e.vx=0;}
     else{
-      e.vx=e.dir*MOLE_SPEED;if(e.onGround&&(!groundAhead(e,e.dir)||spikeAhead(e,e.dir))){e.dir*=-1;e.vx=e.dir*MOLE_SPEED;}}
+      e.vx=e.dir*MOLE_SPEED;
+      if(e.onGround&&moleBlocked(e,e.dir)&&moleBlocked(e,-e.dir)&&moleOnEarth(e))moleDig(e,false);   // prinsă: sapă și pleacă
+      else if(e.onGround&&moleBlocked(e,e.dir)){
+        // În fața gropii / peretelui: uneori sapă dincolo, altfel se întoarce
+        if(!e.cd&&Math.random()<0.35&&moleOnEarth(e)&&moleGoal(e,'edge').length)moleDig(e,false,'edge');
+        else{e.dir*=-1;e.vx=e.dir*MOLE_SPEED;e.cd=Math.max(e.cd,60);}}}
   }
   e.vy=Math.min(e.vy+0.4,7);
   const moving=e.vx!==0;moveX(e);if(e.hitWall&&e.ph==='walk')e.dir*=-1;moveY(e);
