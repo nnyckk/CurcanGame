@@ -3,9 +3,11 @@
 function par(img,f,y=0,extra=0){const w=img.width;let ox=-((cam.x*f+extra)%w);if(ox>0)ox-=w;ox=Math.floor(ox);ctx.drawImage(img,ox,y);ctx.drawImage(img,ox+w,y);}
 // cy: camera sus/jos; dealurile coboară mai încet (paralaxă), cerul stă
 const BG_CAM_Y=0.35;
-function drawBG(cy=0){ctx.drawImage(bg.sky,0,0);const by=Math.round(-cy*BG_CAM_Y);ctx.save();ctx.translate(0,by);if(bg.clouds)par(bg.clouds,0.1,0,G.t*0.08);
+function drawBG(cy=0){ctx.drawImage(bg.sky,0,0);const by=Math.round(-cy*BG_CAM_Y);ctx.save();ctx.translate(0,by);if(bg.clouds){par(bg.clouds,0.1,0,G.t*0.08);if(by>0){par(bg.clouds,0.08,-115,G.t*0.06+300);par(bg.clouds,0.06,-230,G.t*0.05+520);}}   // sus: încă două rânduri de nori
   if(bg.dyn&&!bg.night)drawBirds();par(bg.far,0.2);if(bg.dyn)drawFarmLife();par(bg.mid,0.45);if(bg.near)par(bg.near,0.7);ctx.restore();}
 const BUMPY=[2,4,5,5,4,3,2,1];
+// Ca tileAt, dar vede și rândurile de sub nivel (doar pentru desen)
+const tileDraw=(x,y)=>y>=ROWS&&y<botRow?(x<0||x>=cols?'X':grid[y][x]):tileAt(x,y);
 // Vecinii lângă care pământul nu are margine
 const EARTH_N='GDIXF',EARTH_BLK='BPMHARES';
 const EDGE_CACHE=new Map();
@@ -28,11 +30,11 @@ function earthEdge(img,l,r,b,grass,bare){
 const earthBase=(c,tx,ty)=>c==='G'?(tiles.Gv?pickVar(tiles.Gv,tx,ty):tiles.G):(tiles.Dv?pickVar(tiles.Dv,tx,ty):tiles.D);
 // Pământul din spate: iarbă sus, tot mai închis în jos
 // Dealurile din spate: aceeași culoare pe toată înălțimea; umbra vine din harta de umbră, ca la prim-plan
-function wImg(tx,ty){let d=0;while(d<4&&tileAt(tx,ty-1-d)==='W')d++;if(!d&&tileAt(tx,ty-1)!=='Z')return tiles.WG;const a=tiles.Wd[0];return a.length>1?pickVar(a,tx,ty):a[0];}
-function zImg(tx,ty){let d=0;while(d<4&&tileAt(tx,ty-1-d)==='Z')d++;if(!d)return tiles.ZG;const a=tiles.Zd[0];return a.length>1?pickVar(a,tx,ty):a[0];}
+function wImg(tx,ty){let d=0;while(d<4&&tileDraw(tx,ty-1-d)==='W')d++;if(!d&&tileDraw(tx,ty-1)!=='Z')return tiles.WG;const a=tiles.Wd[0];return a.length>1?pickVar(a,tx,ty):a[0];}
+function zImg(tx,ty){let d=0;while(d<4&&tileDraw(tx,ty-1-d)==='Z')d++;if(!d)return tiles.ZG;const a=tiles.Zd[0];return a.length>1?pickVar(a,tx,ty):a[0];}
 // Ce se vede prin colțurile rotunjite: pasajul sau pământul din spate
 function behindEarth(tx,ty){
-  const ns=[[1,0],[-1,0],[0,1],[0,-1]].map(([a,b])=>[tx+a,ty+b,tileAt(tx+a,ty+b)]);
+  const ns=[[1,0],[-1,0],[0,1],[0,-1]].map(([a,b])=>[tx+a,ty+b,tileDraw(tx+a,ty+b)]);
   if(ns.some(n=>n[2]==='Y'))return tiles.Yv[vhash(tx,ty)%3];
   const z=ns.find(n=>n[2]==='Z');if(z)return zImg(z[0],z[1]);const w=ns.find(n=>n[2]==='W');return w?wImg(w[0],w[1]):null;
 }
@@ -75,14 +77,14 @@ function darkFringe(px,w,y,cx){const x=Math.round(px-cx);if(x<-40||x>W)return;
 }
 // Pasajul prin deal: umbră sub tavan; la gură peretele coboară și se rotunjește
 function drawTunnel(tx,ty,cx){
-  const x=tx*TS-cx,y=ty*TS,rc=tileAt(tx,ty-1),open=t=>t!=='Y'&&!EARTH_N.includes(t);
+  const x=tx*TS-cx,y=ty*TS,rc=tileDraw(tx,ty-1),open=t=>t!=='Y'&&!EARTH_N.includes(t);
   ctx.drawImage(tiles.Yv[vhash(tx,ty)%3],x,y);
   if(rc==='.'){darkFringe(tx*TS,TS,y,cx);return;}   // deschis spre cer: ca groapa peșterii
   if(EARTH_BLK.includes(rc)){ctx.fillStyle='rgba(0,0,0,0.35)';ctx.fillRect(x,y,16,3);ctx.fillStyle='rgba(0,0,0,0.18)';ctx.fillRect(x,y+3,16,3);return;}   // sub cărămizi: doar umbra tavanului
   if(!EARTH_N.includes(rc))return;
   ctx.fillStyle='rgba(0,0,0,0.35)';ctx.fillRect(x,y,16,3);ctx.fillStyle='rgba(0,0,0,0.18)';ctx.fillRect(x,y+3,16,3);
   const d=mixHex(theme.dirtD,'#000000',0.45),top=earthBase(rc,tx,ty-1),tex=earthBase('D',tx,ty);
-  for(const s of [-1,1]){if(!open(tileAt(tx+s,ty)))continue;
+  for(const s of [-1,1]){if(!open(tileDraw(tx+s,ty)))continue;
     const P=(i,yy,col)=>{ctx.fillStyle=col;ctx.fillRect(x+(s<0?i:15-i),yy,1,1);};
     const row=(src,sy,n,yy)=>{if(n>0){const sx=s<0?1:15-n;ctx.drawImage(src,sx,sy,n,1,x+sx,yy,n,1);}};
     const sh=s<0?[[1,'rgba(0,0,0,0.15)']]:[[1,'rgba(0,0,0,0.25)'],[2,'rgba(0,0,0,0.12)']];
@@ -97,7 +99,7 @@ function drawTiles(cx){
   const x0=Math.max(0,Math.floor(cx/TS)),x1=Math.min(cols-1,Math.floor((cx+W)/TS));
   const fi=[0,1,2,1][(G.t>>3)%4],mf=tiles.M[fi];
   const cy=inRoom()?0:Math.round(cam.y),y0=Math.max(topRow,Math.floor(cy/TS)-1),y1=Math.min(botRow-1,Math.floor((cy+H+(G.lift||0))/TS)+1);   // doar rândurile din ecran
-  const at=(x,y)=>y>=ROWS&&y<botRow?(x<0||x>=cols?'X':grid[y][x]):tileAt(x,y);   // și rândurile de dedesubt (doar desen)
+  const at=tileDraw;
   for(let ty=y0;ty<=y1;ty++){const row=grid[ty];for(let tx=x0;tx<=x1;tx++){const c=row[tx];if(c==='.')continue;
     // Placa de gheață se desenează în drawWater
     if(c==='I'){

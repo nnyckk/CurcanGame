@@ -50,8 +50,9 @@ function edSendView(){
   // Când testezi: harta urmează curcanul (drum sau peșteră)
   const play=G.state!=='edit',cave=play?!!(G.inUnder&&under):ED.region==='cave',r=cave?'cave':'main';
   const z=!play?edZone():cave?{a:under.a,w:under.w}:{a:0,w:CUSTOM.L?CUSTOM.L.w:cols};
-  const v=JSON.stringify([Math.round(cam.x/TS*10)/10,G.state,r,z.a,z.w]);if(v===ED.view)return;ED.view=v;
-  toParent({edView:{cam:cam.x/TS-z.a,view:W/TS,cols:z.w,state:G.state,region:r}});
+  const camY=cave?0:cam.y/TS;   // și sus / jos, în rânduri
+  const v=JSON.stringify([Math.round(cam.x/TS*10)/10,Math.round(camY*10)/10,G.state,r,z.a,z.w]);if(v===ED.view)return;ED.view=v;
+  toParent({edView:{cam:cam.x/TS-z.a,camY,view:W/TS,cols:z.w,state:G.state,region:r}});
 }
 // Iconițele din panou, în culorile biomului
 function edIcons(){

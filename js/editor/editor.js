@@ -886,14 +886,15 @@ function drawMap(){
   const dpr=devicePixelRatio||1,Wd=Math.round(mapCv.clientWidth*dpr),Hd=Math.round(mapCv.clientHeight*dpr);
   if(!Wd||!Hd)return;if(mapCv.width!==Wd||mapCv.height!==Hd){mapCv.width=Wd;mapCv.height=Hd;}
   const th=THEME||{sky:['#4fb4f0','#b4e6fc'],grass:'#5ac04a',dirt:'#8a5a34',water:'#2a6aa8',night:false};
-  const cave=region==='cave'&&L.cave,z=cave?L.cave:L,sx=Wd/z.w,rh=Hd/ED_ROWS,cell=(x,y,w,h,c)=>{mg.fillStyle=c;mg.fillRect(Math.floor(x*sx),Math.round(y*rh),Math.max(1,Math.ceil(w*sx)),Math.max(1,Math.round(h*rh)));};
+  const cave=region==='cave'&&L.cave,z=cave?L.cave:L,R0=cave?0:-ED_SKY,R1=cave?ED_ROWS:ED_ROWS+ED_DEEP;   // pe drum: și rândurile de sus și de jos
+  const sx=Wd/z.w,rh=Hd/(R1-R0),cell=(x,y,w,h,c)=>{mg.fillStyle=c;mg.fillRect(Math.floor(x*sx),Math.round((y-R0)*rh),Math.max(1,Math.ceil(w*sx)),Math.max(1,Math.round(h*rh)));};
   if(cave){mg.fillStyle='#1a1424';mg.fillRect(0,0,Wd,Hd);}
   else{const sky=mg.createLinearGradient(0,0,0,Hd);th.sky.forEach((c,i)=>sky.addColorStop(i/Math.max(1,th.sky.length-1),c));mg.fillStyle=sky;mg.fillRect(0,0,Wd,Hd);}
   for(let x=0;x<z.w;x++){
     const pit=!cave&&z.grid[12][x]==='.'&&z.grid[13][x]==='.';
-    for(let y=0;y<ED_ROWS;y++){const c=z.grid[y][x];
-      if(c==='.'){if(pit&&y>=12)cell(x,y===12?12.3:13,1,y===12?0.7:1,th.water);continue;}
-      if(c==='D'){const top=y===0||!'DZW'.includes(z.grid[y-1][x]);cell(x,y,1,1,th.dirt);if(top&&!cave)cell(x,y,1,0.45,th.grass);continue;}
+    for(let y=R0;y<R1;y++){const c=z.grid[y][x];
+      if(c==='.'){if(pit&&y>=12)cell(x,y===12?12.3:y,1,y===12?0.7:1,th.water);continue;}
+      if(c==='D'){const top=y===R0||!'DZW'.includes(z.grid[y-1][x]);cell(x,y,1,1,th.dirt);if(top&&!cave)cell(x,y,1,0.45,th.grass);continue;}
       if(c==='Z'||c==='W'){cell(x,y,1,1,c==='Z'?'rgba(70,40,30,.55)':'rgba(70,40,30,.35)');continue;}
       if(c==='Y'){cell(x,y,1,1,'rgba(20,10,10,.6)');continue;}
       if(c==='='){cell(x,y,1,0.4,TILE_COL[c]);continue;}
@@ -902,10 +903,10 @@ function drawMap(){
   }
   if(th.night&&!cave){mg.fillStyle='rgba(12,18,56,.4)';mg.fillRect(0,0,Wd,Hd);}
   // Lucrurile puse
-  const dot=(x,y,c,r)=>{mg.fillStyle=c;mg.beginPath();mg.arc((x+0.5)*sx,(y+0.5)*rh,Math.max(1.5*dpr,rh*(r||0.35)),0,Math.PI*2);mg.fill();};
+  const dot=(x,y,c,r)=>{mg.fillStyle=c;mg.beginPath();mg.arc((x+0.5)*sx,(y+0.5-R0)*rh,Math.max(1.5*dpr,rh*(r||0.35)),0,Math.PI*2);mg.fill();};
   const MOB={boy:'#f4f4f4',man:'#ff4a4a',bomb:'#ffa024'};
   for(const [x,y] of z.coins)cell(x+0.3,y+0.3,0.4,0.4,'#ffd23f');
-  for(const g of z.golds){mg.strokeStyle='#ffd23f';mg.lineWidth=dpr;const cx=(g.x+0.5)*sx,cy=(g.y+0.5)*rh,r=Math.max(2.5*dpr,rh*0.4);
+  for(const g of z.golds){mg.strokeStyle='#ffd23f';mg.lineWidth=dpr;const cx=(g.x+0.5)*sx,cy=(g.y+0.5-R0)*rh,r=Math.max(2.5*dpr,rh*0.4);
     mg.beginPath();mg.moveTo(cx,cy-r);mg.lineTo(cx+r,cy);mg.lineTo(cx,cy+r);mg.lineTo(cx-r,cy);mg.closePath();mg.stroke();}
   for(const m of z.ents)dot(m.x,m.y-0.1,MOB[m.t]);
   if(cave){
@@ -923,17 +924,18 @@ function drawMap(){
     if(L.goal)cell(L.goal.x,L.goal.type==='sign'?8:7,L.goal.type==='sign'?4.5:12,L.goal.type==='sign'?4:5,L.goal.type==='sign'?'#c89050':'#a8442a');
     if(L.cafe)cell(L.cafe.x,6.5,6,5.5,'#6e5040');
     if(L.cave)for(const hx of [L.cave.x,L.cave.x2])cell(hx,12,2,2,'#9fe8ff');
-    const x=(L.start+0.5)*sx,y=(startRow(L.start)-0.6)*rh;mg.fillStyle='#ffd23f';mg.strokeStyle='#000';mg.lineWidth=dpr;
+    const x=(L.start+0.5)*sx,y=(startRow(L.start)-0.6-R0)*rh;mg.fillStyle='#ffd23f';mg.strokeStyle='#000';mg.lineWidth=dpr;
     mg.beginPath();mg.arc(x,y,Math.max(2.5*dpr,rh*0.45),0,Math.PI*2);mg.fill();mg.stroke();}
   // Ce se vede acum în joc
-  const vx=Math.round(view.cam*sx),vw=Math.round(view.view*sx);
-  mg.fillStyle='rgba(255,255,255,.14)';mg.fillRect(vx,0,vw,Hd);mg.strokeStyle='rgba(255,255,255,.75)';mg.lineWidth=dpr;mg.strokeRect(vx+dpr/2,dpr/2,vw-dpr,Hd-dpr);
-  if(hover&&!playing&&(hover.r||'main')===region)cell(hover.x,0,1,14,'rgba(255,210,63,.35)');
+  const vx=Math.round(view.cam*sx),vw=Math.round(view.view*sx),vy=Math.round(((view.camY||0)-R0)*rh),vh=Math.round(ED_ROWS*rh);
+  mg.fillStyle='rgba(255,255,255,.14)';mg.fillRect(vx,vy,vw,vh);mg.strokeStyle='rgba(255,255,255,.75)';mg.lineWidth=dpr;mg.strokeRect(vx+dpr/2,vy+dpr/2,vw-dpr,vh-dpr);
+  if(hover&&!playing&&(hover.r||'main')===region)cell(hover.x,R0,1,R1-R0,'rgba(255,210,63,.35)');
 }
 // Click sau trage pe hartă: jocul arată locul acela
 let mapDrag=false;
 const mapCol=e=>{const r=mapCv.getBoundingClientRect();return Math.min(1,Math.max(0,(e.clientX-r.left)/r.width))*zone().w;};
-const mapGo=e=>{if(!playing)send('edCam',{x:mapCol(e)-view.view/2});};
+const mapRow=e=>{const r=mapCv.getBoundingClientRect(),f=Math.min(1,Math.max(0,(e.clientY-r.top)/r.height));return -ED_SKY+f*(ED_ROWS+ED_DEEP+ED_SKY);};
+const mapGo=e=>{if(playing)return;send('edCam',{x:mapCol(e)-view.view/2});if(region!=='cave')send('edCamY',{y:(mapRow(e)-ED_ROWS/2)*16});};   // și sus / jos
 mapCv.addEventListener('pointerdown',e=>{mapDrag=true;mapCv.setPointerCapture(e.pointerId);mapGo(e);});
 mapCv.addEventListener('pointermove',e=>{if(mapDrag)mapGo(e);});
 mapCv.addEventListener('pointerup',()=>{mapDrag=false;focusGame();});
